@@ -79,8 +79,17 @@ class SimulationRequest(BaseModel):
     event_year: int
     severity: float
 
+COUNTRY_ALIASES = {
+    "Turkey": "Türkiye",
+    "Russia": "Russian Federation",
+    "US": "United States of America",
+    "USA": "United States of America",
+    "Vietnam": "Viet Nam"
+}
+
 @app.post("/api/v1/simulate_calamity")
 async def simulate_calamity(payload: SimulationRequest):
+    payload.country = COUNTRY_ALIASES.get(payload.country, payload.country)
     try:
         # ---------------------------------------------------------
         # 1. The Math Engine Execution (Predictive)

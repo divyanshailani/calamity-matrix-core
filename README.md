@@ -172,7 +172,7 @@ Retrieval correctly resolved geographic and semantic context without keyword mat
 - **Phase 14 (Completed):** Geospatial & RAG UI Overhaul — MapLibre migration, CartoDB Positron, Semantic Split-Brain Guardrails, Tactical Map Markers
 - **Phase 15 (Completed):** Integrity & Security Restoration — Heuristic Hybrid RAG, Offline HDX metadata resolution bypass, Backend credential sanitization
 - **Phase 16 (Completed):** Multi-Physics Architecture (Math Engine v3) — Disaster-specific segregated XGBoost tuning & dynamic API routing
-- **Phase 17 (Completed):** Telemetry HUD — Diagnostic exposure of Math Engine RMSE/Features and RAG Semantic Confidence in Next.js
+- **Phase 17 (Completed):** Telemetry HUD & Guardrails — Diagnostic HUD, Telemetry Arcs, Strict Geographic Enclosure, Recommendation Engine, and Zero-Vector Schema Fixes
 - **Phase 18 (Next):** Qwen3-8B QLoRA fine-tuning on Modal L40S — domain-specific disaster QA dataset
 - **Phase 19:** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
 - **Phase 20:** Modal LLM Integration — Wire the local Next.js frontend to the Modal serverless endpoint
