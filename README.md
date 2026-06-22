@@ -12,9 +12,6 @@
 
 ## What It Does
 
-> [!WARNING]
-> **Current State (v1.4.0):** The backend infrastructure (Math Engine, pgvector RAG, Cloud Service fine-tuned LLM inference via SSE) is 100% operational. However, the Next.js UI is currently suffering from CSS overflow glitches and "developer console" aesthetics due to raw JSON streaming. A major UX/UI overhaul (Phase 21) is scheduled to elevate the dashboard into a professional, defense-grade application.
-
 Two parallel intelligence layers over 25 years of global natural disaster data (2000–2025):
 
 **Math Engine** — XGBoost regression trained on fused structured matrices (USGS seismic, NASA EONET fires/floods/storms, EM-DAT casualties/impacts, Smithsonian volcanism). Outputs base-rate hazard probability and historical impact estimates (casualties, affected population) for a given disaster type and region.
@@ -183,6 +180,6 @@ Retrieval correctly resolved geographic and semantic context without keyword mat
 - **Phase 18 (Completed):** Qwen3-8B QLoRA fine-tuning on Hosted Workbench (L40S, 32GB RAM, 8 Core CPU) — domain-specific disaster QA dataset
 - **Phase 19 (Completed):** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
 - **Phase 20 (Completed):** Cloud Service LLM Integration — Wired the local Next.js frontend to the Cloud Service serverless endpoint
-- **Phase 21 (Next):** UI/UX Portfolio Overhaul — Redesign the Next.js UI into a high-end defense-grade dashboard, add user onboarding/context, and parse LLM streaming output into styled Markdown.
+- **Phase 21 (Completed):** V1 Beta Pivot — Decoupled the experimental LLM synthesis layer to prioritize UI stability, launching the project as a pure Neuro-Symbolic RAG engine.
 
 See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.
