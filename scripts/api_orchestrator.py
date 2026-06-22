@@ -151,36 +151,62 @@ async def simulate_calamity(payload: SimulationRequest):
         full_query = instruction + master_semantic_query
         query_embedding = models['embedder'].encode(full_query, normalize_embeddings=True).tolist()
 
-        
+        # Map EM-DAT taxonomy to ReliefWeb taxonomy for RAG matching
+        rw_types = [payload.disaster_type]
+        dt_lower = payload.disaster_type.lower()
+        if dt_lower == "extreme temperature":
+            rw_types = ["Heat Wave", "Cold Wave", "Extreme temperature"]
+        elif dt_lower == "storm":
+            rw_types = ["Storm", "Storm Surge", "Tropical Cyclone", "Extratropical Cyclone", "Severe Local Storm"]
+        elif dt_lower == "mass movement (wet)":
+            rw_types = ["Mud Slide", "Land Slide", "Mass movement (wet)"]
+        elif dt_lower == "volcanic activity":
+            rw_types = ["Volcano", "Volcanic activity"]
+        elif dt_lower == "wildfire":
+            rw_types = ["Wild Fire", "Fire", "Wildfire"]
+            
         db_pool = models['db_pool']
         conn = db_pool.getconn()
         
         try:
             cur = conn.cursor()
             
-            # Pass 1: Strict match
+            # Pass 1: Strict match (Year, Country, Disaster Type)
             sql_query_pass1 = """
                 SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
                        1 - (embedding <=> %s::vector) AS cosine_similarity
                 FROM disaster_narratives
-                WHERE event_year = %s AND disaster_type ILIKE %s
+                WHERE event_year = %s AND disaster_type = ANY(%s) AND country ILIKE %s
                 ORDER BY embedding <=> %s::vector
                 LIMIT 3;
             """
-            cur.execute(sql_query_pass1, (query_embedding, payload.event_year, payload.disaster_type, query_embedding))
+            cur.execute(sql_query_pass1, (query_embedding, payload.event_year, rw_types, payload.country, query_embedding))
             results = cur.fetchall()
             
-            # Pass 2: Heuristic match (±10 years) if we don't have enough results
+            # Pass 2: Relax Year (±10 years), but enforce Country and Disaster Type
             if len(results) < 3:
                 sql_query_pass2 = """
                     SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
                            1 - (embedding <=> %s::vector) AS cosine_similarity
                     FROM disaster_narratives
-                    WHERE event_year BETWEEN %s AND %s AND disaster_type ILIKE %s
+                    WHERE event_year BETWEEN %s AND %s AND disaster_type = ANY(%s) AND country ILIKE %s
                     ORDER BY embedding <=> %s::vector
                     LIMIT 3;
                 """
-                cur.execute(sql_query_pass2, (query_embedding, payload.event_year - 10, payload.event_year + 10, payload.disaster_type, query_embedding))
+                cur.execute(sql_query_pass2, (query_embedding, payload.event_year - 10, payload.event_year + 10, rw_types, payload.country, query_embedding))
+                results = cur.fetchall()
+                
+            # Pass 3: Deep Fallback (Drop Year and Country, purely vector distance + Disaster Type)
+            if len(results) < 3:
+                sql_query_pass3 = """
+                    SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
+                           1 - (embedding <=> %s::vector) AS cosine_similarity
+                    FROM disaster_narratives
+                    WHERE disaster_type = ANY(%s)
+                    ORDER BY embedding <=> %s::vector
+                    LIMIT 3;
+                """
+                cur.execute(sql_query_pass3, (query_embedding, rw_types, query_embedding))
                 results = cur.fetchall()
                 
             cur.close()
