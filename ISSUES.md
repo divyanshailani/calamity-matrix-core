@@ -94,6 +94,14 @@ This is clearly documented in the README. No model in this project claims to pre
 
 **Solution:** Implemented Heuristic Hybrid RAG in `api_orchestrator.py`. Pass 1 executes a strict `event_year = {year}` match. If it yields < 3 results, Pass 2 heuristically expands the search to `event_year BETWEEN {year} - 10 AND {year} + 10`, guaranteeing contextual retrieval.
 
+## 10. RAG Hallucination on Extreme Temperature (Semantic Invariant Patch) [RESOLVED]
+
+**Issue:** An 'Extreme temperature' query retrieved 'Earthquake' analogues. The Heuristic Hybrid RAG was failing to find records because the frontend used the EM-DAT taxonomy ("Extreme temperature"), but the backend HDX corpus used ReliefWeb taxonomy ("Heat Wave", "Cold Wave"). The exact `disaster_type` SQL check failed, and the fallback logic was incorrectly configured, allowing it to retrieve wildly irrelevant physical events (Earthquakes).
+
+**Solution:**
+1. **Semantic Invariant Patch:** Rewrote the dual-pass RAG SQL into a strict 3-pass logic. Pass 3 (Deep Fallback) will drop Country and Year constraints if < 3 results exist, but it **never** drops the `disaster_type` constraint.
+2. **Taxonomy Bridge:** Added an interception layer in `api_orchestrator.py` mapping EM-DAT terms to arrays of valid ReliefWeb terms (e.g., `["Heat Wave", "Cold Wave", "Extreme temperature"]`) and updated the SQL to use `disaster_type = ANY(%s)`. Hallucination eliminated.
+
 ---
 
 ## Upcoming Issues / Tracked Items
@@ -104,6 +112,7 @@ This is clearly documented in the README. No model in this project claims to pre
 - [x] **Integrity & Security Restoration** — Phase 15: Heuristic Hybrid RAG, Offline HDX metadata resolution bypass, Backend credential sanitization
 - [x] **Multi-Physics Architecture (Math Engine v3)** — Phase 16: Disaster-specific segregated XGBoost tuning & dynamic API routing
 - [x] **Telemetry HUD** — Phase 17: Diagnostic exposure of Math Engine RMSE/Features and RAG Semantic Confidence in Next.js
+- [x] **Semantic Invariant Patch** — Phase 17.5: Taxonomy bridging and 3-pass RAG filtering
 - [ ] **Qwen3-8B LoRA fine-tuning** — Phase 18: Modal L40S, checkpoint-to-volume preemption recovery, bge-large query prefix at inference
 - [ ] **Synthesizer bridge** — Phase 19: Math Engine output → RAG retrieval → LLM synthesis pipeline
 - [ ] **Modal LLM Integration** — Phase 20: Wire the local Next.js frontend to the Modal serverless endpoint for real-time inference streaming.
