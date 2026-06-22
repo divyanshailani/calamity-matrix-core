@@ -96,9 +96,15 @@ export default function GeospatialMap({
     
     const features = results.historical_context
       .filter((ctx: any) => ctx.lat != null && ctx.lng != null)
-      .map((ctx: any) => {
+      .map((ctx: any, idx: number) => {
+        // Apply identical radial jitter so the arc perfectly hits the jittered marker
+        const angle = idx * ((Math.PI * 2) / 3);
+        const radius = idx === 0 ? 0 : 0.8;
+        const jitterLat = ctx.lat + (Math.sin(angle) * radius);
+        const jitterLng = ctx.lng + (Math.cos(angle) * radius);
+        
         const coords = generateArc(
-          { lat: ctx.lat, lng: ctx.lng }, 
+          { lat: jitterLat, lng: jitterLng }, 
           { lat: target.lat, lng: target.lng }
         );
         return {
@@ -149,27 +155,34 @@ export default function GeospatialMap({
           </Source>
         )}
 
-        {/* Target Country Marker */}
-        {countryCoords[country] && results && (
+        {/* Target Country Marker — only shown when no historical matches found */}
+        {countryCoords[country] && results && results.historical_context?.length === 0 && (
           <Marker 
             longitude={countryCoords[country].lng} 
             latitude={countryCoords[country].lat} 
-            anchor="bottom"
+            anchor="center"
           >
-            <div className="animate-bounce relative flex h-6 w-6 justify-center">
-              <span className="absolute inline-flex rounded-full h-4 w-4 bg-red-500 opacity-80 border border-white"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600 mt-0.5"></span>
+            <div className="relative flex h-12 w-12 items-center justify-center">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500/40"></span>
+              <span className="absolute inline-flex h-8 w-8 rounded-full bg-red-500/30"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-red-600 border-[2.5px] border-zinc-900 shadow-[0_0_15px_rgba(220,38,38,0.7)]"></span>
             </div>
           </Marker>
         )}
         {results?.historical_context?.map((ctx: any, idx: number) => {
           if (ctx.lat == null || ctx.lng == null) return null;
           
+          // Add a slight radial jitter so markers at the exact same coordinates don't perfectly overlap
+          const angle = idx * ((Math.PI * 2) / 3); // Spread 120 degrees apart
+          const radius = idx === 0 ? 0 : 0.8; // First marker centered, others offset by ~80km
+          const jitterLat = ctx.lat + (Math.sin(angle) * radius);
+          const jitterLng = ctx.lng + (Math.cos(angle) * radius);
+          
           return (
             <Marker 
               key={`marker-${idx}`} 
-              longitude={ctx.lng} 
-              latitude={ctx.lat} 
+              longitude={jitterLng} 
+              latitude={jitterLat} 
               anchor="center"
             >
               <div className="relative flex h-5 w-5 group">
