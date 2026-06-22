@@ -8,6 +8,9 @@
 
 ## What It Does
 
+> [!WARNING]
+> **Current State (v1.4.0):** The backend infrastructure (Math Engine, pgvector RAG, Modal fine-tuned LLM inference via SSE) is 100% operational. However, the Next.js UI is currently suffering from CSS overflow glitches and "developer console" aesthetics due to raw JSON streaming. A major UX/UI overhaul (Phase 21) is scheduled to elevate the dashboard into a professional, defense-grade application.
+
 Two parallel intelligence layers over 25 years of global natural disaster data (2000–2025):
 
 **Math Engine** — XGBoost regression trained on fused structured matrices (USGS seismic, NASA EONET fires/floods/storms, EM-DAT casualties/impacts, Smithsonian volcanism). Outputs base-rate hazard probability and historical impact estimates (casualties, affected population) for a given disaster type and region.
@@ -173,8 +176,9 @@ Retrieval correctly resolved geographic and semantic context without keyword mat
 - **Phase 15 (Completed):** Integrity & Security Restoration — Heuristic Hybrid RAG, Offline HDX metadata resolution bypass, Backend credential sanitization
 - **Phase 16 (Completed):** Multi-Physics Architecture (Math Engine v3) — Disaster-specific segregated XGBoost tuning & dynamic API routing
 - **Phase 17 (Completed):** Telemetry HUD & Guardrails — Diagnostic HUD, Telemetry Arcs, Strict Geographic Enclosure, Recommendation Engine, and Zero-Vector Schema Fixes
-- **Phase 18 (Next):** Qwen3-8B QLoRA fine-tuning on Modal L40S — domain-specific disaster QA dataset
-- **Phase 19:** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
-- **Phase 20:** Modal LLM Integration — Wire the local Next.js frontend to the Modal serverless endpoint
+- **Phase 18 (Completed):** Qwen3-8B QLoRA fine-tuning on Modal L40S — domain-specific disaster QA dataset
+- **Phase 19 (Completed):** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
+- **Phase 20 (Completed):** Modal LLM Integration — Wired the local Next.js frontend to the Modal serverless endpoint
+- **Phase 21 (Next):** UI/UX Portfolio Overhaul — Redesign the Next.js UI into a high-end defense-grade dashboard, add user onboarding/context, and parse LLM streaming output into styled Markdown.
 
 See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.

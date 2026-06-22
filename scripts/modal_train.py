@@ -6,8 +6,6 @@ Trains Qwen3-8B via pure bfloat16 LoRA with preemption armor.
 import os
 import modal
 
-os.environ["HF_TOKEN"] = "<INSERT_YOUR_HF_TOKEN_HERE>"
-
 app = modal.App("calamity-qwen3-pure-lora")
 
 image = (
@@ -19,25 +17,22 @@ image = (
         "trl",
         "accelerate",
         "datasets",
+        "tenacity"
     )
+    .add_local_file("calamity_training_data.jsonl", remote_path="/data/calamity_training_data.jsonl")
 )
 
 volume = modal.Volume.from_name("calamity-model-cache", create_if_missing=True)
 
-data_mount = modal.Mount.from_local_file(
-    local_path="calamity_training_data.jsonl",
-    remote_path="/data/calamity_training_data.jsonl"
-)
 
 @app.function(
     gpu="L40S",
     cpu=8.0,
     memory=32768,
     timeout=3600,
-    retries=modal.Retries(max_retries=3, backoff_delay=10.0),
+    retries=modal.Retries(max_retries=3, initial_delay=10.0),
     image=image,
-    volumes={"/model_cache": volume},
-    mounts=[data_mount]
+    volumes={"/model_cache": volume}
 )
 def train():
     import torch
@@ -45,7 +40,7 @@ def train():
     from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
     from peft import LoraConfig, get_peft_model
     from datasets import load_dataset
-    from trl import SFTTrainer
+    from trl import SFTTrainer, SFTConfig
 
     def safe_load(fn, *args, retries=5, delay=10, **kwargs):
         """Robust loading to survive network drops."""
@@ -59,9 +54,9 @@ def train():
                 time.sleep(delay)
 
     print("Loading base model securely...")
-    model_id = "Qwen/Qwen3-8B-Instruct"
+    model_id = "Qwen/Qwen3-8B"
     
-    tokenizer = safe_load(AutoTokenizer.from_pretrained, model_id)
+    tokenizer = safe_load(AutoTokenizer.from_pretrained, model_id, token=os.environ["HF_TOKEN"])
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -69,7 +64,8 @@ def train():
         AutoModelForCausalLM.from_pretrained,
         model_id,
         torch_dtype=torch.bfloat16,
-        device_map="auto"
+        device_map="auto",
+        token=os.environ["HF_TOKEN"]
     )
 
     print("Configuring Pure LoRA adapters...")
@@ -94,7 +90,7 @@ def train():
 
     print("Initializing Armored SFTTrainer...")
     output_dir = "/model_cache/calamity-qwen3-checkpoints"
-    training_args = TrainingArguments(
+    training_args = SFTConfig(
         output_dir=output_dir,
         learning_rate=1e-4,
         per_device_train_batch_size=2,
@@ -105,16 +101,14 @@ def train():
         save_strategy="steps",
         save_steps=10,
         save_total_limit=2,
-        gradient_checkpointing=True
+        gradient_checkpointing=True,
     )
 
     trainer = SFTTrainer(
         model=model,
         train_dataset=dataset,
         args=training_args,
-        tokenizer=tokenizer,
-        dataset_text_field="text",
-        max_seq_length=2048,
+        processing_class=tokenizer,
     )
 
     # Checkpoint Routing Logic
