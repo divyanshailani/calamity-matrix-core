@@ -172,11 +172,17 @@ export default function GeospatialMap({
         {results?.historical_context?.map((ctx: any, idx: number) => {
           if (ctx.lat == null || ctx.lng == null) return null;
           
+          // Add a slight radial jitter so markers at the exact same coordinates don't perfectly overlap
+          const angle = idx * ((Math.PI * 2) / 3); // Spread 120 degrees apart
+          const radius = idx === 0 ? 0 : 0.8; // First marker centered, others offset by ~80km
+          const jitterLat = ctx.lat + (Math.sin(angle) * radius);
+          const jitterLng = ctx.lng + (Math.cos(angle) * radius);
+          
           return (
             <Marker 
               key={`marker-${idx}`} 
-              longitude={ctx.lng} 
-              latitude={ctx.lat} 
+              longitude={jitterLng} 
+              latitude={jitterLat} 
               anchor="center"
             >
               <div className="relative flex h-5 w-5 group">
