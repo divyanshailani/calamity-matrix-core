@@ -10,19 +10,17 @@ from sentence_transformers import SentenceTransformer
 from psycopg2 import pool
 from contextlib import asynccontextmanager
 
+import sys
+
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
+from src.config import DB_CONFIG
 MODEL_DIR = os.path.join(SCRIPT_DIR, "..", "models")
 XGB_AFFECTED_PATH = os.path.join(MODEL_DIR, "xgb_log_affected.json")
 XGB_DAMAGE_PATH = os.path.join(MODEL_DIR, "xgb_log_damage.json")
 
-DB_PARAMS = {
-    "host": "localhost",
-    "port": "5433",
-    "user": "admin",
-    "password": "root",
-    "dbname": "calamity_rag"
-}
+
 
 # Global state container
 models = {}
@@ -45,7 +43,7 @@ async def lifespan(app: FastAPI):
     
     # 3. Initialize Postgres Connection Pool
     print("[*] Establishing pgvector connection pool on port 5433...")
-    models['db_pool'] = pool.SimpleConnectionPool(1, 10, **DB_PARAMS)
+    models['db_pool'] = pool.SimpleConnectionPool(1, 10, **DB_CONFIG)
     
     print("[+] Orchestrator successfully primed and listening on port 8000.\n")
     

@@ -10,7 +10,7 @@
 
 Two parallel intelligence layers over 25 years of global natural disaster data (2000–2025):
 
-**Math Engine** — XGBoost/LightGBM regression trained on fused structured matrices (USGS seismic, NASA EONET fires/floods/storms, EM-DAT casualties/impacts, Smithsonian volcanism). Outputs base-rate hazard probability and historical impact estimates (casualties, affected population) for a given disaster type and region.
+**Math Engine** — XGBoost regression trained on fused structured matrices (USGS seismic, NASA EONET fires/floods/storms, EM-DAT casualties/impacts, Smithsonian volcanism). Outputs base-rate hazard probability and historical impact estimates (casualties, affected population) for a given disaster type and region.
 
 **Narrative Engine** — 2,281 situation reports from HDX/ReliefWeb embedded via `BAAI/bge-large-en-v1.5` into a pgvector database. Semantic search retrieves analogous historical events by meaning, not keyword matching, enabling grounded narrative synthesis when combined with the fine-tuned LLM.
 
@@ -64,10 +64,13 @@ Data Sources
 │   ├── fuse_rag_corpus.py             # Merge HDX + ReliefWeb into master RAG CSV
 │   ├── build_vector_db.py             # Embed corpus → pgvector ingestion (BGE-Large)
 │   ├── fix_temporal_keys.py           # Patch event_year via EM-DAT fuzzy join + regex
+│   ├── resolve_hdx_metadata.py        # Resolve raw ReliefWeb URLs/IDs to human-readable strings
+│   ├── api_orchestrator.py            # FastAPI serving layer (Math Engine + RAG + CORS)
 │   ├── test_semantic_search.py        # RAG retrieval validation
 │   └── verify_data_integrity.py       # Data quality checks across all sources
 ├── src/
 │   └── config.py                      # DB config + paths loaded from .env
+├── calamity-ui/                       # Next.js frontend (MapLibre GL, CartoDB Positron)
 ├── models/                            # Trained model artifacts (gitignored)
 ├── data/
 │   ├── raw/                           # Source data downloads (gitignored)
@@ -76,7 +79,7 @@ Data Sources
 │   └── 01_Calamity_EDA.ipynb          # Exploratory analysis
 ├── docker-compose.yml                 # pgvector container (reads .env)
 ├── .env.example                       # Environment variable template
-├── requirements.txt
+├── requirements.txt                   # Pinned Python dependencies
 └── ISSUES.md                          # Engineering log
 ```
 
@@ -95,7 +98,7 @@ pip install -r requirements.txt
 
 # 2. Set up environment
 cp .env.example .env
-# Fill in POSTGRES_PASSWORD at minimum
+# Fill in POSTGRES_PASSWORD and RELIEFWEB_APPNAME at minimum
 
 # 3. Start pgvector container
 docker-compose up -d
@@ -111,9 +114,19 @@ python3 scripts/fuse_rag_corpus.py
 python3 scripts/build_vector_db.py
 python3 scripts/fix_temporal_keys.py
 
-# 6. Verify
+# 6. Resolve HDX metadata (requires RELIEFWEB_APPNAME in .env)
+python3 scripts/resolve_hdx_metadata.py          # dry-run preview
+python3 scripts/resolve_hdx_metadata.py --execute # commit to DB
+
+# 7. Verify
 python3 scripts/test_semantic_search.py
 python3 scripts/verify_data_integrity.py
+
+# 8. Start the API
+python3 scripts/api_orchestrator.py
+
+# 9. Start the frontend
+cd calamity-ui && npm run dev
 ```
 
 ---
@@ -137,13 +150,14 @@ Retrieval correctly resolved geographic and semantic context without keyword mat
 
 ---
 
-## Upcoming: Math Engine + Fine-tuning (v2)
+## Roadmap
 
-- **Phase 12:** XGBoost + Optuna on fused structural matrices (hazard probability, impact regression)
+- **Phase 12 (Next):** XGBoost + Optuna per-disaster-type tuning — separate models for hazard probability vs impact regression
 - **Phase 13:** Qwen3-8B QLoRA fine-tuning on Modal L40S — domain-specific disaster QA dataset
 - **Phase 14:** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
 - **Phase 15 (Completed):** FastAPI serving layer + Next.js interactive frontend
-- **Phase 16 (Completed):** MapLibre GL frontend migration + CartoDB Light Theme UI overhaul
-- **Phase 17 (Completed):** Semantic RAG Split-Brain anti-contradiction guardrails + Tactical Map Markers
+- **Phase 16 (Completed):** MapLibre GL frontend migration + CartoDB Positron theme
+- **Phase 17 (Completed):** Semantic RAG Split-Brain guardrails + Tactical Map Markers
+- **Phase 18 (Completed):** Backend credential sanitization + HDX metadata resolution script + dependency pinning
 
 See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.

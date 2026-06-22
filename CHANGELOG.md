@@ -5,6 +5,15 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-22
+
+### Security
+- **Orchestrator Credential Sanitization**: Migrated `scripts/api_orchestrator.py` from a hardcoded `DB_PARAMS` dict (`password: "root"`) to `DB_CONFIG` imported from `src.config`. The orchestrator now loads all database credentials securely from the `.env` file at startup, completing the credential sanitization pass begun in v1.0.0.
+
+### Backend Maintenance
+- **HDX Metadata Resolution Script**: Added `scripts/resolve_hdx_metadata.py` — a new maintenance utility that connects to the pgvector database and resolves raw ReliefWeb API URLs (e.g. `https://api.reliefweb.int/v2/countries/174`) and numeric disaster IDs (e.g. `4611`) in the `disaster_narratives` table to human-readable strings (e.g. `Philippines`, `Earthquake`). Includes dry-run mode (default), exponential backoff on 429/5xx responses, a per-request 0.4s courtesy sleep, and per-row resolution logging. Requires `RELIEFWEB_APPNAME` to be set in `.env` before execution. Run with `--execute` flag to commit changes.
+- **Dependency Pinning**: Added `requirements.txt` to the repository root with all direct Python dependencies pinned to their current working versions, eliminating deployment environment ambiguity.
+
 ## [1.1.0] - 2026-06-22
 
 ### UI / Frontend Overhaul

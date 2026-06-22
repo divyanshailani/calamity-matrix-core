@@ -18,7 +18,9 @@ Tracks real problems encountered during development, root causes, and how they w
 
 **Root Cause:** The HDX CSV export uses API reference objects for taxonomy fields rather than resolved display names. The ingestion script stored raw field values without resolving them.
 
-**Solution:** Noted in `fix_temporal_keys.py` — the EM-DAT fuzzy join skips rows where country field starts with `http`. The RAG engine retrieves by vector similarity over `narrative_text`, not metadata fields, so retrieval quality is unaffected. Metadata resolution (decoding URLs to country names) is tracked as a future cleanup task before the hybrid filter layer is built.
+**Solution:** Added `scripts/resolve_hdx_metadata.py` — a dedicated migration utility that hits the ReliefWeb API to resolve raw URLs and numeric IDs to human-readable country names and disaster type strings, then runs UPDATE statements against the `disaster_narratives` table. Includes dry-run mode (default), exponential backoff, and per-row logging. Requires `RELIEFWEB_APPNAME` to be set in `.env`. Run with `--execute` to commit changes.
+
+**Note:** RAG retrieval was unaffected throughout (vector similarity over `narrative_text` does not depend on metadata fields). Resolution is required before the Phase 14 hybrid metadata filter is built.
 
 ---
 
@@ -46,8 +48,7 @@ Coverage: 99.6% of corpus now has a reliable `event_year` for hybrid temporal fi
 - Updated `docker-compose.yml` to use `${POSTGRES_PASSWORD}` env substitution with `env_file: .env`.
 - Added `.env.example` as the committed template.
 - Updated `.gitignore` to exclude `.env`, `data/`, `models/`, and all binary model artifacts.
-
-**Note:** Existing scripts still contain the old hardcoded `DB_PARAMS` dicts — these need to be migrated to `from src.config import DB_CONFIG` as each script is touched going forward.
+- **v1.2.0:** Completed the final migration — `scripts/api_orchestrator.py` now imports `DB_CONFIG` from `src.config`, closing the last remaining hardcoded credential in the codebase.
 
 ---
 
@@ -81,8 +82,6 @@ This is clearly documented in the README. No model in this project claims to pre
 
 ## Upcoming Issues / Tracked Items
 
-- [ ] **Country/disaster_type metadata resolution** — decode HDX API URLs to human-readable strings for hybrid filter queries
 - [ ] **XGBoost Math Engine** — Phase 12: Optuna tuning per disaster type, separate targets for hazard probability vs impact regression
 - [ ] **Qwen3-8B LoRA fine-tuning** — Phase 13: Modal L40S, checkpoint-to-volume preemption recovery, bge-large query prefix at inference
 - [ ] **Synthesizer bridge** — Phase 14: Math Engine output → RAG retrieval → LLM synthesis pipeline
-- [ ] **requirements.txt** — pin versions once all dependencies are confirmed stable

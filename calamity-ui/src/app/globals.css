@@ -31,3 +31,16 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a1a1aa;
 }
+
+@keyframes bg-pan {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 40px 40px;
+  }
+}
+
+.animate-bg-pan {
+  animation: bg-pan 4s linear infinite;
+}
