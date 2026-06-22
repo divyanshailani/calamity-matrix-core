@@ -2,18 +2,18 @@
 
 > [!CAUTION]
 > **PROJECT STATUS: MAINTENANCE MODE / LOCAL RESEARCH**  
-> This repository is a completed local research project demonstrating a Neuro-Symbolic AI architecture. It proves out complex data pipelines, vector databases (pgvector), and LLM fine-tuning (LoRA on Modal), but it is **not actively deployed** due to the high infrastructure overhead of maintaining live geospatial databases and 24/7 APIs. The code remains here as an architectural reference.
+> This repository is a completed local research project demonstrating a Neuro-Symbolic AI architecture. It proves out complex data pipelines, vector databases (pgvector), and LLM fine-tuning (LoRA on Cloud Service), but it is **not actively deployed** due to the high infrastructure overhead of maintaining live geospatial databases and 24/7 APIs. The code remains here as an architectural reference.
 
-> Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, semantic RAG over 2,281 historical disaster narratives via pgvector, and Qwen3-8B domain fine-tuning on Modal L40S.
+> Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, semantic RAG over 2,281 historical disaster narratives via pgvector, and Qwen3-8B domain fine-tuning on Hosted Workbench (L40S, 32GB RAM, 8 Core CPU).
 
-**Stack:** Python · PostgreSQL + pgvector · XGBoost · sentence-transformers (BGE-Large) · Qwen3-8B · LoRA · Modal
+**Stack:** Python · PostgreSQL + pgvector · XGBoost · sentence-transformers (BGE-Large) · Qwen3-8B · LoRA · Cloud Service
 
 ---
 
 ## What It Does
 
 > [!WARNING]
-> **Current State (v1.4.0):** The backend infrastructure (Math Engine, pgvector RAG, Modal fine-tuned LLM inference via SSE) is 100% operational. However, the Next.js UI is currently suffering from CSS overflow glitches and "developer console" aesthetics due to raw JSON streaming. A major UX/UI overhaul (Phase 21) is scheduled to elevate the dashboard into a professional, defense-grade application.
+> **Current State (v1.4.0):** The backend infrastructure (Math Engine, pgvector RAG, Cloud Service fine-tuned LLM inference via SSE) is 100% operational. However, the Next.js UI is currently suffering from CSS overflow glitches and "developer console" aesthetics due to raw JSON streaming. A major UX/UI overhaul (Phase 21) is scheduled to elevate the dashboard into a professional, defense-grade application.
 
 Two parallel intelligence layers over 25 years of global natural disaster data (2000–2025):
 
@@ -21,7 +21,7 @@ Two parallel intelligence layers over 25 years of global natural disaster data (
 
 **Narrative Engine** — 2,281 situation reports from HDX/ReliefWeb embedded via `BAAI/bge-large-en-v1.5` into a pgvector database. Semantic search retrieves analogous historical events by meaning, not keyword matching, enabling grounded narrative synthesis when combined with the fine-tuned LLM.
 
-**Fine-tuned LLM** — Qwen3-8B fine-tuned via LoRA on Modal's L40S GPU using domain-specific disaster QA pairs. Synthesizes Math Engine output + RAG-retrieved narratives into structured situation assessments.
+**Fine-tuned LLM** — Qwen3-8B fine-tuned via LoRA on Cloud Service's L40S GPU using domain-specific disaster QA pairs. Synthesizes Math Engine output + RAG-retrieved narratives into structured situation assessments.
 
 ---
 
@@ -180,9 +180,9 @@ Retrieval correctly resolved geographic and semantic context without keyword mat
 - **Phase 15 (Completed):** Integrity & Security Restoration — Heuristic Hybrid RAG, Offline HDX metadata resolution bypass, Backend credential sanitization
 - **Phase 16 (Completed):** Multi-Physics Architecture (Math Engine v3) — Disaster-specific segregated XGBoost tuning & dynamic API routing
 - **Phase 17 (Completed):** Telemetry HUD & Guardrails — Diagnostic HUD, Telemetry Arcs, Strict Geographic Enclosure, Recommendation Engine, and Zero-Vector Schema Fixes
-- **Phase 18 (Completed):** Qwen3-8B QLoRA fine-tuning on Modal L40S — domain-specific disaster QA dataset
+- **Phase 18 (Completed):** Qwen3-8B QLoRA fine-tuning on Hosted Workbench (L40S, 32GB RAM, 8 Core CPU) — domain-specific disaster QA dataset
 - **Phase 19 (Completed):** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
-- **Phase 20 (Completed):** Modal LLM Integration — Wired the local Next.js frontend to the Modal serverless endpoint
+- **Phase 20 (Completed):** Cloud Service LLM Integration — Wired the local Next.js frontend to the Cloud Service serverless endpoint
 - **Phase 21 (Next):** UI/UX Portfolio Overhaul — Redesign the Next.js UI into a high-end defense-grade dashboard, add user onboarding/context, and parse LLM streaming output into styled Markdown.
 
 See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.
