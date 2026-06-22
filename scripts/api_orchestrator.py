@@ -30,12 +30,17 @@ async def lifespan(app: FastAPI):
     print("\n[*] Initializing Calamity AI Neuro-Symbolic Orchestrator...")
     
     # 1. Load Universal XGBoost Predictors (Fallback)
+    import json
     print("[*] Loading Universal XGBoost Predictors (v2 Fallback)...")
     models['universal_affected'] = xgb.XGBRegressor()
     models['universal_affected'].load_model(XGB_AFFECTED_PATH)
+    with open(XGB_AFFECTED_PATH.replace('.json', '_meta.json'), 'r') as f:
+        models['universal_affected_meta'] = json.load(f)
     
     models['universal_damage'] = xgb.XGBRegressor()
     models['universal_damage'].load_model(XGB_DAMAGE_PATH)
+    with open(XGB_DAMAGE_PATH.replace('.json', '_meta.json'), 'r') as f:
+        models['universal_damage_meta'] = json.load(f)
     
     # 2. Load Embedding Model
     print("[*] Booting Embedding Engine (BAAI/bge-large-en-v1.5)...")
@@ -94,6 +99,7 @@ async def simulate_calamity(payload: SimulationRequest):
         
         # Dynamic Multi-Physics Routing
         import re
+        import json
         slug = str(payload.disaster_type).lower()
         slug = re.sub(r'[^a-z0-9]+', '_', slug).strip('_')
         
@@ -108,12 +114,18 @@ async def simulate_calamity(payload: SimulationRequest):
             if cache_key_aff not in models:
                 models[cache_key_aff] = xgb.XGBRegressor()
                 models[cache_key_aff].load_model(aff_model_path)
+                with open(aff_model_path.replace('.json', '_meta.json'), 'r') as f:
+                    models[f"{cache_key_aff}_meta"] = json.load(f)
             if cache_key_dam not in models:
                 models[cache_key_dam] = xgb.XGBRegressor()
                 models[cache_key_dam].load_model(dam_model_path)
+                with open(dam_model_path.replace('.json', '_meta.json'), 'r') as f:
+                    models[f"{cache_key_dam}_meta"] = json.load(f)
                 
             model_affected = models[cache_key_aff]
             model_damage = models[cache_key_dam]
+            meta_affected = models[f"{cache_key_aff}_meta"]
+            meta_damage = models[f"{cache_key_dam}_meta"]
             
             # Domain-specific inference
             pred_log_affected = model_affected.predict(input_data)[0]
@@ -122,6 +134,8 @@ async def simulate_calamity(payload: SimulationRequest):
             # Fallback to Universal v2 Model for rare physics
             pred_log_affected = models['universal_affected'].predict(input_data)[0]
             pred_log_damage = models['universal_damage'].predict(input_data)[0]
+            meta_affected = models['universal_affected_meta']
+            meta_damage = models['universal_damage_meta']
         
         # Inverse log1p transform (expm1) back to real-world numbers
         est_affected = float(np.expm1(pred_log_affected))
@@ -174,7 +188,10 @@ async def simulate_calamity(payload: SimulationRequest):
             
         # Format Context
         historical_context = []
+        total_cosine_sim = 0.0
         for row in results:
+            sim_score = float(row[7])
+            total_cosine_sim += sim_score
             text_preview = row[3][:300] + "..." if len(row[3]) > 300 else row[3]
             historical_context.append({
                 "date": str(row[0]),
@@ -184,8 +201,10 @@ async def simulate_calamity(payload: SimulationRequest):
                 "event_year": row[4],
                 "lat": row[5],
                 "lng": row[6],
-                "similarity_score": float(row[7])
+                "similarity_score": sim_score
             })
+            
+        avg_cosine_sim = (total_cosine_sim / len(results)) if len(results) > 0 else 0.0
             
         # ---------------------------------------------------------
         # 3. The Fusion Payload
@@ -196,7 +215,24 @@ async def simulate_calamity(payload: SimulationRequest):
                 "estimated_affected_population": round(est_affected, 0),
                 "estimated_damage_usd_thousands": round(est_damage, 2)
             },
-            "historical_context": historical_context
+            "historical_context": historical_context,
+            "telemetry": {
+                "math_engine": {
+                    "affected_population": {
+                        "val_rmse": meta_affected.get("val_rmse"),
+                        "val_mae": meta_affected.get("val_mae"),
+                        "feature_importances": meta_affected.get("feature_importances", {})
+                    },
+                    "economic_damage": {
+                        "val_rmse": meta_damage.get("val_rmse"),
+                        "val_mae": meta_damage.get("val_mae"),
+                        "feature_importances": meta_damage.get("feature_importances", {})
+                    }
+                },
+                "rag_engine": {
+                    "average_cosine_similarity": avg_cosine_sim
+                }
+            }
         }
         
     except Exception as e:

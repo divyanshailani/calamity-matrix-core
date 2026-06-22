@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import SimulationConfig from "../components/SimulationConfig";
 import GeospatialMap from "../components/GeospatialMap";
 import HistoricalContext from "../components/HistoricalContext";
+import TelemetryHUD from "../components/TelemetryHUD";
 import { countryCoords } from "../lib/constants";
 
 export default function Dashboard() {
@@ -125,6 +126,13 @@ export default function Dashboard() {
         {/* COLUMN 3: THE ORACLE / LLM BRIEFING (Span 3) */}
         <div className="lg:col-span-3 flex flex-col">
           <HistoricalContext results={results} />
+        </div>
+
+        {/* BOTTOM ROW: TELEMETRY HUD (Span 12) */}
+        <div className="lg:col-span-12 mt-2">
+          {results?.telemetry && (
+            <TelemetryHUD telemetry={results.telemetry} />
+          )}
         </div>
 
       </main>
