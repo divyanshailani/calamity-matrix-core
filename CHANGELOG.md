@@ -12,7 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Cloud Service Serverless Inference**: Deployed `inference.py` to expose a highly available serverless endpoint powered by the `vLLM` engine. Added support for Server-Sent Events (SSE) to stream generated tokens back to the client with sub-second latency.
 - **Orchestrator Bridge**: Upgraded `api_orchestrator.py` with a new `/api/v1/synthesize` endpoint that acts as a proxy between the Next.js frontend and the Cloud Service cloud. The proxy successfully aggregates XGBoost predictions and pgvector RAG context into a massive LLM prompt, posts it to Cloud Service, and streams the inference directly to the UI.
 
-### System Resiliency & Bug Fixes
+### Phase 21: V1 Beta Pivot (UI Stability & Architecture Optimization)
+- **Decoupled LLM Streaming**: Temporarily removed the experimental Qwen3-8B synthesis layer from the Next.js UI to resolve JSON hallucination overflows and CSS constraints. 
+- **RAG-First Architecture**: Reframed the project to `V1 Beta`. The system now operates exclusively as a highly stable, deterministic Neuro-Symbolic engine (pgvector Historical RAG + XGBoost Predictive Modeling), resulting in instant execution times and zero cloud infrastructure overhead.
+
+### Phase 20: Cloud Service Integration
 - **Cloud Service Cold Boot Timeout Patch**: Fixed a race condition where the FastAPI orchestrator's `httpx` client timed out (120s limit) while the Cloud Service container was still cold-booting and downloading the 15GB model weights. Increased the timeout to 300s to allow graceful container startups.
 - **303 Redirect Handling**: Configured the orchestrator's async client to follow HTTP redirects (`follow_redirects=True`), fixing a fatal connection drop caused by Cloud Service's internal load balancing rules.
 - **vLLM Configuration Patch**: Upgraded the hardcoded `vllm==0.4.3` requirement to the latest version to properly parse the `Qwen3-8B` architecture configuration (resolving a fatal `KeyError: 'type'` on RoPE scaling).
