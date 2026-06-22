@@ -1,0 +1,39 @@
+# Environment
+.env
+
+# Data — raw and processed are large/private, never commit
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Models — pkl, safetensors, xgb.json etc are binary/large
+models/
+*.pkl
+*.pt
+*.safetensors
+*.bin
+*.xgb.json
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+Icon
+
+# Docker volumes (local only)
+pgdata/
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,18 @@
+services:
+  vector_db:
+    image: pgvector/pgvector:pg16
+    container_name: calamity_pgvector
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-calamity_rag}
+    volumes:
+      - vector_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+volumes:
+  vector_data:
