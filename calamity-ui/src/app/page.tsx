@@ -7,7 +7,6 @@ import SimulationConfig from "../components/SimulationConfig";
 import GeospatialMap from "../components/GeospatialMap";
 import HistoricalContext from "../components/HistoricalContext";
 import TelemetryHUD from "../components/TelemetryHUD";
-import ColdStartTerminal from "../components/ColdStartTerminal";
 import { countryCoords } from "../lib/constants";
 
 export default function Dashboard() {
@@ -34,8 +33,6 @@ export default function Dashboard() {
     "System Initialized.",
     "Ready for simulation."
   ]);
-  
-  const [synthesisStream, setSynthesisStream] = useState("");
 
   useEffect(() => {
     setIsMounted(true);
@@ -49,7 +46,6 @@ export default function Dashboard() {
     setIsLoading(true);
     setError(null);
     setResults(null);
-    setSynthesisStream("");
     addLog(`Simulating ${dataToSubmit.disaster_type} in ${dataToSubmit.country}...`);
 
     const coords = countryCoords[dataToSubmit.country];
@@ -80,50 +76,6 @@ export default function Dashboard() {
           longitude: coords.lng,
           zoom: coords.zoom + 2.5
         });
-      }
-      
-      // Phase 2: SSE Stream for Calamity AI LLM Synthesis
-      try {
-        const synthResponse = await fetch("http://localhost:8000/api/v1/synthesize", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...dataToSubmit,
-            affected_population: response.data.predictions.estimated_affected_population,
-            economic_impact: response.data.predictions.estimated_damage_usd_thousands,
-            rag_context: response.data.historical_context
-          })
-        });
-
-        if (!synthResponse.body) throw new Error("No readable stream");
-
-        const reader = synthResponse.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let done = false;
-
-        while (!done) {
-          const { value, done: doneReading } = await reader.read();
-          done = doneReading;
-          if (value) {
-            const chunkValue = decoder.decode(value);
-            const lines = chunkValue.split("\n");
-            for (const line of lines) {
-              if (line.startsWith("data: ")) {
-                const dataStr = line.slice(6);
-                if (dataStr === "[DONE]") {
-                  addLog("Tactical Synthesis complete.");
-                  done = true;
-                  break;
-                }
-                const unescaped = dataStr.replace(/\\n/g, '\n');
-                setSynthesisStream(prev => prev + unescaped);
-              }
-            }
-          }
-        }
-      } catch (err: any) {
-        console.error("Stream error", err);
-        addLog(`Synthesis stream failed: ${err.message}`);
       }
 
     } catch (err: any) {
@@ -174,10 +126,10 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* COLUMN 3: THE ORACLE / LLM BRIEFING (Span 3) */}
+        {/* COLUMN 3: THE ORACLE / RAG Context (Span 3) */}
         <div className="lg:col-span-3 flex flex-col gap-6">
-          {/* Top Half: RAG Vector Memory */}
-          <div className="flex-1 max-h-[50%] overflow-hidden flex flex-col">
+          {/* Full Height: RAG Vector Memory */}
+          <div className="flex-1 overflow-y-auto flex flex-col">
             <HistoricalContext 
               results={results} 
               country={formData.country}
@@ -187,14 +139,6 @@ export default function Dashboard() {
                 runSimulation(newFormData);
               }}
             />
-          </div>
-          
-          {/* Bottom Half: Cold Start Terminal / LLM */}
-          <div className="flex-1 max-h-[50%] min-h-[300px]">
-             <ColdStartTerminal 
-               isSimulating={isLoading || (results !== null && synthesisStream === "")} 
-               synthesisStream={synthesisStream} 
-             />
           </div>
         </div>
 

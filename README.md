@@ -1,8 +1,8 @@
 # Calamity Matrix Core — ML Pipeline
 
-> [!CAUTION]
-> **PROJECT STATUS: MAINTENANCE MODE / LOCAL RESEARCH**  
-> This repository is a completed local research project demonstrating a Neuro-Symbolic AI architecture. It proves out complex data pipelines, vector databases (pgvector), and LLM fine-tuning (LoRA on Cloud Service), but it is **not actively deployed** due to the high infrastructure overhead of maintaining live geospatial databases and 24/7 APIs. The code remains here as an architectural reference.
+> [!TIP]
+> **PROJECT STATUS: V1 BETA / EARLY ACCESS**  
+> Calamity Matrix is currently in active beta. The core Neuro-Symbolic RAG engine (pgvector) and XGBoost predictors are 100% operational, providing fast, deterministic hazard simulations. The experimental LLM synthesis layer has been temporarily decoupled in this version to prioritize UI stability and infrastructure efficiency.
 
 > Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, semantic RAG over 2,281 historical disaster narratives via pgvector, and Qwen3-8B domain fine-tuning on Hosted Workbench (L40S, 32GB RAM, 8 Core CPU).
 

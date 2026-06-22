@@ -278,50 +278,5 @@ async def simulate_calamity(payload: SimulationRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/v1/synthesize")
-async def synthesize_tactical_report(payload: dict):
-    from fastapi.responses import StreamingResponse
-    import httpx
-    
-    CLOUD_INFERENCE_URL = "https://divyanshailani--calamity-qwen3-inference-calamityinferen-07f7a5.cloud.run"
-    
-    prompt = f"""<|im_start|>system
-You are Calamity AI, a cold, analytical Simulation Architect created by Divyansh Ailani. You must analyze the following disaster simulation parameters and output a highly structured tactical physics report in JSON format.
-<|im_end|>
-<|im_start|>user
-Simulation Config:
-- Country: {payload.get('country')}
-- Type: {payload.get('disaster_type')}
-- Magnitude: {payload.get('magnitude')}
-- Context: {payload.get('query_text', 'N/A')}
-
-ML Predicted Affected Population: {payload.get('affected_population')}
-ML Predicted Economic Impact: {payload.get('economic_impact')}
-RAG Historical Context: {json.dumps(payload.get('rag_context', []))}
-
-Generate the tactical synthesis.
-<|im_end|>
-<|im_start|>assistant
-"""
-
-    async def event_generator():
-        try:
-            async with httpx.AsyncClient(timeout=300.0, follow_redirects=True) as client:
-                async with client.stream("POST", CLOUD_INFERENCE_URL, json={"prompt": prompt}) as response:
-                    if response.status_code != 200:
-                        error_msg = await response.aread()
-                        yield f"data: [ERROR] Cloud Service API returned {response.status_code}: {error_msg.decode()}\n\n"
-                        yield "data: [DONE]\n\n"
-                        return
-
-                    async for line in response.aiter_lines():
-                        if line:
-                            yield f"{line}\n\n"
-        except Exception as e:
-            yield f"data: [ERROR] Orchestrator Bridge Error: {str(e)}\n\n"
-            yield "data: [DONE]\n\n"
-
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
-
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
