@@ -1,5 +1,9 @@
 # Calamity Matrix Core — ML Pipeline
 
+> [!CAUTION]
+> **PROJECT STATUS: MAINTENANCE MODE / LOCAL RESEARCH**  
+> This repository is a completed local research project demonstrating a Neuro-Symbolic AI architecture. It proves out complex data pipelines, vector databases (pgvector), and LLM fine-tuning (LoRA on Modal), but it is **not actively deployed** due to the high infrastructure overhead of maintaining live geospatial databases and 24/7 APIs. The code remains here as an architectural reference.
+
 > Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, semantic RAG over 2,281 historical disaster narratives via pgvector, and Qwen3-8B domain fine-tuning on Modal L40S.
 
 **Stack:** Python · PostgreSQL + pgvector · XGBoost · sentence-transformers (BGE-Large) · Qwen3-8B · LoRA · Modal
