@@ -40,16 +40,13 @@ export default function GeospatialMap({
       >
         <NavigationControl position="top-right" />
         {results?.historical_context?.map((ctx: any, idx: number) => {
-          const baseCoords = countryCoords[country] || { lat: 0, lng: 0, zoom: 3 };
-          // Generate deterministic pseudo-random offset within a realistic radius (~3 degrees)
-          const latOffset = Math.sin(idx * 12.9898 + ctx.similarity_score * 78.233) * 3.5;
-          const lngOffset = Math.cos(idx * 4.1414 + ctx.similarity_score * 43.232) * 3.5;
+          if (ctx.lat == null || ctx.lng == null) return null;
           
           return (
             <Marker 
               key={`marker-${idx}`} 
-              longitude={baseCoords.lng + lngOffset} 
-              latitude={baseCoords.lat + latOffset} 
+              longitude={ctx.lng} 
+              latitude={ctx.lat} 
               anchor="center"
             >
               <div className="relative flex h-5 w-5 group">

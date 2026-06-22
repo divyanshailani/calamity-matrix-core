@@ -115,17 +115,32 @@ async def simulate_calamity(payload: SimulationRequest):
         
         try:
             cur = conn.cursor()
-            # Hybrid Query: Filter by country & disaster type, then search semantically
-            sql_query = """
-                SELECT date, country, disaster_type, narrative_text, event_year,
+            
+            # Pass 1: Strict match
+            sql_query_pass1 = """
+                SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
                        1 - (embedding <=> %s::vector) AS cosine_similarity
                 FROM disaster_narratives
+                WHERE event_year = %s AND disaster_type ILIKE %s
                 ORDER BY embedding <=> %s::vector
                 LIMIT 3;
             """
-            
-            cur.execute(sql_query, (query_embedding, query_embedding))
+            cur.execute(sql_query_pass1, (query_embedding, payload.event_year, payload.disaster_type, query_embedding))
             results = cur.fetchall()
+            
+            # Pass 2: Heuristic match (±10 years) if we don't have enough results
+            if len(results) < 3:
+                sql_query_pass2 = """
+                    SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
+                           1 - (embedding <=> %s::vector) AS cosine_similarity
+                    FROM disaster_narratives
+                    WHERE event_year BETWEEN %s AND %s AND disaster_type ILIKE %s
+                    ORDER BY embedding <=> %s::vector
+                    LIMIT 3;
+                """
+                cur.execute(sql_query_pass2, (query_embedding, payload.event_year - 10, payload.event_year + 10, payload.disaster_type, query_embedding))
+                results = cur.fetchall()
+                
             cur.close()
         finally:
             db_pool.putconn(conn)
@@ -138,9 +153,11 @@ async def simulate_calamity(payload: SimulationRequest):
                 "date": str(row[0]),
                 "country": str(row[1]) if row[1] is not None else "Unknown",
                 "disaster_type": str(row[2]) if row[2] is not None else "Unknown",
-                "narrative_preview": text_preview,
+                "text_preview": text_preview,
                 "event_year": row[4],
-                "similarity_score": float(row[5])
+                "lat": row[5],
+                "lng": row[6],
+                "similarity_score": float(row[7])
             })
             
         # ---------------------------------------------------------

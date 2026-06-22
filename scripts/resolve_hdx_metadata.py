@@ -1,80 +1,44 @@
 import os
 import sys
-import time
-import requests
 import argparse
+import pandas as pd
 from psycopg2 import pool
 
 # Add root directory to python path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
 
-from src.config import DB_CONFIG, _require
+from src.config import DB_CONFIG
 
-APPNAME = os.getenv("RELIEFWEB_APPNAME")
-if not APPNAME:
-    print("[-] Warning: RELIEFWEB_APPNAME is not set. API calls will fail with 403.")
-
-def fetch_with_backoff(url: str, max_retries: int = 5) -> dict:
-    base_wait = 1  # seconds
-    
-    for attempt in range(max_retries):
-        try:
-            # We append appname to the URL if APPNAME is present
-            separator = "&" if "?" in url else "?"
-            req_url = f"{url}{separator}appname={APPNAME}" if APPNAME else url
-            
-            response = requests.get(req_url, timeout=10)
-            
-            if response.status_code == 200:
-                time.sleep(0.4) # Normal rate limit compliance
-                return response.json()
-                
-            elif response.status_code in [429, 500, 502, 503, 504]:
-                wait_time = base_wait * (2 ** attempt)
-                print(f"  [!] HTTP {response.status_code} received. Retrying in {wait_time} seconds (Attempt {attempt+1}/{max_retries})")
-                time.sleep(wait_time)
-            elif response.status_code == 403:
-                print("  [!] HTTP 403: Appname missing or invalid.")
-                break
-            else:
-                print(f"  [!] HTTP {response.status_code} received for {url}. Giving up.")
-                break
-                
-        except requests.exceptions.RequestException as e:
-            wait_time = base_wait * (2 ** attempt)
-            print(f"  [!] Request error: {e}. Retrying in {wait_time}s.")
-            time.sleep(wait_time)
-            
-    return None
-
-def resolve_country(country_url: str, cache: dict) -> str:
-    if country_url in cache:
-        return cache[country_url]
-    
-    data = fetch_with_backoff(country_url)
-    if data and "data" in data and len(data["data"]) > 0:
-        name = data["data"][0].get("fields", {}).get("name")
-        if name:
-            cache[country_url] = name
-            return name
-    return None
-
-def resolve_disaster(disaster_id: str, cache: dict) -> str:
-    if disaster_id in cache:
-        return cache[disaster_id]
+def load_csv_mappings():
+    csv_path = os.path.join(SCRIPT_DIR, "..", "data", "raw", "hdx_corpus", "reliefweb-disasters-list.csv")
+    if not os.path.exists(csv_path):
+        print(f"[-] CSV file not found at {csv_path}")
+        return {}, {}
         
-    url = f"https://api.reliefweb.int/v2/disaster_types/{disaster_id}"
-    data = fetch_with_backoff(url)
-    if data and "data" in data and len(data["data"]) > 0:
-        name = data["data"][0].get("fields", {}).get("name")
-        if name:
-            cache[disaster_id] = name
-            return name
-    return None
+    df = pd.read_csv(csv_path, low_memory=False)
+    
+    country_cache = {}
+    for _, row in df.iterrows():
+        href = row.get("primary_country-href")
+        if pd.notna(href):
+            country_cache[str(href).strip()] = (
+                str(row.get("primary_country-name")),
+                float(row.get("primary_country-location-lat")) if pd.notna(row.get("primary_country-location-lat")) else None,
+                float(row.get("primary_country-location-lon")) if pd.notna(row.get("primary_country-location-lon")) else None
+            )
+            
+    disaster_cache = {}
+    for _, row in df.iterrows():
+        tid = row.get("primary_type-id")
+        tname = row.get("primary_type-name")
+        if pd.notna(tid) and pd.notna(tname):
+            disaster_cache[str(int(tid))] = str(tname)
+            
+    return country_cache, disaster_cache
 
 def main():
-    parser = argparse.ArgumentParser(description="Resolve HDX metadata using ReliefWeb API")
+    parser = argparse.ArgumentParser(description="Resolve HDX metadata using local CSV mapping")
     parser.add_argument("--execute", action="store_true", help="Execute the updates (disables dry-run)")
     args = parser.parse_args()
     
@@ -85,16 +49,23 @@ def main():
     else:
         print("[!] Running in EXECUTE mode. Changes will be committed!\n")
         
+    print("[*] Loading offline metadata from CSV...")
+    country_cache, disaster_cache = load_csv_mappings()
+    print(f"  -> Loaded {len(country_cache)} country mappings and {len(disaster_cache)} disaster type mappings.")
+    
     print("[*] Connecting to PostgreSQL...")
     db_pool = pool.SimpleConnectionPool(1, 2, **DB_CONFIG)
     conn = db_pool.getconn()
     
-    country_cache = {}
-    disaster_cache = {}
     updates = []
     
     try:
         with conn.cursor() as cur:
+            print("[*] Ensuring lat/lng columns exist...")
+            cur.execute("ALTER TABLE disaster_narratives ADD COLUMN IF NOT EXISTS lat FLOAT, ADD COLUMN IF NOT EXISTS lng FLOAT;")
+            if not dry_run:
+                conn.commit()
+            
             # 1. Resolve Countries
             print("[*] Finding unresolved countries...")
             cur.execute("SELECT id, country FROM disaster_narratives WHERE country LIKE 'http%';")
@@ -102,37 +73,48 @@ def main():
             print(f"  -> Found {len(country_rows)} rows with raw country URLs.")
             
             for row_id, raw_url in country_rows:
-                resolved_name = resolve_country(raw_url, country_cache)
-                if resolved_name:
-                    print(f"  [+] Mapped country {raw_url} -> {resolved_name}")
-                    updates.append((row_id, "country", resolved_name))
+                if raw_url in country_cache:
+                    resolved_name, lat, lon = country_cache[raw_url]
+                    print(f"  [+] Mapped country {raw_url} -> {resolved_name} (lat: {lat}, lng: {lon})")
+                    updates.append((row_id, "country_coords", (resolved_name, lat, lon)))
                 else:
-                    print(f"  [-] Failed to resolve country: {raw_url}")
+                    print(f"  [-] Failed to resolve country locally: {raw_url}")
                     
             # 2. Resolve Disasters
             print("\n[*] Finding unresolved disaster types...")
-            # We look for purely numeric strings
             cur.execute("SELECT id, disaster_type FROM disaster_narratives WHERE disaster_type ~ '^\\d+$';")
             disaster_rows = cur.fetchall()
             print(f"  -> Found {len(disaster_rows)} rows with raw disaster IDs.")
             
             for row_id, raw_id in disaster_rows:
-                resolved_name = resolve_disaster(raw_id, disaster_cache)
-                if resolved_name:
+                if raw_id in disaster_cache:
+                    resolved_name = disaster_cache[raw_id]
                     print(f"  [+] Mapped disaster {raw_id} -> {resolved_name}")
                     updates.append((row_id, "disaster_type", resolved_name))
                 else:
-                    print(f"  [-] Failed to resolve disaster ID: {raw_id}")
+                    print(f"  [-] Failed to resolve disaster ID locally: {raw_id}")
             
             # 3. Apply Updates
             if updates:
                 print(f"\n[*] Applying {len(updates)} metadata updates...")
-                for row_id, col, val in updates:
-                    query = f"UPDATE disaster_narratives SET {col} = %s WHERE id = %s;"
-                    if dry_run:
-                        print(f"  [DRY-RUN] Would update Row {row_id} | {col} = '{val}'")
-                    else:
-                        cur.execute(query, (val, row_id))
+                for item in updates:
+                    row_id = item[0]
+                    update_type = item[1]
+                    
+                    if update_type == "country_coords":
+                        name, lat, lon = item[2]
+                        query = "UPDATE disaster_narratives SET country = %s, lat = %s, lng = %s WHERE id = %s;"
+                        if dry_run:
+                            print(f"  [DRY-RUN] Would update Row {row_id} | country='{name}', lat={lat}, lng={lon}")
+                        else:
+                            cur.execute(query, (name, lat, lon, row_id))
+                    elif update_type == "disaster_type":
+                        val = item[2]
+                        query = "UPDATE disaster_narratives SET disaster_type = %s WHERE id = %s;"
+                        if dry_run:
+                            print(f"  [DRY-RUN] Would update Row {row_id} | disaster_type='{val}'")
+                        else:
+                            cur.execute(query, (val, row_id))
                 
                 if not dry_run:
                     conn.commit()

@@ -3,6 +3,7 @@ import numpy as np
 import xgboost as xgb
 import optuna
 import os
+import json
 import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error
@@ -197,8 +198,22 @@ def train_math_engine_v2():
     model_a.fit(X, y_affected)
     model_a.save_model(os.path.join(MODEL_DIR, "xgb_log_affected.json"))
     
+    with open(os.path.join(MODEL_DIR, "xgb_log_affected_meta.json"), "w") as f:
+        json.dump({
+            "rmse": rmse_aff,
+            "mae": mae_aff,
+            "feature_importance_gain": imp_a
+        }, f, indent=4)
+    
     model_b.fit(X, y_damage)
     model_b.save_model(os.path.join(MODEL_DIR, "xgb_log_damage.json"))
+
+    with open(os.path.join(MODEL_DIR, "xgb_log_damage_meta.json"), "w") as f:
+        json.dump({
+            "rmse": rmse_dam,
+            "mae": mae_dam,
+            "feature_importance_gain": imp_b
+        }, f, indent=4)
     
     print("==================================================")
     print("  MODELS EXPORTED SUCCESSFULLY                    ")
