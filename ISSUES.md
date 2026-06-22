@@ -98,7 +98,12 @@ This is clearly documented in the README. No model in this project claims to pre
 
 ## Upcoming Issues / Tracked Items
 
-- [x] **XGBoost Math Engine** — Phase 12: Optuna tuning per disaster type, separate targets for hazard probability vs impact regression
-- [x] **Qwen3-8B LoRA fine-tuning** — Phase 13: Modal L40S, checkpoint-to-volume preemption recovery, bge-large query prefix at inference
-- [x] **Synthesizer bridge** — Phase 14: Math Engine output → RAG retrieval → LLM synthesis pipeline
-- [ ] **Modal LLM Integration** — Phase 15: Wire the local Next.js frontend to the Modal serverless endpoint for real-time inference streaming.
+- [x] **XGBoost Math Engine v2** — Phase 12: Optuna tuning, sidecars
+- [x] **FastAPI & Next.js** — Phase 13: Core interactive frontend
+- [x] **UI Overhaul** — Phase 14: MapLibre migration, CartoDB Positron
+- [x] **RAG Guardrails** — Phase 15: Split-Brain patch, tactical markers
+- [x] **Security & Dependencies** — Phase 16: Credential sanitization
+- [x] **Integrity Restoration** — Phase 17: Heuristic RAG, Offline metadata bypass
+- [ ] **Qwen3-8B LoRA fine-tuning** — Phase 18: Modal L40S, checkpoint-to-volume preemption recovery, bge-large query prefix at inference
+- [ ] **Synthesizer bridge** — Phase 19: Math Engine output → RAG retrieval → LLM synthesis pipeline
+- [ ] **Modal LLM Integration** — Phase 20: Wire the local Next.js frontend to the Modal serverless endpoint for real-time inference streaming.

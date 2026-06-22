@@ -152,12 +152,14 @@ Retrieval correctly resolved geographic and semantic context without keyword mat
 
 ## Roadmap
 
-- **Phase 12 (Next):** XGBoost + Optuna per-disaster-type tuning — separate models for hazard probability vs impact regression
-- **Phase 13:** Qwen3-8B QLoRA fine-tuning on Modal L40S — domain-specific disaster QA dataset
-- **Phase 14:** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
-- **Phase 15 (Completed):** FastAPI serving layer + Next.js interactive frontend
-- **Phase 16 (Completed):** MapLibre GL frontend migration + CartoDB Positron theme
-- **Phase 17 (Completed):** Semantic RAG Split-Brain guardrails + Tactical Map Markers
-- **Phase 18 (Completed):** Backend credential sanitization + HDX metadata resolution script + dependency pinning
+- **Phase 12 (Completed):** XGBoost Math Engine v2 — Optuna tuning per disaster type, hazard probability + impact regression, meta sidecars
+- **Phase 13 (Completed):** FastAPI serving layer + Next.js interactive frontend
+- **Phase 14 (Completed):** MapLibre GL frontend migration + CartoDB Positron theme
+- **Phase 15 (Completed):** Semantic RAG Split-Brain guardrails + Tactical Map Markers
+- **Phase 16 (Completed):** Backend credential sanitization + dependency pinning
+- **Phase 17 (Completed):** Integrity Restoration — Heuristic Hybrid RAG + Offline HDX metadata resolution bypass
+- **Phase 18 (Next):** Qwen3-8B QLoRA fine-tuning on Modal L40S — domain-specific disaster QA dataset
+- **Phase 19:** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
+- **Phase 20:** Modal LLM Integration — Wire the local Next.js frontend to the Modal serverless endpoint
 
 See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.
