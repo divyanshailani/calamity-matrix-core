@@ -117,8 +117,8 @@ export default function GeospatialMap({
       });
       
     return {
-      type: "FeatureCollection",
-      features
+      type: "FeatureCollection" as const,
+      features: features as any
     };
   }, [results, country]);
   return (
