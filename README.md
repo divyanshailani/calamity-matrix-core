@@ -47,6 +47,21 @@ Data Sources
 
 ---
 
+## Multi-Physics Architecture (Math Engine v3)
+
+In Phase 16, the system migrated from a single universal regression model to a Multi-Physics Architecture. The Math Engine now trains isolated, hyperparameter-tuned XGBoost models for each specific disaster type (e.g., separating earthquake physics from flood physics).
+
+![Math Engine v3 Performance](assets/disaster_performance.png)
+
+**What this graph tells us:**
+1. **Scale Separation:** The graph plots Affected Population and Economic Damage on logarithmic scales because the magnitude of impact varies wildly across disaster types (e.g., droughts impact tens of millions, whereas localized landslides impact thousands).
+2. **Error Magnitudes:** 
+   - **RMSE (Blue/Red bars):** Penalizes extreme outlier prediction errors heavily.
+   - **MAE (Green/Yellow bars):** Shows the absolute average error magnitude without squaring.
+3. **Physical Isolation:** By isolating the models, we ensure the mathematical properties of one disaster do not contaminate another. For instance, the algorithm no longer uses storm frequency weights to evaluate earthquake casualties, significantly reducing the predictive error floor across the board.
+
+---
+
 ## Project Structure
 
 ```
