@@ -67,7 +67,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A magnitude-6.0 seismic event in Haiti's structurally vulnerable building stock is projected to displace approximately 6,400 people with an estimated $283.8K in direct economic losses. Haiti's North-West Department, previously struck by a 5.9-magnitude earthquake near Port-de-Paix in October 2018 — which generated hundreds of aftershocks over several days — presents an identical geophysical and socio-economic risk profile to this simulation. Secondary exposure chains include accelerated collapse of pre-damaged masonry housing units, interruption of road access to highland communities blocking relief corridors, and saturation of Haitian public hospital capacity operating below baseline functionality. Potable water distribution systems, already structurally compromised in the North and Artibonite departments, face high probability of contamination from fractured sanitation infrastructure.
 ```
 
 ---
@@ -123,7 +123,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A severity-4.1 cold wave event in January is projected to affect 236 people across Morocco with $20.0K in associated economic losses, consistent with low-exposure, moderate-duration cold intrusion patterns. Morocco's eastern, northern, and southern interior regions — documented to experience temperatures as low as -13°C in high-altitude zones during polar air intrusions from the Arctic, as recorded in January 2017 — constitute the primary at-risk geographic sectors for this scenario. Livestock mortality in rural Amazigh highland communities represents the dominant secondary risk, with direct consequences for food security and subsistence income in non-insured agricultural households. Ground transport disruption along N-13 and N-17 mountain corridor routes is a confirmed secondary effect, isolating villages reliant on weekly market supply chains.
 ```
 
 ---
@@ -179,7 +179,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A severity-5.2 epidemic event in Sao Tome and Principe in January 2023 is projected to affect 3,200 individuals with $10.1K in estimated direct economic damage. The archipelago's 2022 Dengue fever outbreak — its first ever recorded, originating in late March with laboratory confirmation at the central hospital — established that vector-borne disease containment infrastructure in Sao Tome is at nascent capacity, leaving population immunity near zero for novel pathogen introductions. Secondary systemic risks include collapse of outpatient triage capacity at the Hospital Dr. Ayres de Menezes, Sao Tome's sole referral facility, and degradation of surveillance data quality due to insufficient rapid diagnostic test supply chains. Inter-island transmission to Príncipe, with its smaller and medically underserved population, constitutes a tertiary escalation pathway.
 ```
 
 ---
@@ -235,7 +235,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A December heat wave at severity index 4.5 in the Syrian Arab Republic is projected to affect 777 people with $4.0K in direct losses, a figure reflecting the severely contracted formal economic base operating within active conflict geography. Syria's documented heat events — including the August 2025 episode where temperatures exceeded 45°C across Rural Damascus, Hama, Aleppo, Homs, Sweida, and Daraa — demonstrate that thermal stress compounds existing displacement, inadequate shelter, and degraded water infrastructure into acute multi-vector emergencies rather than isolated meteorological events. Secondary risks include heat-induced mortality among internally displaced persons in informal settlements lacking ventilation infrastructure and medically unmonitored vulnerable populations. Agricultural labor disruption during winter planting cycles and further degradation of functioning diesel generator-dependent medical cold chains constitute the primary economic secondary impacts.
 ```
 
 ---
@@ -291,7 +291,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A June snow avalanche at severity 4.5 in Pakistan's northern mountain districts is projected to affect 694 people with $155.9K in economic losses, a damage-to-population ratio reflecting the high infrastructure replacement cost relative to sparsely populated Karakoram valley settlements. The February 2010 avalanche in Kohistan District's Bagroo Dara — which destroyed 220 houses sheltering an estimated 1,500–2,000 individuals in a geologically analogous high-gradient valley system — provides the closest documented physical precedent. Secondary risks include sustained road inaccessibility on the Karakoram Highway corridor, blocking both emergency ingress and commercial supply to downstream districts for periods measured in weeks. Structural isolation of high-altitude communities creates compounding food insecurity exposure, particularly where winter stocks were not pre-positioned.
 ```
 
 ---
@@ -347,7 +347,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A June mud slide event at severity 4.0 in Kyrgyzstan's southern regions is projected to affect 6,500 people with $832 in formal economic losses, consistent with high population exposure and low formal asset valuation characteristic of rural Jalalabat and Osh household profiles. The June 2010 event — triggered by heavy rainfall across the same geographic corridor, affecting 8,350 people across 1,670 households in Jalalabat and Osh and destroying houses, roads, cultivated land, and irrigation dams — establishes the precise physical cascade sequence applicable to this simulation. Secondary risks include destruction of qanat irrigation channels and cultivated terraces essential to summer crop cycles, with agricultural income losses exceeding the formal damage estimate by a factor of three to five in subsistence farming households. Rural road severance isolating villages like Akman and Suzak creates multi-week relief access gaps in the absence of pre-deployed KRCS materiel.
 ```
 
 ---
@@ -403,7 +403,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A December severe local storm at severity 4.8 in Armenia is projected to affect 4,500 people with $23.1K in damage, consistent with hail and flash-flood combination events documented across Armenia's southern border regions. The June 2023 hailstorm sequence — which overwhelmed drainage systems, flooded streets and structures, rendered bridges and roads impassable, and caused direct damage to livestock and agricultural plots — represents the closest physical analog, with this simulation projecting winter compounding effects on building stock already stressed by the preceding storm cycle. Secondary risks include disruption of road connectivity to southern communities reliant on a single highway corridor, with particular exposure for villages proximate to Iran-adjacent border zones where alternative routing is unavailable. Power grid outages driven by ice loading on transmission lines present a critical secondary hazard for heating-dependent urban and peri-urban populations during winter operations.
 ```
 
 ---
@@ -459,7 +459,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A September cold wave at severity 3.5 in Serbia — an anomalously early-season event — is projected to affect 782,800 people with only $6.5K in formal economic losses, a stark ratio reflecting diffuse thermal stress exposure across a large population without acute structural damage. Serbia's documented winter vulnerability, confirmed by the January 2026 event that partially collapsed the electricity distribution network and caused widespread prolonged outages disrupting heating, water supply, and essential services particularly in rural areas, establishes that the primary risk vector is energy infrastructure failure rather than direct cold injury. Secondary risks are dominated by the collapse of district heating systems serving post-Soviet-era apartment blocks, where municipal heating plants operating below maintenance standards present single-point-of-failure exposure for tens of thousands of residents. Medical demand surge for respiratory and cardiovascular presentations, combined with road network inaccessibility from early-season ice accumulation, creates a compound emergency logistics challenge for Serbian emergency services.
 ```
 
 ---
@@ -515,7 +515,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A January tsunami event at severity 7.7 in Indonesia is projected to affect 7,700 people with $551 in formal economic losses, a damage figure that critically underrepresents the total destruction profile of a high-energy inundation event in coastal Indonesia. Indonesia's seismic and tsunami hazard record — anchored by the December 2004 Aceh mega-tsunami generated by the fourth-largest earthquake of the preceding century, which killed over 228,000 across 14 nations and inundated one-fifth of the globe's circumference — establishes that Indonesian coastal settlements have near-zero structural resilience to wave runup events above 3 meters. Secondary risks include complete destruction of fishing fleet assets and coastal market infrastructure, elimination of shoreline aquaculture installations, and collapse of coastal road networks that form the sole supply corridor for island-interior communities. Waterborne disease transmission from contaminated groundwater and displaced waste systems constitutes a secondary mortality vector in the 30–90 day post-event recovery window.
 ```
 
 ---
@@ -571,7 +571,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A September heat wave at severity 4.6 in Pakistan is projected to affect 448 people with $269.3K in economic losses, a damage profile driven by agricultural output suppression and energy system strain rather than acute population displacement. Pakistan's June 2007 heat event — where temperatures in Punjab averaged 42°C amid its worst-ever energy crisis and demand-supply deficit caused widespread power outages — establishes the critical compound hazard of simultaneous thermal extremes and electricity grid failure, which removes household and medical cooling capacity simultaneously. Secondary risks include heat stress mortality concentrated in outdoor agricultural labor populations in Sindh and Punjab, where workplace heat exposure limits are structurally unenforced, and accelerated dehydration risk among communities with pre-existing groundwater depletion and unreliable municipal water access. Power grid brownouts reducing hospital HVAC function present a direct secondary mortality risk for ICU and neonatal ward patients across Pakistani tertiary care facilities.
 ```
 
 ---
@@ -627,7 +627,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A November snow avalanche at severity 4.5 in Tajikistan is projected to affect 1,300 people with $17.2K in losses, consistent with localized high-mountain valley impact patterns across the Pamir and Gorno-Badakhshan regions. Tajikistan's January–February 2006 avalanche and mudflow sequence — affecting over 723 people across eastern and southern districts, killing 19, injuring 5, and destroying 106 houses during an anomalous snowfall period — provides the direct physical precedent for this November simulation, noting that late-season snowfall in 2025 would represent an early onset of the typical winter hazard window. Secondary risks include isolation of GBAO road corridors, where the M41 Pamir Highway constitutes the sole land supply route and is routinely severed for weeks under heavy snow loading. Pre-positioned humanitarian stocks and medical supply chains for Khorog's regional hospital must be assessed against a multi-week access interdiction scenario.
 ```
 
 ---
@@ -683,7 +683,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A June flood event at severity 4.5 in Saint Vincent and the Grenadines is projected to affect 32,200 people — representing a substantial fraction of the island's total population — with only $2.2K in formal economic losses, a ratio reflecting high social exposure in a geographically constrained small island context with low insured asset values. The December 2013 flooding and landslide sequence — triggered by a low-level trough system affecting Saint Vincent, Saint Lucia, and Dominica simultaneously, destroying 30 homes and requiring emergency shelter for 237 people — establishes that Vincentian settlements along river valley corridors and coastal lowlands are structurally exposed to seasonal precipitation overload without adequate drainage infrastructure. Secondary risks include contamination of rain-fed water catchment systems that supply a significant portion of the island's potable water, and temporary inaccessibility of the Windward and Leeward highway corridors that constitute the primary inter-community supply network. Agricultural damage to banana and root crop plantations represents the primary economic secondary impact given the agricultural composition of the island's export base.
 ```
 
 ---
@@ -739,7 +739,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A February flood event at severity 4.6 in Dominica is projected to affect 2,000 people with formal economic losses below operational calculation threshold, indicating high population exposure with minimal insured asset values in an economy still recovering from previous cyclone-induced destruction. Dominica's documented flood vulnerability — confirmed by Tropical Storm Ophelia's 2011 impact, where indirect rainfall generated severe infrastructure damage and personal property losses without direct landfall — establishes that the island's steep volcanic topography accelerates runoff velocities and debris flow potential beyond what flat-terrain flood models would predict. Secondary risks center on Dominica's fragile road network, where the single Roseau-Portsmouth coastal highway and interior mountain tracks are subject to landslide-induced severance that can isolate entire districts for days to weeks. Post-event mold infiltration in timber-framed housing stock, combined with limited local construction materials supply, creates prolonged shelter vulnerability beyond the initial flood window.
 ```
 
 ---
@@ -795,7 +795,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A fire event in Somalia at severity 4.1 in October 2021 is projected to affect 16,000 people with $1.9K in formal economic losses, a damage figure that captures market infrastructure destruction while substantially undercounting the livelihood losses concentrated in displaced trader populations. The April 2022 Waaheen market fire in Hargeisa — Somaliland's largest commercial hub, where fire control required 16 hours and cross-border support from Ethiopia's Somali regional fire department in what authorities described as the worst fire in decades — establishes that Somali urban market fires propagate rapidly through densely packed wooden stall structures with inadequate fire breaks and no sprinkler infrastructure. Secondary risks include wholesale destruction of merchant inventory and stored capital representing years of accumulated household savings for IDP traders who operate without formal banking access, creating acute post-fire destitution cascades. Reconstruction of destroyed market stalls requires imported timber and corrugated iron, both subject to Port of Berbera supply bottlenecks that extend the economic recovery timeline by three to six months.
 ```
 
 ---
@@ -851,7 +851,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+An April fire event at severity 4.5 in the Central African Republic is projected to affect 2,000 people with $624 in formal losses, consistent with dry-season village fire patterns in the Ouaka Prefecture during the February–April peak fire risk window. The February 2022 twin village fires near Bakala — 458 km from Bangui — demonstrate that end-of-dry-season conditions combine parched thatch and timber housing stock with field-burning agricultural practices to create uncontrolled ignition cascades, a risk amplified by the absence of municipal fire response capacity outside Bangui. Secondary risks include total destruction of stored food grain and agricultural seed stock, removing both immediate nutrition supply and the following planting season's production base from affected households in a single fire event. Humanitarian access to interior Ouaka Prefecture settlements depends on seasonal road conditions and MINUSCA convoy schedules, both of which constrain response speed in the 72-hour critical window following ignition.
 ```
 
 ---
@@ -907,7 +907,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A flash flood event at severity 4.9 in the Russian Federation in October is projected to affect 17,800 people with $4.4K in direct economic losses, consistent with intensive autumn precipitation events in Russia's southern Caucasus and Black Sea drainage basins. The July 2012 flash flood in Krasnodar Krai — which killed 172 people, injured nearly 4,000, required evacuation of 3,000 residents, and completely destroyed the property of 5,500 in the region's worst natural disaster in decades — represents the maximum-stress physical analogue for this simulation at a lower severity rating. Secondary risks include failure of local earthen flood retention structures along Kuban River tributaries and contamination of municipal groundwater wells from floodwater infiltration across unlined rural water supply systems. Road severance isolating agricultural villages from Krasnodar's regional supply network creates post-flood food and medical resupply constraints measurable in days to weeks depending on precipitation cessation timing.
 ```
 
 ---
@@ -963,7 +963,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A July tropical cyclone at severity 6.7 targeting Antigua and Barbuda is projected to affect 3,400 people with $105.1K in economic losses, a damage profile calibrated to a dual-island exposure scenario with concentrated critical infrastructure on the smaller Barbuda landmass. Hurricane Irma's Category 3 track across Antigua and Barbuda in September 2017 — which generated a near-total destruction profile on Barbuda requiring full island evacuation — establishes that even moderate cyclone tracks over this archipelago produce disproportionate infrastructure damage given the islands' flat topography and the absence of natural windbreaks. Secondary risks include storm surge inundation of Codrington Lagoon's low-lying freshwater lens, introducing saline contamination into Barbuda's primary groundwater aquifer, with recovery timelines measured in months. Destruction of Barbuda's single airstrip and the inter-island ferry link creates a logistical isolation scenario requiring OECS or US Coast Guard helicopter-lift resupply operations in the immediate 72-hour window.
 ```
 
 ---
@@ -1019,7 +1019,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+An epidemic event at severity 6.0 in Congo in April 2022 is projected to affect 457 people with $1.5K in direct losses, a population figure consistent with early-stage containment scenarios prior to exponential transmission in high-density urban settings. The Republic of Congo's 2013 cholera outbreak — triggered by drainage system destruction from November 2012 flooding in Pointe-Noire, the country's second-largest city — establishes that infrastructure failure from prior hydro-meteorological events creates the environmental precondition for waterborne pathogen proliferation, with case and death counts increasing continuously in the absence of effective WASH intervention. Secondary risks include rapid transmission amplification through Pointe-Noire's informal settlement water-sharing networks, where pit latrine proximity to hand-pump water sources creates direct fecal-oral contamination pathways. MSF and WHO response capacity in Brazzaville faces a 24–48 hour logistics lag to Pointe-Noire, creating a critical containment window gap in the first responder deployment timeline.
 ```
 
 ---
@@ -1075,7 +1075,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A February drought at severity 4.5 in Moldova is projected to affect 53 people with $3.8K in direct losses, a contained initial exposure figure that substantially understates the systemic agricultural sector damage trajectory over a full growing season. Moldova's 2012 drought — part of a regional Black Sea and Balkan phenomenon where combined poor rainfall and extreme temperatures produced major national crop production losses requiring Prime Ministerial declaration of acute international assistance need for the agrarian sector — establishes that Moldovan agriculture's dependence on rain-fed cereal cultivation creates catastrophic sector-wide exposure to multi-month precipitation deficits. Secondary risks include cascading livestock feed shortages from failed fodder crop production, forcing early-season herd liquidation at depressed prices and compressing the national dairy and meat output for the following 12–18 months. Moldova's position as a net cereal exporter means that harvest failure directly impacts foreign exchange earnings and government fiscal capacity, creating macro-level secondary effects disproportionate to the affected population count.
 ```
 
 ---
@@ -1131,7 +1131,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A September volcanic event at severity 5.2 on Saint Vincent and the Grenadines is projected to affect 8,000 people with $5.4K in economic losses, with the primary humanitarian impact driven by mandatory evacuation of red zone communities on the northern La Soufrière volcanic flanks. The December 2020 orange-level alert elevation for La Soufrière — which established heightened seismicity and fumarolic activity requiring continuous NEMO monitoring and warning that eruptions could occur with less than 24 hours' notice — directly precedes the April 2021 effusive and explosive eruption cycle, providing the established escalation trajectory applicable to this simulation. Secondary risks include pyroclastic ashfall contaminating the island's rainwater harvesting infrastructure, which supplies the northern Windward communities with their primary potable water source, requiring an estimated 72–96 hours of post-event flushing before safe consumption. Agricultural damage from ash deposition on banana and arrowroot plantations across the Windward coast represents a multi-season economic recovery challenge given the island's export crop dependency.
 ```
 
 ---
@@ -1187,7 +1187,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A March flash flood at severity 4.9 in Zimbabwe is projected to affect 350 people with $78.5K in economic losses, a damage-to-population ratio reflecting high infrastructure replacement costs per affected household in rural Masvingo and Matabeleland North districts. Zimbabwe's January–February 2014 flash flooding — which killed people and displaced residents across Chivi and Masvingo districts, with confirmed subsequent damage reported through OCHA in February — establishes that Zimbabwe's low-lying communal land areas in southern and western provinces are structurally exposed to seasonal Limpopo and Save River tributary overflows without engineered flood retention. Secondary risks include destruction of field-prepared agricultural plots during the critical January–March summer cropping season, converting a single flood event into a full-season food production loss for subsistence farming households operating without crop insurance. Rural road infrastructure damage to Class D gravel roads severs the market access routes for smallholder surplus commodity sales, compressing household cash income for the following 6–9 months.
 ```
 
 ---
@@ -1243,7 +1243,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A May wildfire event at severity 3.8 in Bolivia is projected to affect 5,600 people with $5.1K in formal economic losses, concentrating primary exposure in the Santa Cruz and Beni departments where 96% of national hotspot activity is historically documented. Bolivia's July 2024 wildfire emergency — which recorded 11,576 active hotspots across the national territory with a 6,671-hotspot increase in a single week, prompting Ministry of Defense reporting activation — establishes that Bolivia's Chiquitano dry forest ecosystem transitions rapidly from low-severity distributed burning to landscape-scale conflagration under conditions of extended drought and wind acceleration. Secondary risks include smoke column dispersion affecting respiratory health for urban populations in Santa Cruz city, with ambient PM2.5 concentrations exceeding WHO thresholds for periods of one to three weeks during peak fire activity. Destruction of cattle grazing pasture and timber extraction access roads creates agricultural and forestry sector losses that substantially exceed the formal $5.1K direct damage figure at regional scale.
 ```
 
 ---
@@ -1299,7 +1299,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A December volcanic event at severity 5.4 in the continental United States is projected to affect 1,000 people with $2.6K in direct losses, with the confined population exposure figure reflecting mandatory evacuation perimeter controls and the low residential density characteristic of Cascades Range and Hawaiian volcanic risk zones. The Mount St. Helens 1980 eruption — the most destructive volcanic event in contiguous US recorded history — establishes that US volcanic hazard management defaults to maximum-buffer exclusion zone protocols that minimize direct population exposure while generating extended economic disruption to timber, tourism, and transportation sectors beyond the immediate impact radius. Secondary risks include volcanic ash accumulation on critical Pacific Northwest infrastructure corridors — the I-90 and I-84 highway axes and BNSF rail lines — where millimeter-level ashfall produces traction loss and engine filtration failures with cascading freight disruption effects. Airport operational suspension within the ash plume trajectory constitutes a significant secondary economic impact given Seattle-Tacoma and Portland International's roles as West Coast air cargo hubs.
 ```
 
 ---
@@ -1355,7 +1355,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A December cold wave at severity 4.0 in Bulgaria is projected to affect 416 people with $9.9K in economic losses, consistent with localized high-vulnerability exposure among elderly and unhoused populations during early winter cold intrusions. The 2009 pan-Balkan cold wave — which drove temperatures to -30°C across Eastern Europe, killed 57 people in Poland alone over a single weekend, and created rail and road havoc across the region — establishes that Balkan cold waves arriving from the same Arctic pathway can produce rapid mortality escalation when grid heating systems and emergency sheltering infrastructure are simultaneously overwhelmed. Secondary risks in Bulgaria center on the structural vulnerability of district heating networks in Sofia, Plovdiv, and Varna — Soviet-era systems operating below maintenance standards — where pipe freeze events can eliminate heating for entire apartment blocks within hours of temperature onset. Rural Rhodope and Stara Planina mountain communities, accessible only by secondary roads susceptible to rapid snow and ice accumulation, present a multi-day resupply access gap for emergency services.
 ```
 
 ---
@@ -1411,7 +1411,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A July severe local storm at severity 5.1 in Cuba is projected to affect 1,200 people with $30.6K in economic losses, consistent with tornado and high-wind events documented across Cuba's central provinces during summer convective instability cycles. The May 2020 severe storm event in Sancti Spíritus Province — which generated a tornado with winds of 120 km/h alongside waterspouts and linear wind gusts exceeding 92 km/h across a multi-province swath — establishes that Cuba's flat central agricultural terrain provides no orographic damping for severe local convective cells, allowing tornadic signatures to maintain intensity well inland from genesis points. Secondary risks include damage to Cuba's sugar cane and tobacco cultivation in Sancti Spíritus and Villa Clara provinces, where crop canopy destruction from hail and wind shear generates losses that propagate through state enterprise supply chains with multi-season recovery timelines. Power grid disruption from transmission pole failures is a confirmed secondary effect in all documented Cuban severe storm events, with restoration constrained by the country's limited transformer and conductor spare parts inventory.
 ```
 
 ---
@@ -1467,7 +1467,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A June flood at severity 4.5 in Mauritania is projected to affect 2,800 people with $1.3K in economic losses, a damage figure consistent with low-asset-value rural and peri-urban household exposure in southern and central Mauritania's wadis and floodplain settlements. Mauritania's July–August 2022 flood event — which impacted 28,926 people across 4,351 households in Hodh El Gharbi, Assaba, and Tagant regions, destroyed 3,817 houses, and killed 14 people including a majority of children — establishes that when seasonal flash flood pulses from the Saharan fringe overwhelm the unlined earthen berms protecting Mauritanian villages, total housing stock destruction in the impact zone is the typical outcome rather than partial damage. Secondary risks include collapse of localized food storage infrastructure concentrated in village granary structures, converting a single flood pulse into a 3–6 month food security gap for affected communities operating outside formal market supply chains. Access road degradation in Assaba and Tagant creates a logistics bottleneck for WFP and UNHCR pre-positioned NFI distribution that compounds the response timeline.
 ```
 
 ---
@@ -1523,7 +1523,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+An extratropical cyclone event at severity 5.2 over China's eastern coastal provinces in January is projected to affect 787 people with $3.80M in economic losses, a damage figure driven by the high-value infrastructure concentration in China's Yangtze River Delta and Pearl River Delta coastal corridors. The August 1997 Typhoon Winnie landfall in Zhejiang Province — where rainfall exceeding 200mm coincided with record high tide levels to destroy sea embankments at Taizhou, Wenzhou, Ningbo, and Zhoushan, inundating large swaths of farmland — establishes that China's eastern coastal flood protection systems face compound hydraulic loading from simultaneous storm surge, riverine flooding, and tidal amplification events. Secondary risks include disruption to the Shanghai container port complex and Ningbo-Zhoushan Port operations — collectively handling approximately 15% of global container throughput — where storm surge-induced berth inaccessibility generates freight forwarding delays with multi-regional supply chain impacts. Damage to the Hangzhou Bay sea wall infrastructure and coastal expressway embankments creates multi-week regional freight bottlenecks regardless of vessel operational status.
 ```
 
 ---
@@ -1579,7 +1579,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+An El Niño-driven drought at severity 5.0 affecting Indonesia in June 2023 is projected to impact 268,900 people with $51.5K in direct economic losses, with the exposure concentrated in remote highland agricultural communities reliant entirely on rain-fed subsistence production. The June–August 2023 drought emergency in Puncak District, Central Papua Province — where the Regent formally declared Emergency Response Status after El Niño suppressed the wet season, causing crop failure in Agandugume and Lambewi sub-districts — provides the direct precedent, with regional disaster management confirming that affected populations had exhausted local food reserves. Secondary risks include acute malnutrition progression to severe acute malnutrition among children under five in highland Papua communities where supplementary feeding supply chains require helicopter access, creating a critical logistics bottleneck that delays intervention by 3–7 days per cargo cycle. Seed stock depletion from consumed emergency reserves removes the following planting season's agricultural production base, converting a single-season drought into a two-season food insecurity cascade.
 ```
 
 ---
@@ -1635,7 +1635,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+An epidemic event at severity 5.6 in Papua New Guinea in September 2023 is projected to affect 381 people with $162.3K in economic losses, a damage profile reflecting the disproportionate healthcare system costs of outbreak investigation, laboratory confirmation, and response mobilization relative to the initial case count. PNG's May 2025 poliovirus type 2 outbreak — confirmed via two Morobe Province cases with environmental samples from Port Moresby testing positive, linked genetically to Indonesian circulating strain — establishes that PNG's geographic position as a trans-Pacific disease corridor creates compounding outbreak risk from both Indonesia's Sahul platform and Pacific Basin circulation pathways. Secondary risks center on PNG's sub-10% routine immunization coverage rates in remote highlands provinces, where oral poliovirus vaccine cold chain interruptions from generator fuel supply disruptions create population immunity gaps exploitable by any re-introduced vaccine-preventable pathogen. Emergency vaccination campaign logistics in PNG's Highlands Region — requiring fixed-wing and helicopter access to 600+ separate communities — present a 4–6 week full-coverage deployment timeline that creates an open transmission window during active outbreak conditions.
 ```
 
 ---
@@ -1691,7 +1691,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A December snow avalanche at severity 3.8 in Afghanistan's northern mountain provinces is projected to affect 521 people with $1.8K in economic losses, consistent with localized high-altitude valley inundation from seasonal snowpack release events in Badakhshan and Nuristan. Afghanistan's January–February 2012 avalanche sequence — its most severe winter in 15 years, reaching -18°C in some areas and killing 43 people with 65 injuries across 10 Badakhshan districts, later destroying 54 children's homes in a single February event — establishes the physical risk profile for this simulation at a lower severity rating. Secondary risks in the 2022 operational context include the Taliban administration's constrained civil emergency response capacity and the post-August 2021 suspension of UN and bilateral donor direct implementation agreements, which substantially extends response timelines relative to pre-2021 baseline. Road access to avalanche-affected Badakhshan communities via the Kunduz-Fayzabad highway depends on maintenance operations that are structurally underfunded in the current governing environment, creating multi-week isolation windows for affected valley communities.
 ```
 
 ---
@@ -1747,7 +1747,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A January drought at severity 4.7 in Ethiopia is projected to affect 28,600 people with $172.2K in losses, consistent with the early-stage exposure profile of a prolonged precipitation deficit affecting pastoralist communities in Ethiopia's southern and southeastern lowlands before humanitarian caseload escalation. Ethiopia's 2017 drought emergency — where residual El Niño stress was compounded by below-average 2016 autumn rains in lowland pastoralist areas, placing 5.6 million people in emergency food assistance requirements with 2.7 million children in acute malnutrition risk — establishes that Ethiopian drought events transition from initial exposure to multi-million person humanitarian caseload within a 6–9 month lag period when precipitation recovery fails to materialize. Secondary risks include accelerated pastoralist herd mortality from water point exhaustion along the Borena and Somali region livestock migration corridors, with herd loss percentages above 30% triggering irreversible livelihood collapse for nomadic communities lacking alternative income sources. Ethiopian agriculture ministry crop production forecasts issued in January typically underestimate final drought-season losses by 15–25% due to delayed ground-level reporting from remote pastoral zones, creating systematic humanitarian response mobilization lag.
 ```
 
 ---
@@ -1803,7 +1803,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A May landslide event at severity 4.8 in Pakistan's Gilgit-Baltistan region is projected to affect 208 people with $477.1K in economic losses — a high damage-per-person ratio driven by road infrastructure and residential structure replacement costs in the Karakoram's remote high-altitude valleys. The January 2010 Hunza Valley landslide — which killed 19 people, destroyed one village entirely, and required the Pakistan Red Crescent's Gilgit-Baltistan branch to provide emergency food and NFIs to 332 households — establishes that Karakoram landslide events in narrow valley constrictions can simultaneously trigger human casualties, block the Karakoram Highway, and impound river flow to create secondary upstream flooding hazards. Secondary risks include the blockage of Hunza Lake drainage control works, where any interference with the Attabad Lake sluice channel mechanism creates a catastrophic upstream water storage accumulation risk for downstream Gilgit city. Critical Karakoram Highway severance affecting Pakistan-China CPEC commercial transit generates daily freight throughput losses substantially exceeding the direct disaster damage estimate.
 ```
 
 ---
@@ -1859,7 +1859,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A November extratropical cyclone at severity 5.4 affecting the Republic of Korea is projected to impact 5,600 people with $3.0K in economic losses, consistent with cold-season extratropical low pressure system impacts on Korea's east coast exposure sectors. Korea's documented cyclone vulnerability — anchored by the catastrophic July 1987 Typhoon Thelma event with 130 km/h winds causing over 300 deaths and missing persons and rendering 20,000 homeless, followed immediately by the 22–23 July torrential rain episode — establishes Korea's historical risk profile at maximum-severity events, with this simulation representing a sub-catastrophic but operationally significant cyclone track. Secondary risks include disruption to the POSCO Pohang Steel Complex and Hyundai Heavy Industries Ulsan shipyard facilities — both in extratropical cyclone exposure zones on the southeast coast — where operational halts from wind speed thresholds above plant safety limits generate daily output losses in the $50–100M range. East Sea coastal fishing operations and aquaculture cage infrastructure represent the primary-sector secondary loss vector for this scenario.
 ```
 
 ---
@@ -1915,7 +1915,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A May mud slide event at severity 4.4 in Peru is projected to affect 15,100 people with $8.0K in formal economic losses, a damage figure that substantially undercounts the total agricultural and infrastructure losses characteristic of huaico events in Peru's Andean river valley systems. Peru's 2011 state of emergency declaration covering five Ica Department provinces — where rivers overflowed across Arequipa, Ayacucho, Puno, Ucayali, and Huancavelica departments, damaging homes, crops, and infrastructure including road access to multiple highland districts — establishes that Peruvian mudslide cascades characteristically affect multiple departments simultaneously along shared drainage basin corridors. Secondary risks include destruction of the Panamericana Sur highway embankments in Ica and Arequipa departments — critical supply arteries for Lima's vegetable and fruit import chains — where even partial closures create food price spikes measurable within 48 hours in Lima's wholesale markets. Peru's agricultural export sector, centered on asparagus, avocado, and blueberry cultivation in coastal valleys irrigated by Andean runoff, faces contamination of drip irrigation infrastructure from sediment-laden floodwaters.
 ```
 
 ---
@@ -1971,7 +1971,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A landslide event at severity 4.2 in Uganda in August 2023 is projected to affect 91 people with $7.6K in losses, a contained initial exposure figure consistent with localized slope failure events in Bududa District's steep Mount Elgon escarpment terrain. Uganda's June 2012 Bududa landslide — which buried the villages of Namaaga and Bunakasala, confirmed 18 deaths and 9 injuries, and covered approximately two full village footprints in debris — establishes that Bududa District's volcanic clay soils, combined with seasonal precipitation saturation, produce catastrophic whole-village burial events rather than partial damage, leaving minimal warning time or self-rescue opportunity for resident populations. Secondary risks include permanent loss of terrace agriculture on the Mount Elgon upper slopes — the primary livelihood base for Bududa's Bagisu smallholder communities — where debris coverage of cultivated plots removes agricultural production for the following 2–3 seasons pending land clearing operations. Mortuary and survivor identification operations in Bududa present systematic challenges due to community genealogical knowledge dependency and the absence of civil registration records for rural Bugisu populations.
 ```
 
 ---
@@ -2027,7 +2027,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A March landslide event at severity 4.5 in Bangladesh is projected to affect 520 people with $4.7K in direct losses, consistent with early-season slope failure events in Chittagong Division's hill tracts terrain where pre-monsoon soil saturation from localized convective rainfall creates slide initiation conditions. The June 2017 Chittagong Division mudslide sequence — which killed at least 135 people across southeastern Bangladesh from monsoon-triggered failures occurring just two weeks after Cyclone Mora's regional infrastructure impact — establishes that Bangladesh's hill tracts communities face compounding hazard sequences where preceding meteorological events pre-condition slopes for catastrophic failure during subsequent precipitation events. Secondary risks include road access severance along the Chittagong-Rangamati and Chittagong-Bandarban highway corridors — the sole ground supply routes for 1.2 million hill tracts residents — where simultaneous multi-point landslide occurrence creates access interdiction measurable in weeks rather than days. Communication infrastructure disruption in areas with limited mobile network coverage creates acute situational awareness gaps for Bangladesh Disaster Management Bureau coordination during the critical first 24 hours post-event.
 ```
 
 ---
@@ -2083,7 +2083,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A March fire event at severity 4.4 in Guinea-Bissau is projected to affect 8,600 people with $129 in formal economic losses — a figure that captures only immediate asset replacement costs while excluding the multi-season livelihood and food security impacts of destroyed household and community-level stores. The January 2023 Menegue Village fire near Canhabaque — which destroyed dozens of houses along with food stocks, crops, and seeds affecting 295 households (2,065 people) per Guinea Bissau Red Cross rapid assessment — establishes that rural Bijagós Archipelago and interior village fire events characteristically consume the food reserves, seed stock, and agricultural equipment stored within household compounds that represent the primary capital assets of subsistence farming households. Secondary risks include loss of the upcoming planting season's seed supply, which in Guinea-Bissau's rain-fed cashew and rice cultivation economy translates to a near-total suppression of the following growing season's agricultural output for affected communities without external seed replacement intervention. Guinea-Bissau's humanitarian response capacity is structurally limited by the country's institutional fragility and dependence on WFP and FAO for emergency seed distribution logistics.
 ```
 
 ---
@@ -2139,7 +2139,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A July mud slide event at severity 4.4 in Colombia is projected to affect 2,100 people with $8.5K in economic losses, consistent with localized huaico events in Colombia's Andean Cordillera river valley systems during the July–August secondary rainy season. The March 2017 Mocoa mudslide — where 33% of the municipality's monthly rainfall total fell in a single night, causing the Mocoa, Sangoyaco, and Mulata Rivers to overflow and generate a slide that killed 273 people — establishes the maximum-severity endpoint of Colombia's Andean mudslide hazard profile, with this simulation representing a significantly lower-magnitude event along the same physical cascade pathway. Secondary risks include destruction of the Putumayo Department's road connection to the Colombian interior via the Pasto-Mocoa highway — a route subject to chronic landslide closure — which when severed directs emergency supply to costlier helicopter logistics. Oil pipeline infrastructure in Putumayo Province, which crosses multiple active slide zones, faces spill risk from ground movement-induced pipe stress fractures, creating a secondary environmental contamination vector.
 ```
 
 ---
@@ -2195,7 +2195,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A July earthquake at severity 6.4 in Guatemala is projected to affect 5,000 people with $209.1K in economic losses, consistent with moderate-magnitude seismic events along the Motagua and Polochic fault systems that transect Guatemala's central highlands. Guatemala's July 2025 seismic sequence — which affected approximately 14,541 people across 4,450 families across multiple departments over eight days, forcing evacuations and generating significant infrastructure damage per CONRED situational reporting — provides the closest temporal and geographic analog, confirming that Guatemala's highland municipal building stock responds to sustained seismic sequences with progressive structural degradation exceeding single-event damage estimates. Secondary risks include collapse of informal masonry housing in Maya Ixil and Mam indigenous communities in the Western Highlands, where adobe and unreinforced block construction dominates and post-event shelter deficit persists for 6–18 months without formal reconstruction programs. Guatemala's Pacific coastal highway (CA-1) and Inter-American Highway crossing points over seismically active bridge infrastructure represent critical secondary disruption points for Central American transit freight.
 ```
 
 ---
@@ -2251,7 +2251,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A January earthquake at severity 6.7 in Japan is projected to affect 5,600 people with $325.0K in direct losses, a conservative estimate relative to Japan's documented seismic impact history given the country's world-class building code compliance and civil emergency response capacity. Japan's March 2011 magnitude-9.0 Tohoku earthquake and tsunami — which evacuated 492,000 people, killed 11,600, left 16,450 missing, destroyed 17,000 structures, and damaged 138,000 more — establishes the maximum credible event envelope, with this simulation's 6.7-magnitude winter event representing a structurally significant but operationally manageable scenario by Japanese disaster management standards. Secondary risks for a January event include the interaction of earthquake-induced building damage with winter heating fuel supply disruption, where LPG cylinder and kerosene distribution infrastructure damage creates immediate cold exposure risk for displaced residents in temporary shelter during overnight temperatures at or below freezing. Liquefaction risk in reclaimed coastal land zones of Osaka Bay and Tokyo Bay — previously documented during the 1995 Hanshin earthquake — constitutes a high-probability secondary infrastructure damage pathway for this magnitude range.
 ```
 
 ---
@@ -2307,7 +2307,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A May tropical cyclone at severity 7.0 making landfall in Mozambique is projected to affect 276 people with $12.5K in economic losses, a damage profile calibrated to a constrained impact scenario relative to Mozambique's documented mega-cyclone history, likely reflecting a glancing or weakening-at-landfall track profile. Mozambique's 2024 cyclone response — where INGD confirmed 48,116 people affected across Gaza, Inhambane, Maputo, and Sofala provinces with 8,000+ infrastructure units damaged in Maputo City alone — establishes the operational scale of a full-landfall cyclone event on Mozambique's southern coast, providing the upper bound for this simulation. Secondary risks include storm surge penetration into Maputo Bay's low-lying port district, where 2.4-meter surge events documented in prior Mozambican cyclones have inundated customs and container terminal operations for periods of 3–5 days. Beira and Maputo port suspension — the primary import corridors for landlocked Zambia, Zimbabwe, and Malawi — generates cascading supply chain disruption to three neighboring economies beyond Mozambique's own domestic recovery requirements.
 ```
 
 ---
@@ -2363,7 +2363,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A July tsunami at severity 7.2 generating from Solomon Islands seismicity is projected to affect 22,900 people with $2.0K in direct economic losses — a damage figure that critically understates the total destruction profile of a tsunami inundation event across the Solomon Islands' low-lying coastal village infrastructure. The April 2007 magnitude-8.1 earthquake and resulting tsunami that struck Gizo, Simbo, Ranogga, the Shortland Islands, and multiple Western Province communities — causing casualties and significant damage across nine distinct island groups — establishes that Solomon Islands tsunami events propagate across archipelago chains simultaneously, eliminating the geographic containment that limits single-island inundation scenarios. Secondary risks include total destruction of coastal fishing community assets — outboard motors, nets, boats, and cold storage infrastructure — that represent 60–70% of household productive capital for Western Province maritime communities, with full asset replacement requiring international aid disbursement timelines of 12–18 months. Freshwater lens contamination from ocean inundation of low-relief coral atoll islands in the Western and Choiseul Provinces creates a critical potable water emergency for communities reliant on near-surface groundwater catchments.
 ```
 
 ---
@@ -2419,7 +2419,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A November storm surge event at severity 5.2 in the Marshall Islands is projected to affect 885 people with $3.0K in formal losses, a figure that structurally undercounts the infrastructure and freshwater system damage characteristic of Pacific atoll inundation events. The January 2024 Marshall Islands surge event at Roi Namur Islet — generated by a potent winter northern Pacific storm system — demonstrates that weather-driven wave inundation on low-elevation Kwajalein Atoll infrastructure can penetrate military and civilian zones simultaneously even in the absence of tropical cyclone conditions, confirming year-round exposure on atoll terrain averaging 2 meters above mean sea level. Secondary risks include saline contamination of the Majuro and Ebeye freshwater lens aquifers — the Marshall Islands' only domestic water source — where ocean water infiltration from sustained inundation events requires 3–12 months of freshwater recharge before potable quality is restored. Critical communications and air traffic control infrastructure on Majuro Atoll, serving as the RMI's sole international aviation hub, faces elevation-driven exposure to surge events exceeding 1.2 meters above highest astronomical tide.
 ```
 
 ---
@@ -2475,7 +2475,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A December flash flood at severity 5.4 in Sierra Leone is projected to affect 36,700 people — a substantial fraction of Freetown's peri-urban population — with only $923 in formal economic losses, reflecting the extreme asset poverty of informal hillside settlements constituting the primary exposure zone. Sierra Leone's August 2022 Freetown flooding sequence — where persistent torrential rains from mid-August peaked on 28 August, flooding low-lying urban areas, triggering small-scale landslides on steep hillside informal settlements, and rendering major city-center roads impassable — establishes that Freetown's informal drainage system fails systematically under precipitation intensities associated with West Africa's August–October peak rainy season, with December events representing an anomalous late-season hazard. Secondary risks include landslide initiation on Freetown's steep hillside informal settlements — a compound hazard previously demonstrated at catastrophic scale by the August 2017 Regent mudslide event — where saturated tropical laterite soil overlying impermeable rock creates rapid shallow failure potential during sustained precipitation events. Freetown's central market and port road access disruption from flash flood inundation generates supply chain bottlenecks for domestic food commodity distribution within 24 hours of major flood onset.
 ```
 
 ---
@@ -2531,7 +2531,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A June wildfire event at severity 3.9 in Ecuador is projected to affect 7,200 people with $884 in formal losses, consistent with the early-stage monitoring phase of a fire season that Ecuador's SNGR activates orange alert protocols for when provincial fire counts exceed operational suppression capacity. Ecuador's June–September 2012 wildfire emergency — which recorded 2,912 fires across the period with an average of 26 large-scale events daily, incinerated over 15,000 hectares, caused three deaths, and required an eight-province orange alert declaration — establishes the full-season escalation trajectory applicable when initial fire events in June are not suppressed before seasonal wind patterns shift to accelerate spread in July and August. Secondary risks include rapid spread into Ecuador's high Andean páramo ecosystem — a carbon-dense wetland grassland above 3,000 meters — where fire penetration causes irreversible damage to water regulation functions that supply Quito and Guayaquil's highland watershed systems, with recovery measured in decades rather than seasons. Agricultural communities in Loja, Carchi, and Bolívar provinces face combined smoke exposure risk and direct boundary fire risk to smallholder crop plots in proximity to dry forest-agricultural transition zones.
 ```
 
 ---
@@ -2587,7 +2587,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+An August extratropical cyclone at severity 5.3 affecting Pakistan's southern coastal zone is projected to impact 224 people with $279.6K in economic losses — a high damage-per-capita ratio reflecting cyclone-driven infrastructure replacement costs in the Makran Coast's sparsely populated but strategically significant port and energy corridor geography. Pakistan's May 1999 extratropical cyclone event — where winds reaching 270 km/h generated drowning and structural collapse casualties and tidal wave penetration affecting an estimated 500,000 people across the Sindh and Balochistan coast — establishes the maximum-severity reference event for Makran Coast cyclone exposure, with this simulation representing a lower-magnitude but operationally significant analog. Secondary risks include wind and surge damage to the China-Pakistan Economic Corridor (CPEC) Gwadar deep-water port complex, where operational suspension from storm damage generates daily freight throughput losses and delays to Chinese energy and logistics investment timelines. Coastal liquefied natural gas import terminal infrastructure at Port Qasim faces storm surge and wind loading exposure that, if damaged, reduces Pakistan's domestic energy supply capacity during a period of chronic power deficit.
 ```
 
 ---
@@ -2643,7 +2643,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A December hurricane at severity 7.3 targeting the United States is projected to affect 65 people with $10.0K in direct losses, an anomalously low impact figure for a Category-4 equivalent event that reflects either an offshore track, landfall in a low-density coastal sector, or highly effective pre-landfall evacuation compliance under the US National Hurricane Center warning system. The documented benchmark of Gulf Coast hurricane impact — including Hurricane Katrina's August 2005 Gulf Coast landfall — establishes that even with the US emergency management infrastructure, direct landfall events on populated Gulf or Atlantic coastal urban zones produce impacts orders of magnitude above this simulation's projections, confirming this scenario represents a constrained or indirect-impact track assessment. Secondary risks for a December US hurricane include interaction with a pre-positioned winter frontal system that can intensify precipitation bands and extend inland flood reach beyond historical August–October landfall precedents, as documented in late-season Atlantic storm interactions with Appalachian orographic lift zones. Power grid restoration timelines in a December event are extended relative to summer storms by the compounding effects of peak-demand winter heating loads on damaged distribution infrastructure.
 ```
 
 ---
@@ -2699,7 +2699,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A June heat wave at severity 4.7 in the Democratic People's Republic of Korea is projected to affect 1,400 people with $1.3K in formal economic losses, a figure that structurally undercounts total impact given the DPRK's absence of transparent health system reporting and its documented practice of declaring meteorological emergencies only after state media authorization. The August 2018 DPRK heat emergency — formally declared via Korean Workers' Party newspaper Rodong Sinmun, with DPRK Red Cross reporting slow-onset emergency conditions in South Pyongan and South Hamgyong provinces affecting routine healthcare and agricultural operations — establishes that DPRK heat events disproportionately affect the agricultural labor force during critical summer cultivation periods when field exposure hours are at maximum and urban-rural cooling infrastructure disparities are most severe. Secondary risks include suppression of the 2024 summer grain crop — particularly maize in North Hwanghae and South Pyongan's breadbasket provinces — where heat-induced pollen sterility during the June tasseling period can reduce yield by 20–40% without any visible plant mortality prior to harvest. DPRK's structurally limited international aid access pathways, constrained to WFP and IFRC channels under strict counterpart monitoring conditions, extend humanitarian response mobilization timelines by 4–8 weeks relative to open-access country baselines.
 ```
 
 ---
@@ -2755,7 +2755,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A July storm surge event at severity 5.7 affecting Madagascar's eastern coast is projected to impact 264 people with $15.6K in economic losses, consistent with a cyclone-generated surge scenario in Madagascar's Toamasina corridor where coastal settlement density is moderate and formal asset values are low. Madagascar's March 2010 Cyclone Hubert landfall — which generated heavy flooding across seven southeastern districts affecting 192,000 people, causing 85 deaths, 132 injuries, and 35 missing persons as surge and rainfall combined — establishes the maximum credible event envelope for Madagascar's eastern coast storm surge exposure, with this July simulation representing a lower-intensity pre-season analog. Secondary risks include saltwater intrusion into the coastal freshwater wetlands and rice irrigation canals that supply Toamasina Province's paddy cultivation sector, where saline contamination of unlined irrigation channels requires dry-season flushing cycles before safe agricultural reuse. Damage to the RN2 coastal highway linking Toamasina Port to Antananarivo — Madagascar's sole efficient eastern seaboard connection — generates import and export throughput delays at the country's primary commercial port with measurable effects on domestic fuel and food commodity pricing within 72 hours.
 ```
 
 ---
@@ -2811,7 +2811,7 @@ You are Calamity AI, a disaster impact analysis assistant trained on historical 
 ### Expected Response *(Fill In)*
 
 ```
-
+A February severe local storm at severity 5.2 in Lebanon is projected to affect 2,100 people with $90.76M in economic losses — the highest damage-to-population ratio in this simulation batch — a figure driven by Lebanon's structural economic fragility, pre-damaged urban infrastructure from the August 2020 Beirut Port explosion, and the country's ongoing financial system collapse compressing insurance coverage to near zero. The documented winter storm response pattern in the Levant — including the QRCS response to heavy rain and flooding in northern Syria that damaged 2,214 tents housing 2,329 households across Idlib and Aleppo IDP camps in a analogous regional weather system — establishes that eastern Mediterranean winter storm events generate compound humanitarian emergencies when impacting displacement-concentrated and infrastructure-depleted operating environments. Secondary risks in Lebanon include storm-driven flooding of Beirut's collapsed sewage network, where pipe infrastructure destroyed in the 2020 explosion and subsequently unrepaired creates surface-level sewage overflow contaminating commercial and residential areas during sustained rainfall. Lebanon's electricity grid, operating at sub-30% functional capacity from fuel import financing constraints, loses additional transformer and substation capacity from storm surge and wind loading events with restoration timelines extending 2–4 weeks beyond the meteorological event given the absence of maintenance spare parts supply chains.
 ```
 
 ---
