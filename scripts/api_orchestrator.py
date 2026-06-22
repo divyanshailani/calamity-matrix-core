@@ -29,13 +29,13 @@ models = {}
 async def lifespan(app: FastAPI):
     print("\n[*] Initializing Calamity AI Neuro-Symbolic Orchestrator...")
     
-    # 1. Load XGBoost Models
-    print("[*] Loading XGBoost Predictors...")
-    models['xgb_affected'] = xgb.XGBRegressor()
-    models['xgb_affected'].load_model(XGB_AFFECTED_PATH)
+    # 1. Load Universal XGBoost Predictors (Fallback)
+    print("[*] Loading Universal XGBoost Predictors (v2 Fallback)...")
+    models['universal_affected'] = xgb.XGBRegressor()
+    models['universal_affected'].load_model(XGB_AFFECTED_PATH)
     
-    models['xgb_damage'] = xgb.XGBRegressor()
-    models['xgb_damage'].load_model(XGB_DAMAGE_PATH)
+    models['universal_damage'] = xgb.XGBRegressor()
+    models['universal_damage'].load_model(XGB_DAMAGE_PATH)
     
     # 2. Load Embedding Model
     print("[*] Booting Embedding Engine (BAAI/bge-large-en-v1.5)...")
@@ -92,9 +92,36 @@ async def simulate_calamity(payload: SimulationRequest):
         input_data['Country'] = input_data['Country'].astype('category')
         input_data['Disaster Type'] = input_data['Disaster Type'].astype('category')
         
-        # Inference
-        pred_log_affected = models['xgb_affected'].predict(input_data)[0]
-        pred_log_damage = models['xgb_damage'].predict(input_data)[0]
+        # Dynamic Multi-Physics Routing
+        import re
+        slug = str(payload.disaster_type).lower()
+        slug = re.sub(r'[^a-z0-9]+', '_', slug).strip('_')
+        
+        cache_key_aff = f"{slug}_affected"
+        cache_key_dam = f"{slug}_damage"
+        
+        aff_model_path = os.path.join(MODEL_DIR, f"{cache_key_aff}.json")
+        dam_model_path = os.path.join(MODEL_DIR, f"{cache_key_dam}.json")
+        
+        if os.path.exists(aff_model_path) and os.path.exists(dam_model_path):
+            # Lazy load domain-specific models if not in cache
+            if cache_key_aff not in models:
+                models[cache_key_aff] = xgb.XGBRegressor()
+                models[cache_key_aff].load_model(aff_model_path)
+            if cache_key_dam not in models:
+                models[cache_key_dam] = xgb.XGBRegressor()
+                models[cache_key_dam].load_model(dam_model_path)
+                
+            model_affected = models[cache_key_aff]
+            model_damage = models[cache_key_dam]
+            
+            # Domain-specific inference
+            pred_log_affected = model_affected.predict(input_data)[0]
+            pred_log_damage = model_damage.predict(input_data)[0]
+        else:
+            # Fallback to Universal v2 Model for rare physics
+            pred_log_affected = models['universal_affected'].predict(input_data)[0]
+            pred_log_damage = models['universal_damage'].predict(input_data)[0]
         
         # Inverse log1p transform (expm1) back to real-world numbers
         est_affected = float(np.expm1(pred_log_affected))

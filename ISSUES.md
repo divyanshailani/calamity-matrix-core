@@ -103,7 +103,8 @@ This is clearly documented in the README. No model in this project claims to pre
 - [x] **UI Overhaul** — Phase 14: MapLibre migration, CartoDB Positron
 - [x] **RAG Guardrails** — Phase 15: Split-Brain patch, tactical markers
 - [x] **Security & Dependencies** — Phase 16: Credential sanitization
-- [x] **Integrity Restoration** — Phase 17: Heuristic RAG, Offline metadata bypass
+- [x] **Integrity Restoration** — Phase 17 (aka Phase 14): Heuristic RAG, Offline metadata bypass
+- [x] **Multi-Physics Architecture** — Phase 14.5 (Inserted): Disaster-specific segregated tuning (v3 Math Engine)
 - [ ] **Qwen3-8B LoRA fine-tuning** — Phase 18: Modal L40S, checkpoint-to-volume preemption recovery, bge-large query prefix at inference
 - [ ] **Synthesizer bridge** — Phase 19: Math Engine output → RAG retrieval → LLM synthesis pipeline
 - [ ] **Modal LLM Integration** — Phase 20: Wire the local Next.js frontend to the Modal serverless endpoint for real-time inference streaming.
