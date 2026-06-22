@@ -283,7 +283,7 @@ async def synthesize_tactical_report(payload: dict):
     from fastapi.responses import StreamingResponse
     import httpx
     
-    MODAL_INFERENCE_URL = "https://divyanshailani--calamity-qwen3-inference-calamityinferen-07f7a5.modal.run"
+    CLOUD_INFERENCE_URL = "https://divyanshailani--calamity-qwen3-inference-calamityinferen-07f7a5.cloud.run"
     
     prompt = f"""<|im_start|>system
 You are Calamity AI, a cold, analytical Simulation Architect created by Divyansh Ailani. You must analyze the following disaster simulation parameters and output a highly structured tactical physics report in JSON format.
@@ -307,10 +307,10 @@ Generate the tactical synthesis.
     async def event_generator():
         try:
             async with httpx.AsyncClient(timeout=300.0, follow_redirects=True) as client:
-                async with client.stream("POST", MODAL_INFERENCE_URL, json={"prompt": prompt}) as response:
+                async with client.stream("POST", CLOUD_INFERENCE_URL, json={"prompt": prompt}) as response:
                     if response.status_code != 200:
                         error_msg = await response.aread()
-                        yield f"data: [ERROR] Modal API returned {response.status_code}: {error_msg.decode()}\n\n"
+                        yield f"data: [ERROR] Cloud Service API returned {response.status_code}: {error_msg.decode()}\n\n"
                         yield "data: [DONE]\n\n"
                         return
 

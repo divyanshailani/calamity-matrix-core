@@ -120,18 +120,18 @@ This is clearly documented in the README. No model in this project claims to pre
 
 ---
 
-## 13. Orchestrator Bridge Error (Modal Cold Boot Timeout) [RESOLVED]
+## 13. Orchestrator Bridge Error (Cloud Service Cold Boot Timeout) [RESOLVED]
 
-**Issue:** Clicking "Run Simulation" in the UI resulted in an instant `[ERROR] Orchestrator Bridge Error: ` display. The Modal dashboard showed the inference containers successfully completing the request, but the local UI threw an error.
-**Root Cause:** The `api_orchestrator.py` used `httpx.AsyncClient(timeout=120.0)`. The Modal L40S container required ~4+ minutes on cold boot to spin up the image and download the 15GB Qwen3-8B model weights into VRAM. The local orchestrator simply gave up waiting before Modal could reply.
-**Solution:** Increased the orchestrator's `httpx` timeout to 300 seconds to safely accommodate Modal's cold-boot weight fetching phase.
+**Issue:** Clicking "Run Simulation" in the UI resulted in an instant `[ERROR] Orchestrator Bridge Error: ` display. The Cloud Service dashboard showed the inference containers successfully completing the request, but the local UI threw an error.
+**Root Cause:** The `api_orchestrator.py` used `httpx.AsyncClient(timeout=120.0)`. The Hosted Workbench (L40S, 32GB RAM, 8 Core CPU) container required ~4+ minutes on cold boot to spin up the image and download the 15GB Qwen3-8B model weights into VRAM. The local orchestrator simply gave up waiting before Cloud Service could reply.
+**Solution:** Increased the orchestrator's `httpx` timeout to 300 seconds to safely accommodate Cloud Service's cold-boot weight fetching phase.
 
 ---
 
-## 14. Modal API 303 Redirect Error [RESOLVED]
+## 14. Cloud Service API 303 Redirect Error [RESOLVED]
 
-**Issue:** The orchestrator received a `303 See Other` response from the Modal endpoint instead of the Server-Sent Events stream.
-**Root Cause:** The `httpx.AsyncClient` does not follow HTTP redirects by default. The Modal serverless environment was enforcing an internal redirect (likely for load balancing or trailing slash enforcement), dropping the stream.
+**Issue:** The orchestrator received a `303 See Other` response from the Cloud Service endpoint instead of the Server-Sent Events stream.
+**Root Cause:** The `httpx.AsyncClient` does not follow HTTP redirects by default. The Cloud Service serverless environment was enforcing an internal redirect (likely for load balancing or trailing slash enforcement), dropping the stream.
 **Solution:** Initialized the `httpx.AsyncClient` with `follow_redirects=True`.
 
 ---
@@ -160,8 +160,8 @@ This is clearly documented in the README. No model in this project claims to pre
 - [x] **Semantic Invariant Patch** — Phase 17.5: Taxonomy bridging and 3-pass RAG filtering
 - [x] **Geospatial Viewport Sync** — Phase 17.6: Dynamic `fitBounds` camera algorithms and Telemetry Arcs
 - [x] **Strict Geographic Enclosure** — Phase 17.7: Removed cross-continental RAG retrieval to prioritize scientific integrity, added graceful UI degradation for empty result sets
-- [x] **Recommendation Engine** — Phase 17.8: Added dynamic `SELECT DISTINCT` fallback logic and a full-screen Framer Motion modal with interactive re-simulation chips
-- [x] **Qwen3-8B LoRA fine-tuning** — Phase 18: Modal L40S, checkpoint-to-volume preemption recovery, bge-large query prefix at inference
+- [x] **Recommendation Engine** — Phase 17.8: Added dynamic `SELECT DISTINCT` fallback logic and a full-screen Framer Motion cloud with interactive re-simulation chips
+- [x] **Qwen3-8B LoRA fine-tuning** — Phase 18: Hosted Workbench (L40S, 32GB RAM, 8 Core CPU), checkpoint-to-volume preemption recovery, bge-large query prefix at inference
 - [x] **Synthesizer bridge** — Phase 19: Math Engine output → RAG retrieval → LLM synthesis pipeline
-- [x] **Modal LLM Integration** — Phase 20: Wire the local Next.js frontend to the Modal serverless endpoint for real-time inference streaming.
+- [x] **Cloud Service LLM Integration** — Phase 20: Wire the local Next.js frontend to the Cloud Service serverless endpoint for real-time inference streaming.
 - [ ] **UI/UX Portfolio Overhaul** — Phase 21: Redesign the Next.js UI into a high-end defense-grade dashboard, add user onboarding/context, and parse LLM streaming output into styled Markdown.
