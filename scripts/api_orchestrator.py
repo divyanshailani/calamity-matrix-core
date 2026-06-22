@@ -183,31 +183,34 @@ async def simulate_calamity(payload: SimulationRequest):
             cur.execute(sql_query_pass1, (query_embedding, payload.event_year, rw_types, payload.country, query_embedding))
             results = cur.fetchall()
             
-            # Pass 2: Relax Year (±10 years), but enforce Country and Disaster Type
+            # Pass 2: Relax Year completely, strictly enforce Country and Disaster Type
             if len(results) < 3:
                 sql_query_pass2 = """
                     SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
                            1 - (embedding <=> %s::vector) AS cosine_similarity
                     FROM disaster_narratives
-                    WHERE event_year BETWEEN %s AND %s AND disaster_type = ANY(%s) AND country ILIKE %s
+                    WHERE disaster_type = ANY(%s) AND country ILIKE %s
                     ORDER BY embedding <=> %s::vector
                     LIMIT 3;
                 """
-                cur.execute(sql_query_pass2, (query_embedding, payload.event_year - 10, payload.event_year + 10, rw_types, payload.country, query_embedding))
+                cur.execute(sql_query_pass2, (query_embedding, rw_types, payload.country, query_embedding))
                 results = cur.fetchall()
                 
-            # Pass 3: Deep Fallback (Drop Year and Country, purely vector distance + Disaster Type)
-            if len(results) < 3:
-                sql_query_pass3 = """
-                    SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                           1 - (embedding <=> %s::vector) AS cosine_similarity
-                    FROM disaster_narratives
-                    WHERE disaster_type = ANY(%s)
-                    ORDER BY embedding <=> %s::vector
-                    LIMIT 3;
-                """
-                cur.execute(sql_query_pass3, (query_embedding, rw_types, query_embedding))
-                results = cur.fetchall()
+            # Pass 3: Recommendation Engine (If Pass 2 yields 0 results)
+            suggested_alternatives = None
+            if len(results) == 0:
+                # Option A: Same Country, Different Disasters
+                cur.execute("SELECT DISTINCT disaster_type FROM disaster_narratives WHERE country ILIKE %s AND disaster_type IS NOT NULL LIMIT 5", (payload.country,))
+                same_country_disasters = [row[0] for row in cur.fetchall()]
+                
+                # Option B: Same Disaster, Different Countries
+                cur.execute("SELECT DISTINCT country FROM disaster_narratives WHERE disaster_type = ANY(%s) AND country IS NOT NULL LIMIT 3", (rw_types,))
+                same_disaster_countries = [row[0] for row in cur.fetchall()]
+                
+                suggested_alternatives = {
+                    "same_country_disasters": same_country_disasters,
+                    "same_disaster_countries": same_disaster_countries
+                }
                 
             cur.close()
         finally:
@@ -243,6 +246,7 @@ async def simulate_calamity(payload: SimulationRequest):
                 "estimated_damage_usd_thousands": round(est_damage, 2)
             },
             "historical_context": historical_context,
+            "suggested_alternatives": suggested_alternatives,
             "telemetry": {
                 "math_engine": {
                     "affected_population": {

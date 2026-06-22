@@ -7,6 +7,7 @@ import SimulationConfig from "../components/SimulationConfig";
 import GeospatialMap from "../components/GeospatialMap";
 import HistoricalContext from "../components/HistoricalContext";
 import TelemetryHUD from "../components/TelemetryHUD";
+import RecommendationModal from "../components/RecommendationModal";
 import { countryCoords } from "../lib/constants";
 
 export default function Dashboard() {
@@ -33,6 +34,7 @@ export default function Dashboard() {
     "System Initialized.",
     "Ready for simulation."
   ]);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -42,14 +44,13 @@ export default function Dashboard() {
     setConsoleLogs(prev => [...prev.slice(-3), `[${new Date().toLocaleTimeString()}] ${msg}`]);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const runSimulation = async (dataToSubmit: typeof formData) => {
     setIsLoading(true);
     setError(null);
     setResults(null);
-    addLog(`Simulating ${formData.disaster_type} in ${formData.country}...`);
+    addLog(`Simulating ${dataToSubmit.disaster_type} in ${dataToSubmit.country}...`);
 
-    const coords = countryCoords[formData.country];
+    const coords = countryCoords[dataToSubmit.country];
     if (coords) {
       setViewState({
         latitude: coords.lat,
@@ -60,15 +61,20 @@ export default function Dashboard() {
 
     try {
       const response = await axios.post("http://localhost:8000/api/v1/simulate_calamity", {
-        query_text: formData.query_text,
-        country: formData.country,
-        disaster_type: formData.disaster_type,
-        month: Number(formData.month),
-        event_year: Number(formData.event_year),
-        severity: Number(formData.severity),
+        query_text: dataToSubmit.query_text,
+        country: dataToSubmit.country,
+        disaster_type: dataToSubmit.disaster_type,
+        month: Number(dataToSubmit.month),
+        event_year: Number(dataToSubmit.event_year),
+        severity: Number(dataToSubmit.severity),
       });
       setResults(response.data);
       addLog("Simulation completed successfully.");
+      
+      // Auto-show modal if no results
+      if (response.data?.historical_context?.length === 0) {
+        setShowModal(true);
+      }
       
       // Auto-zoom in when results load to focus on the 3 tactical points
       if (coords) {
@@ -88,6 +94,11 @@ export default function Dashboard() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await runSimulation(formData);
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-zinc-950 overflow-x-hidden flex flex-col relative">
       {/* Animated Tactical Background */}
@@ -97,6 +108,19 @@ export default function Dashboard() {
 
       {/* THREE-COLUMN LAYOUT */}
       <main className="p-6 mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow w-full max-w-[1600px] relative z-10">
+        
+        {showModal && (
+          <RecommendationModal 
+            results={results}
+            formData={formData}
+            onSuggestionClick={(updates) => {
+              const newFormData = { ...formData, ...updates };
+              setFormData(newFormData);
+              runSimulation(newFormData);
+            }}
+            onClose={() => setShowModal(false)}
+          />
+        )}
         
         {/* COLUMN 1: CONFIGURATION (Span 3) */}
         <div className="lg:col-span-3 flex flex-col">

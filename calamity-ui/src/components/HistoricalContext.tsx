@@ -47,8 +47,11 @@ export default function HistoricalContext({ results }: HistoricalContextProps) {
               className="space-y-4"
             >
               {results.historical_context.length === 0 ? (
-                <div className="text-xs p-4 text-zinc-400 bg-zinc-950 border border-zinc-800 rounded-lg text-center">
-                  No recorded analogues found.
+                <div className="flex flex-col items-center text-center p-6 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm space-y-3">
+                  <Database className="w-6 h-6 text-zinc-500 opacity-60" />
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    Awaiting historical context...
+                  </p>
                 </div>
               ) : (
                 results.historical_context.map((ctx: any, idx: number) => (

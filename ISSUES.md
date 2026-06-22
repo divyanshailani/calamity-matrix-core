@@ -115,6 +115,7 @@ This is clearly documented in the README. No model in this project claims to pre
 - [x] **Semantic Invariant Patch** — Phase 17.5: Taxonomy bridging and 3-pass RAG filtering
 - [x] **Geospatial Viewport Sync** — Phase 17.6: Dynamic `fitBounds` camera algorithms and Telemetry Arcs
 - [x] **Strict Geographic Enclosure** — Phase 17.7: Removed cross-continental RAG retrieval to prioritize scientific integrity, added graceful UI degradation for empty result sets
+- [x] **Recommendation Engine** — Phase 17.8: Added dynamic `SELECT DISTINCT` fallback logic and a full-screen Framer Motion modal with interactive re-simulation chips
 - [ ] **Qwen3-8B LoRA fine-tuning** — Phase 18: Modal L40S, checkpoint-to-volume preemption recovery, bge-large query prefix at inference
 - [ ] **Synthesizer bridge** — Phase 19: Math Engine output → RAG retrieval → LLM synthesis pipeline
 - [ ] **Modal LLM Integration** — Phase 20: Wire the local Next.js frontend to the Modal serverless endpoint for real-time inference streaming.
