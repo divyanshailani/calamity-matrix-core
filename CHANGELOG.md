@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2026-06-22
 
 ### Architecture & Engine Integrity
+- **Geospatial Viewport Sync (Phase 17.6)**: Upgraded `GeospatialMap.tsx` with dynamic `fitBounds` algorithms to automatically re-frame the MapLibre camera whenever the global RAG fallback logic pulls historical analogies from foreign continents.
+- **Telemetry Arcs (Phase 17.6)**: Implemented curved GeoJSON lines connecting global RAG markers to the target simulation country, visually conveying predictive data transfer.
 - **Semantic Invariant Patch (Phase 17.5)**: Re-engineered the Heuristic Hybrid RAG in `scripts/api_orchestrator.py` to utilize a strict 3-pass SQL fallback sequence. The final Deep Fallback (Pass 3) guarantees retrieval of semantically matched historical analogies by vector distance without *ever* dropping the exact `disaster_type` constraint.
 - **EM-DAT to ReliefWeb Taxonomy Bridge**: Implemented a dynamic runtime mapping dictionary to translate incoming EM-DAT UI queries (e.g. `Extreme temperature`) into valid HDX/ReliefWeb database arrays (e.g. `['Heat Wave', 'Cold Wave']`), fully resolving the zero-result RAG hallucination vulnerability.
 - **ReliefWeb API 403 Bypass**: Re-engineered `scripts/resolve_hdx_metadata.py` to circumvent the new ReliefWeb `appname` requirement. The script now operates fully offline, parsing taxonomy mappings directly from the historical `reliefweb-disasters-list.csv` corpus. Successfully geolocated and mapped 4,522 missing fields (lat/lng, country names, disaster types) in under 2 seconds.
