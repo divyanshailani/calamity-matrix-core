@@ -142,6 +142,8 @@ Retrieval correctly resolved geographic and semantic context without keyword mat
 - **Phase 12:** XGBoost + Optuna on fused structural matrices (hazard probability, impact regression)
 - **Phase 13:** Qwen3-8B QLoRA fine-tuning on Modal L40S — domain-specific disaster QA dataset
 - **Phase 14:** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
-- **Phase 15:** FastAPI serving layer + frontend
+- **Phase 15 (Completed):** FastAPI serving layer + Next.js interactive frontend
+- **Phase 16 (Completed):** MapLibre GL frontend migration + CartoDB Light Theme UI overhaul
+- **Phase 17 (Completed):** Semantic RAG Split-Brain anti-contradiction guardrails + Tactical Map Markers
 
-See [`ISSUES.md`](./ISSUES.md) for the full engineering log.
+See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.

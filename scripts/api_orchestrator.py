@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 from psycopg2 import pool
@@ -57,6 +58,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Calamity AI: Neuro-Symbolic Orchestrator", lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Pydantic Payload
 class SimulationRequest(BaseModel):
     query_text: str
@@ -64,6 +73,7 @@ class SimulationRequest(BaseModel):
     disaster_type: str
     month: int
     event_year: int
+    severity: float
 
 @app.post("/api/v1/simulate_calamity")
 async def simulate_calamity(payload: SimulationRequest):
@@ -76,7 +86,8 @@ async def simulate_calamity(payload: SimulationRequest):
             'Country': [payload.country],
             'Disaster Type': [payload.disaster_type],
             'Start Month': [payload.month],
-            'Start Year': [payload.event_year]
+            'Start Year': [payload.event_year],
+            'Severity': [payload.severity]
         })
         
         # Cast specific columns to native categories exactly as done in training
@@ -96,8 +107,10 @@ async def simulate_calamity(payload: SimulationRequest):
         # ---------------------------------------------------------
         # Generate Vector Embedding for Semantic Search
         instruction = "Represent this sentence for searching relevant passages: "
-        full_query = instruction + payload.query_text
+        master_semantic_query = f"{payload.disaster_type} in {payload.country} (Year: {payload.event_year}). Additional Context: {payload.query_text}"
+        full_query = instruction + master_semantic_query
         query_embedding = models['embedder'].encode(full_query, normalize_embeddings=True).tolist()
+
         
         db_pool = models['db_pool']
         conn = db_pool.getconn()
@@ -109,14 +122,11 @@ async def simulate_calamity(payload: SimulationRequest):
                 SELECT date, country, disaster_type, narrative_text, event_year,
                        1 - (embedding <=> %s::vector) AS cosine_similarity
                 FROM disaster_narratives
-                WHERE country ILIKE %s AND disaster_type ILIKE %s
                 ORDER BY embedding <=> %s::vector
                 LIMIT 3;
             """
-            c_filter = f"%{payload.country}%"
-            d_filter = f"%{payload.disaster_type}%"
             
-            cur.execute(sql_query, (query_embedding, c_filter, d_filter, query_embedding))
+            cur.execute(sql_query, (query_embedding, query_embedding))
             results = cur.fetchall()
             cur.close()
         finally:
@@ -128,8 +138,8 @@ async def simulate_calamity(payload: SimulationRequest):
             text_preview = row[3][:300] + "..." if len(row[3]) > 300 else row[3]
             historical_context.append({
                 "date": str(row[0]),
-                "country": row[1],
-                "disaster_type": row[2],
+                "country": str(row[1]) if row[1] is not None else "Unknown",
+                "disaster_type": str(row[2]) if row[2] is not None else "Unknown",
                 "narrative_preview": text_preview,
                 "event_year": row[4],
                 "similarity_score": float(row[5])

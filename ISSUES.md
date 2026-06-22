@@ -63,6 +63,22 @@ This is clearly documented in the README. No model in this project claims to pre
 
 ---
 
+## 6. Semantic RAG "Split-Brain" Vulnerability [RESOLVED]
+
+**Issue:** A user could select "Earthquake" in the dropdown but type "Flood" in the query string, causing the RAG retrieval to return flood documents instead of earthquake documents, leading to a split-brain state where the UI claims it's simulating an earthquake but the historical context is about floods.
+
+**Solution:** Intercepted and synthesized a Master Query in `scripts/api_orchestrator.py` that forcefully anchors the embedding vector to the deterministic dropdown parameters: `"{disaster_type} in {country} (Year: {event_year}). Additional Context: {query_text}"`.
+
+---
+
+## 7. Mapbox API Key Dependency on Frontend [RESOLVED]
+
+**Issue:** The geospatial UI relied on `mapbox-gl`, which threw telemetry warnings and blocked map rendering if `NEXT_PUBLIC_MAPBOX_TOKEN` wasn't provided.
+
+**Solution:** Uninstalled `mapbox-gl` and migrated the Next.js frontend to `maplibre-gl` (an open-source fork). Swapped the proprietary map style for CartoDB Positron, which aligns with the new minimal light-theme aesthetic and completely eliminates the API key requirement.
+
+---
+
 ## Upcoming Issues / Tracked Items
 
 - [ ] **Country/disaster_type metadata resolution** — decode HDX API URLs to human-readable strings for hybrid filter queries

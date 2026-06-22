@@ -5,6 +5,19 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-06-22
+
+### UI / Frontend Overhaul
+- **MapLibre Migration**: Stripped out `mapbox-gl` entirely. Replaced with the open-source `maplibre-gl` to eliminate the `NEXT_PUBLIC_MAPBOX_TOKEN` requirement.
+- **CartoDB Positron**: Swapped the proprietary map theme for Carto Positron, matching the new high-trust minimal aesthetic without needing an API key.
+- **High-Trust Light Theme**: Purged the dark, neon "cyberpunk matrix" CSS and implemented a clean, professional FinTech-grade light theme using `bg-zinc-50`.
+- **Tactical Map Markers**: Added dynamic, deterministic geospatial marker generation for the top 3 historical RAG events.
+- **Auto-Zoom Camera**: Engineered an automatic camera zoom sequence that punches in on the country when a simulation completes.
+- **HUD Optimization**: Re-positioned the map's Navigation Controls to the top-right to prevent overlap with the data readout HUD at the bottom.
+
+### Backend Guardrails
+- **Split-Brain Patch**: Engineered a Master Query synthesizer in `api_orchestrator.py` that forcefully prepends the selected Dropdown parameters (Country, Disaster Type, Year) to the user's free-text string, closing a vulnerability where text inputs could override semantic UI context.
+
 ## [1.0.0] - 2026-06-22
 
 ### Security & Configuration
