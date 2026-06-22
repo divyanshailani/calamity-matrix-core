@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2026-06-22
 
 ### Architecture & Engine Integrity
+- **Strict Geographic Enclosure & Graceful Degradation (Phase 17.7)**: Reverted the global fallback logic in `api_orchestrator.py` to prioritize scientific integrity over broad retrieval. RAG Pass 3 was completely removed. Pass 2 now searches across all years but *strictly* enforces Exact Country and Exact Disaster Type. If 0 analogies exist within the specific geography, the RAG engine returns `[]`, and the Next.js UI degrades gracefully via a professional empty state in `HistoricalContext.tsx`, preserving the isolated Math Engine metrics while omitting hallucinated geospatial arcs.
 - **Geospatial Viewport Sync (Phase 17.6)**: Upgraded `GeospatialMap.tsx` with dynamic `fitBounds` algorithms to automatically re-frame the MapLibre camera whenever the global RAG fallback logic pulls historical analogies from foreign continents.
 - **Telemetry Arcs (Phase 17.6)**: Implemented curved GeoJSON lines connecting global RAG markers to the target simulation country, visually conveying predictive data transfer.
 - **Semantic Invariant Patch (Phase 17.5)**: Re-engineered the Heuristic Hybrid RAG in `scripts/api_orchestrator.py` to utilize a strict 3-pass SQL fallback sequence. The final Deep Fallback (Pass 3) guarantees retrieval of semantically matched historical analogies by vector distance without *ever* dropping the exact `disaster_type` constraint.
