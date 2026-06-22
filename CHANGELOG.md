@@ -5,9 +5,22 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - 2026-06-22
+## [1.4.0] - 2026-06-22
 
-### Architecture & Engine Integrity
+### AI Integration & Cloud Inference
+- **Qwen3-8B LoRA Fine-Tuning**: Successfully trained a parameter-efficient adapter (`calamity-qwen3-lora-v1`) on Modal using an L40S GPU. The model was trained on the `calamity_training_data.jsonl` dataset to parse RAG historical context and ML predictor outputs into tactical responses.
+- **Modal Serverless Inference**: Deployed `modal_inference.py` to expose a highly available serverless endpoint powered by the `vLLM` engine. Added support for Server-Sent Events (SSE) to stream generated tokens back to the client with sub-second latency.
+- **Orchestrator Bridge**: Upgraded `api_orchestrator.py` with a new `/api/v1/synthesize` endpoint that acts as a proxy between the Next.js frontend and the Modal cloud. The proxy successfully aggregates XGBoost predictions and pgvector RAG context into a massive LLM prompt, posts it to Modal, and streams the inference directly to the UI.
+
+### System Resiliency & Bug Fixes
+- **Modal Cold Boot Timeout Patch**: Fixed a race condition where the FastAPI orchestrator's `httpx` client timed out (120s limit) while the Modal container was still cold-booting and downloading the 15GB model weights. Increased the timeout to 300s to allow graceful container startups.
+- **303 Redirect Handling**: Configured the orchestrator's async client to follow HTTP redirects (`follow_redirects=True`), fixing a fatal connection drop caused by Modal's internal load balancing rules.
+- **vLLM Configuration Patch**: Upgraded the hardcoded `vllm==0.4.3` requirement to the latest version to properly parse the `Qwen3-8B` architecture configuration (resolving a fatal `KeyError: 'type'` on RoPE scaling).
+
+### Pending Design Overhaul
+- **UI Glitch & JSON Hallucination**: Currently, the LLM output overflows the Next.js right panel due to missing `overflow-y-auto` and `break-words` CSS. The model is also outputting raw JSON instead of human-readable Markdown due to strict system prompting. A complete UX/UI aesthetic overhaul is scheduled to elevate the dashboard from a "concept project" to a professional, defense-grade application.
+
+## [1.3.0] - 2026-06-22
 - **The Recommendation Pop-Up Patch (Phase 17.8)**: Upgraded the Next.js UI with an interactive, full-screen Framer Motion modal (`RecommendationModal.tsx`) that triggers when exact RAG matches fail. The backend `api_orchestrator.py` was extended to execute localized aggregation queries (`SELECT DISTINCT`), serving alternative disaster types (for the same country) and alternative countries (for the same disaster type) directly to the UI. Clicking a recommendation chip automatically updates form state and triggers a fresh simulation, completely eliminating dead-end UX states.
 - **Strict Geographic Enclosure & Graceful Degradation (Phase 17.7)**: Reverted the global fallback logic in `api_orchestrator.py` to prioritize scientific integrity over broad retrieval. RAG Pass 3 was completely removed. Pass 2 now searches across all years but *strictly* enforces Exact Country and Exact Disaster Type. If 0 analogies exist within the specific geography, the RAG engine returns `[]`, and the Next.js UI degrades gracefully via a professional empty state in `HistoricalContext.tsx`, preserving the isolated Math Engine metrics while omitting hallucinated geospatial arcs.
 - **Geospatial Viewport Sync (Phase 17.6)**: Upgraded `GeospatialMap.tsx` with dynamic `fitBounds` algorithms to automatically re-frame the MapLibre camera whenever the global RAG fallback logic pulls historical analogies from foreign continents.
