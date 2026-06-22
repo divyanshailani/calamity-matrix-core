@@ -1,12 +1,14 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Database, Search, Clock } from "lucide-react";
+import { Database, Search, Clock, AlertTriangle, MapPin, Calendar } from "lucide-react";
 
 interface HistoricalContextProps {
   results: any;
+  country?: string;
+  onSuggestionClick?: (updates: any) => void;
 }
 
-export default function HistoricalContext({ results }: HistoricalContextProps) {
+export default function HistoricalContext({ results, country, onSuggestionClick }: HistoricalContextProps) {
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm flex flex-col h-full relative overflow-hidden">
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800">
@@ -47,11 +49,55 @@ export default function HistoricalContext({ results }: HistoricalContextProps) {
               className="space-y-4"
             >
               {results.historical_context.length === 0 ? (
-                <div className="flex flex-col items-center text-center p-6 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm space-y-3">
-                  <Database className="w-6 h-6 text-zinc-500 opacity-60" />
-                  <p className="text-xs text-zinc-400 leading-relaxed">
-                    Awaiting historical context...
-                  </p>
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-start gap-3 p-4 bg-orange-950/20 border border-orange-900/50 rounded-lg text-orange-500">
+                    <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs font-mono uppercase leading-relaxed">
+                      [ SYS_INFO: GENERALIZED PHYSICS MODE ACTIVE - NO EXACT RETRIEVAL ANCHORS FOUND FOR {country || "REGION"} ]
+                    </p>
+                  </div>
+
+                  {results.suggested_alternatives && (
+                    <div className="space-y-4 mt-2">
+                      {results.suggested_alternatives.same_country_disasters?.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <MapPin className="w-3 h-3" /> Alternate Hazards in {country}
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {results.suggested_alternatives.same_country_disasters.map((disaster: string) => (
+                              <button
+                                key={disaster}
+                                onClick={() => onSuggestionClick && onSuggestionClick({ disaster_type: disaster })}
+                                className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 rounded text-xs text-zinc-300 transition-colors"
+                              >
+                                {disaster}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {results.suggested_alternatives.closest_historical_years?.length > 0 && (
+                        <div className="space-y-2 mt-4">
+                          <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <Calendar className="w-3 h-3" /> Closest Historical Anchors
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {results.suggested_alternatives.closest_historical_years.map((year: number) => (
+                              <button
+                                key={year}
+                                onClick={() => onSuggestionClick && onSuggestionClick({ event_year: year })}
+                                className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 rounded text-xs text-zinc-300 transition-colors"
+                              >
+                                {year}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 results.historical_context.map((ctx: any, idx: number) => (

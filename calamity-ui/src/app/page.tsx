@@ -7,7 +7,6 @@ import SimulationConfig from "../components/SimulationConfig";
 import GeospatialMap from "../components/GeospatialMap";
 import HistoricalContext from "../components/HistoricalContext";
 import TelemetryHUD from "../components/TelemetryHUD";
-import RecommendationModal from "../components/RecommendationModal";
 import { countryCoords } from "../lib/constants";
 
 export default function Dashboard() {
@@ -34,7 +33,6 @@ export default function Dashboard() {
     "System Initialized.",
     "Ready for simulation."
   ]);
-  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -71,11 +69,6 @@ export default function Dashboard() {
       setResults(response.data);
       addLog("Simulation completed successfully.");
       
-      // Auto-show modal if no results
-      if (response.data?.historical_context?.length === 0) {
-        setShowModal(true);
-      }
-      
       // Auto-zoom in when results load to focus on the 3 tactical points
       if (coords) {
         setViewState({
@@ -109,19 +102,6 @@ export default function Dashboard() {
       {/* THREE-COLUMN LAYOUT */}
       <main className="p-6 mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow w-full max-w-[1600px] relative z-10">
         
-        {showModal && (
-          <RecommendationModal 
-            results={results}
-            formData={formData}
-            onSuggestionClick={(updates) => {
-              const newFormData = { ...formData, ...updates };
-              setFormData(newFormData);
-              runSimulation(newFormData);
-            }}
-            onClose={() => setShowModal(false)}
-          />
-        )}
-        
         {/* COLUMN 1: CONFIGURATION (Span 3) */}
         <div className="lg:col-span-3 flex flex-col">
           <SimulationConfig 
@@ -149,7 +129,15 @@ export default function Dashboard() {
 
         {/* COLUMN 3: THE ORACLE / LLM BRIEFING (Span 3) */}
         <div className="lg:col-span-3 flex flex-col">
-          <HistoricalContext results={results} />
+          <HistoricalContext 
+            results={results} 
+            country={formData.country}
+            onSuggestionClick={(updates) => {
+              const newFormData = { ...formData, ...updates };
+              setFormData(newFormData);
+              runSimulation(newFormData);
+            }}
+          />
         </div>
 
         {/* BOTTOM ROW: TELEMETRY HUD (Span 12) */}

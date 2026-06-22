@@ -199,17 +199,17 @@ async def simulate_calamity(payload: SimulationRequest):
             # Pass 3: Recommendation Engine (If Pass 2 yields 0 results)
             suggested_alternatives = None
             if len(results) == 0:
-                # Option A: Same Country, Different Disasters
+                # Option A: Same Country, Alternate Hazards
                 cur.execute("SELECT DISTINCT disaster_type FROM disaster_narratives WHERE country ILIKE %s AND disaster_type IS NOT NULL LIMIT 5", (payload.country,))
                 same_country_disasters = [row[0] for row in cur.fetchall()]
                 
-                # Option B: Same Disaster, Different Countries
-                cur.execute("SELECT DISTINCT country FROM disaster_narratives WHERE disaster_type = ANY(%s) AND country IS NOT NULL LIMIT 3", (rw_types,))
-                same_disaster_countries = [row[0] for row in cur.fetchall()]
+                # Option B: Same Country, Closest Chronological Matches
+                cur.execute("SELECT event_year FROM disaster_narratives WHERE country ILIKE %s AND event_year IS NOT NULL GROUP BY event_year ORDER BY ABS(event_year - %s) ASC LIMIT 5", (payload.country, payload.event_year))
+                closest_historical_years = [row[0] for row in cur.fetchall()]
                 
                 suggested_alternatives = {
                     "same_country_disasters": same_country_disasters,
-                    "same_disaster_countries": same_disaster_countries
+                    "closest_historical_years": closest_historical_years
                 }
                 
             cur.close()
