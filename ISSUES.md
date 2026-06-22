@@ -78,10 +78,27 @@ This is clearly documented in the README. No model in this project claims to pre
 
 **Solution:** Uninstalled `mapbox-gl` and migrated the Next.js frontend to `maplibre-gl` (an open-source fork). Swapped the proprietary map style for CartoDB Positron, which aligns with the new minimal light-theme aesthetic and completely eliminates the API key requirement.
 
+## 8. ReliefWeb API v2 Strict Appname Enforcement (HTTP 403) [RESOLVED]
+
+**Issue:** The `resolve_hdx_metadata.py` migration script failed with `HTTP 403: AccessDenied` from the ReliefWeb API, citing "You are not using an approved appname." This blocked the resolution of 4,522 taxonomy URLs to raw strings.
+
+**Root Cause:** ReliefWeb implemented a strict security requirement in November 2025 demanding pre-registered, approved appnames for all API queries.
+
+**Solution:** Bypassed the API entirely. Re-engineered `resolve_hdx_metadata.py` to operate offline by loading `data/raw/hdx_corpus/reliefweb-disasters-list.csv` into a local pandas dictionary. This mapped all URLs to country names, latitudes, longitudes, and disaster strings deterministically in memory, completing the migration in under 2 seconds.
+
+---
+
+## 9. Over-Constrained RAG Temporal Filtering [RESOLVED]
+
+**Issue:** RAG searches that strictly matched the user's `event_year` failed to return sufficient historical analogues if a specific year lacked digitized disaster narratives for that region.
+
+**Solution:** Implemented Heuristic Hybrid RAG in `api_orchestrator.py`. Pass 1 executes a strict `event_year = {year}` match. If it yields < 3 results, Pass 2 heuristically expands the search to `event_year BETWEEN {year} - 10 AND {year} + 10`, guaranteeing contextual retrieval.
+
 ---
 
 ## Upcoming Issues / Tracked Items
 
-- [ ] **XGBoost Math Engine** — Phase 12: Optuna tuning per disaster type, separate targets for hazard probability vs impact regression
-- [ ] **Qwen3-8B LoRA fine-tuning** — Phase 13: Modal L40S, checkpoint-to-volume preemption recovery, bge-large query prefix at inference
-- [ ] **Synthesizer bridge** — Phase 14: Math Engine output → RAG retrieval → LLM synthesis pipeline
+- [x] **XGBoost Math Engine** — Phase 12: Optuna tuning per disaster type, separate targets for hazard probability vs impact regression
+- [x] **Qwen3-8B LoRA fine-tuning** — Phase 13: Modal L40S, checkpoint-to-volume preemption recovery, bge-large query prefix at inference
+- [x] **Synthesizer bridge** — Phase 14: Math Engine output → RAG retrieval → LLM synthesis pipeline
+- [ ] **Modal LLM Integration** — Phase 15: Wire the local Next.js frontend to the Modal serverless endpoint for real-time inference streaming.

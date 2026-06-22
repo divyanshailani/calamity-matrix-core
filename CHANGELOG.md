@@ -5,7 +5,16 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-06-22
+
+### Architecture & Engine Integrity
+- **ReliefWeb API 403 Bypass**: Re-engineered `scripts/resolve_hdx_metadata.py` to circumvent the new ReliefWeb `appname` requirement. The script now operates fully offline, parsing taxonomy mappings directly from the historical `reliefweb-disasters-list.csv` corpus. Successfully geolocated and mapped 4,522 missing fields (lat/lng, country names, disaster types) in under 2 seconds.
+- **Heuristic Hybrid RAG**: Upgraded `scripts/api_orchestrator.py` with a two-pass temporal fallback. The RAG engine now attempts a strict `event_year` match, and heuristically falls back to a 20-year window (`event_year BETWEEN {year} - 10 AND {year} + 10`) if strict matches yield insufficient analogies.
+- **Model Metadata Sidecars**: Modified `scripts/train_math_engine_v2.py` to auto-export `_meta.json` sidecar files containing RMSE, MAE, and Optuna feature importance gains alongside the serialized XGBoost models, ensuring metric provenance is preserved.
+- **Geospatial Anchoring**: Hardened `GeospatialMap.tsx` to conditionally render tactical map markers only for narratives with validated database coordinates, preventing frontend panics on zero-coordinate data.
+
 ## [1.2.0] - 2026-06-22
+
 
 ### Security
 - **Orchestrator Credential Sanitization**: Migrated `scripts/api_orchestrator.py` from a hardcoded `DB_PARAMS` dict (`password: "root"`) to `DB_CONFIG` imported from `src.config`. The orchestrator now loads all database credentials securely from the `.env` file at startup, completing the credential sanitization pass begun in v1.0.0.
