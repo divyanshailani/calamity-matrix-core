@@ -139,6 +139,20 @@ export default function HistoricalContext({ results, country, onSuggestionClick 
           )}
         </AnimatePresence>
       </div>
+
+      {/* Intelligence Terminal (LLM UI Scaffolding) */}
+      <div className="bg-zinc-900/50 border-t border-zinc-700 p-4 mt-4 flex flex-col gap-3 shrink-0 rounded-b-xl">
+        <p className="text-zinc-400 font-mono text-xs">Awaiting simulation data for synthesis...</p>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-zinc-500 font-mono text-sm">{'>'}</span>
+          <input 
+            type="text" 
+            disabled 
+            placeholder="Request deeper tactical analysis..." 
+            className="bg-transparent border-none outline-none text-zinc-300 font-mono text-xs w-full placeholder-zinc-600 cursor-not-allowed"
+          />
+        </div>
+      </div>
     </div>
   );
 }
