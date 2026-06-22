@@ -1,5 +1,5 @@
-import React from "react";
-import Map, { NavigationControl, Marker } from "react-map-gl/maplibre";
+import React, { useRef, useEffect, useMemo } from "react";
+import Map, { NavigationControl, Marker, Source, Layer } from "react-map-gl/maplibre";
 import { MapPin, AlertTriangle } from "lucide-react";
 import { countryCoords } from "../lib/constants";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -16,6 +16,34 @@ const formatNumber = (num: number) => {
   return new Intl.NumberFormat('en-US').format(Math.round(num));
 };
 
+// Generate curved line coordinates
+const generateArc = (start: {lat: number, lng: number}, end: {lat: number, lng: number}) => {
+  const points = [];
+  const segments = 50;
+  
+  const dx = end.lng - start.lng;
+  const dy = end.lat - start.lat;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const curveFactor = dist * 0.2; // 20% of distance is curve height
+
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const lat = start.lat + dy * t;
+    const lng = start.lng + dx * t;
+    
+    // Perpendicular curve offset
+    const perpX = -dy / dist;
+    const perpY = dx / dist;
+    
+    // Parabolic curve height
+    const curve = Math.sin(t * Math.PI) * curveFactor;
+    
+    points.push([lng + perpX * curve, lat + perpY * curve]);
+  }
+  return points;
+};
+
+
 export default function GeospatialMap({
   viewState,
   setViewState,
@@ -23,6 +51,70 @@ export default function GeospatialMap({
   error,
   country
 }: GeospatialMapProps) {
+  const mapRef = useRef<any>(null);
+
+  // Auto zoom to fit target country and all markers
+  useEffect(() => {
+    if (results?.historical_context && results.historical_context.length > 0 && mapRef.current) {
+      const target = countryCoords[country];
+      const points = results.historical_context
+        .filter((ctx: any) => ctx.lat != null && ctx.lng != null)
+        .map((ctx: any) => ({ lat: ctx.lat, lng: ctx.lng }));
+        
+      if (target) {
+        points.push(target);
+      }
+      
+      if (points.length > 0) {
+        const lats = points.map((p: any) => p.lat);
+        const lngs = points.map((p: any) => p.lng);
+        
+        const minLng = Math.min(...lngs);
+        const maxLng = Math.max(...lngs);
+        const minLat = Math.min(...lats);
+        const maxLat = Math.max(...lats);
+        
+        mapRef.current.fitBounds(
+          [[minLng - 2, minLat - 2], [maxLng + 2, maxLat + 2]],
+          { padding: 60, duration: 2500 }
+        );
+      }
+    } else if (results && countryCoords[country] && mapRef.current) {
+      const target = countryCoords[country];
+      mapRef.current.flyTo({
+        center: [target.lng, target.lat],
+        zoom: target.zoom,
+        duration: 2500
+      });
+    }
+  }, [results, country]);
+
+  // Generate GeoJSON for arcs
+  const arcData = useMemo(() => {
+    if (!results?.historical_context || !countryCoords[country]) return null;
+    const target = countryCoords[country];
+    
+    const features = results.historical_context
+      .filter((ctx: any) => ctx.lat != null && ctx.lng != null)
+      .map((ctx: any) => {
+        const coords = generateArc(
+          { lat: ctx.lat, lng: ctx.lng }, 
+          { lat: target.lat, lng: target.lng }
+        );
+        return {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: coords
+          }
+        };
+      });
+      
+    return {
+      type: "FeatureCollection",
+      features
+    };
+  }, [results, country]);
   return (
     <div className="flex-grow w-full border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900 relative shadow-sm flex flex-col justify-end">
       
@@ -33,12 +125,43 @@ export default function GeospatialMap({
       </div>
 
       <Map
+        ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
         mapStyle="/vibrant-map.json"
         style={{ width: "100%", height: "100%", filter: "brightness(0.75) contrast(1.15) saturate(0.95)" }}
       >
         <NavigationControl position="top-right" />
+        
+        {/* Render Arcs */}
+        {arcData && (
+          <Source id="arcs" type="geojson" data={arcData}>
+            <Layer
+              id="arc-layer"
+              type="line"
+              paint={{
+                "line-color": "#34d399", // emerald-400
+                "line-width": 2,
+                "line-opacity": 0.5,
+                "line-dasharray": [3, 3]
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Target Country Marker */}
+        {countryCoords[country] && results && (
+          <Marker 
+            longitude={countryCoords[country].lng} 
+            latitude={countryCoords[country].lat} 
+            anchor="bottom"
+          >
+            <div className="animate-bounce relative flex h-6 w-6 justify-center">
+              <span className="absolute inline-flex rounded-full h-4 w-4 bg-red-500 opacity-80 border border-white"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600 mt-0.5"></span>
+            </div>
+          </Marker>
+        )}
         {results?.historical_context?.map((ctx: any, idx: number) => {
           if (ctx.lat == null || ctx.lng == null) return null;
           
