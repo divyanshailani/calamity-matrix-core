@@ -154,10 +154,10 @@ Retrieval correctly resolved geographic and semantic context without keyword mat
 
 - **Phase 12 (Completed):** XGBoost Math Engine v2 — Optuna tuning per disaster type, hazard probability + impact regression, meta sidecars
 - **Phase 13 (Completed):** FastAPI serving layer + Next.js interactive frontend
-- **Phase 14 (Completed):** MapLibre GL frontend migration + CartoDB Positron theme
-- **Phase 15 (Completed):** Semantic RAG Split-Brain guardrails + Tactical Map Markers
-- **Phase 16 (Completed):** Backend credential sanitization + dependency pinning
-- **Phase 17 (Completed):** Integrity Restoration — Heuristic Hybrid RAG + Offline HDX metadata resolution bypass
+- **Phase 14 (Completed):** Geospatial & RAG UI Overhaul — MapLibre migration, CartoDB Positron, Semantic Split-Brain Guardrails, Tactical Map Markers
+- **Phase 15 (Completed):** Integrity & Security Restoration — Heuristic Hybrid RAG, Offline HDX metadata resolution bypass, Backend credential sanitization
+- **Phase 16 (Completed):** Multi-Physics Architecture (Math Engine v3) — Disaster-specific segregated XGBoost tuning & dynamic API routing
+- **Phase 17 (Completed):** Telemetry HUD — Diagnostic exposure of Math Engine RMSE/Features and RAG Semantic Confidence in Next.js
 - **Phase 18 (Next):** Qwen3-8B QLoRA fine-tuning on Modal L40S — domain-specific disaster QA dataset
 - **Phase 19:** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
 - **Phase 20:** Modal LLM Integration — Wire the local Next.js frontend to the Modal serverless endpoint

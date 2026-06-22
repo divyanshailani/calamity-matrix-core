@@ -81,7 +81,7 @@ export default function HistoricalContext({ results }: HistoricalContextProps) {
                     </div>
                     
                     <p className="text-xs text-zinc-400 leading-relaxed">
-                      {ctx.narrative_preview}
+                      {ctx.text_preview || ctx.narrative_preview}
                     </p>
                   </motion.div>
                 ))

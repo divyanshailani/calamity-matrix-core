@@ -1,4 +1,5 @@
 import os
+import json
 import uvicorn
 import numpy as np
 import pandas as pd
@@ -219,14 +220,14 @@ async def simulate_calamity(payload: SimulationRequest):
             "telemetry": {
                 "math_engine": {
                     "affected_population": {
-                        "val_rmse": meta_affected.get("val_rmse"),
-                        "val_mae": meta_affected.get("val_mae"),
-                        "feature_importances": meta_affected.get("feature_importances", {})
+                        "val_rmse": meta_affected.get("rmse"),
+                        "val_mae": meta_affected.get("mae"),
+                        "feature_importances": meta_affected.get("feature_importance_gain", {})
                     },
                     "economic_damage": {
-                        "val_rmse": meta_damage.get("val_rmse"),
-                        "val_mae": meta_damage.get("val_mae"),
-                        "feature_importances": meta_damage.get("feature_importances", {})
+                        "val_rmse": meta_damage.get("rmse"),
+                        "val_mae": meta_damage.get("mae"),
+                        "feature_importances": meta_damage.get("feature_importance_gain", {})
                     }
                 },
                 "rag_engine": {

@@ -100,11 +100,10 @@ This is clearly documented in the README. No model in this project claims to pre
 
 - [x] **XGBoost Math Engine v2** — Phase 12: Optuna tuning, sidecars
 - [x] **FastAPI & Next.js** — Phase 13: Core interactive frontend
-- [x] **UI Overhaul** — Phase 14: MapLibre migration, CartoDB Positron
-- [x] **RAG Guardrails** — Phase 15: Split-Brain patch, tactical markers
-- [x] **Security & Dependencies** — Phase 16: Credential sanitization
-- [x] **Integrity Restoration** — Phase 17 (aka Phase 14): Heuristic RAG, Offline metadata bypass
-- [x] **Multi-Physics Architecture** — Phase 14.5 (Inserted): Disaster-specific segregated tuning (v3 Math Engine)
+- [x] **Geospatial & RAG UI Overhaul** — Phase 14: MapLibre migration, CartoDB Positron, Semantic Split-Brain Guardrails, Tactical Map Markers
+- [x] **Integrity & Security Restoration** — Phase 15: Heuristic Hybrid RAG, Offline HDX metadata resolution bypass, Backend credential sanitization
+- [x] **Multi-Physics Architecture (Math Engine v3)** — Phase 16: Disaster-specific segregated XGBoost tuning & dynamic API routing
+- [x] **Telemetry HUD** — Phase 17: Diagnostic exposure of Math Engine RMSE/Features and RAG Semantic Confidence in Next.js
 - [ ] **Qwen3-8B LoRA fine-tuning** — Phase 18: Modal L40S, checkpoint-to-volume preemption recovery, bge-large query prefix at inference
 - [ ] **Synthesizer bridge** — Phase 19: Math Engine output → RAG retrieval → LLM synthesis pipeline
 - [ ] **Modal LLM Integration** — Phase 20: Wire the local Next.js frontend to the Modal serverless endpoint for real-time inference streaming.
