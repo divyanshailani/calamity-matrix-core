@@ -4,6 +4,30 @@ Tracks real problems encountered during development, root causes, and how they w
 
 ---
 
+## 15. Cloud Database Networking: IPv6 vs IPv4 (Render to Supabase) [RESOLVED]
+
+**Issue:** The Render backend consistently returned `update_failed` during deployment, with the Uvicorn server silently timing out during boot.
+**Root Cause:** Supabase recently upgraded all their direct database connections to be IPv6-only (`db.[project].supabase.co`). However, Render's free tier servers only support outbound IPv4 traffic. As a result, `psycopg2` was trying to route traffic to an unreachable IPv6 address, causing the connection to hang indefinitely until the Render health check killed the container.
+**Solution:** Migrated the `DATABASE_URL` environment variable from the Direct Connection string to Supabase's **IPv4 Transaction Pooler** string (`aws-[region].pooler.supabase.com:6543`). This successfully bridged the IPv4-to-IPv6 networking gap and allowed instant database connectivity.
+
+---
+
+## 14. Cloud Configuration Crash: Strict Password Validation [RESOLVED]
+
+**Issue:** The backend crashed on boot during the cloud deployment with `ValueError: Missing required environment variable: POSTGRES_PASSWORD`.
+**Root Cause:** The `src/config.py` module was originally designed for local Docker deployments and aggressively validated the existence of a standalone `POSTGRES_PASSWORD` environment variable. When migrating to the cloud, we only supplied a unified `DATABASE_URL` string, leaving `POSTGRES_PASSWORD` undefined and triggering the fatal error.
+**Solution:** Patched `src/config.py` to make `POSTGRES_PASSWORD` optional (`os.getenv("POSTGRES_PASSWORD", "")`) for cloud deployments where a complete `DATABASE_URL` is already provided.
+
+---
+
+## 13. CORS Blockage on Cloud API [RESOLVED]
+
+**Issue:** The Vercel frontend was receiving CORS policy errors when attempting to `POST` to the Render backend, despite having CORS middleware configured in FastAPI.
+**Root Cause:** The original FastAPI configuration used `allow_origins=["http://localhost:3000", "https://*"]`. The FastAPI/Starlette CORS middleware does not support wildcard subdomains natively using the `https://*` string syntax, resulting in an invalid origin policy.
+**Solution:** Replaced the array with `allow_origins=["*"]` to correctly permit global cross-origin requests from the Vercel frontend to the public Render API.
+
+---
+
 ## 11. Render OOM Crashes on Deployment [RESOLVED]
 
 **Issue:** Deploying the FastAPI orchestrator on Render's free/starter tier instantly caused Out of Memory (OOM) crashes.
