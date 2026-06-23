@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### ⏸️ Project Status: Stable Maintenance Mode
 - **Current Status**: The Calamity Matrix Core has successfully completed its primary development arc and is now in **Maintenance Mode**. The core architecture (Neuro-Symbolic RAG + XGBoost Predictors + FastAPI + Vercel UI) is fully deployed, validated, and stable in the cloud.
 - **Reason for Transition**: With the successful deployment of the primary engine, engineering focus is shifting to a new, highly complex data engineering challenge: the **Global AQ (Air Quality)** backend. Global AQ requires migrating and scaling a massive 8GB environmental time-series PostgreSQL database, demanding our full architectural attention.
+- **Final Deployment Hotfixes**: Resolved transitive `scikit-learn` dependency crash in Docker container, and migrated Hugging Face API strings to the new `router.huggingface.co` domain following sudden upstream deprecation of the `api-inference` URL.
 - **Future Roadmap**: This repository will remain online and fully functional as a portfolio centerpiece. Once the Global AQ data pipeline is established, future updates here may include re-integrating the Qwen3-8B LoRA for autonomous synthesis and upgrading the Render/Supabase bridge for higher throughput.
 
 ## [1.5.0] - 2026-06-23
