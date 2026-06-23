@@ -4,6 +4,22 @@ Tracks real problems encountered during development, root causes, and how they w
 
 ---
 
+## 17. Hugging Face Inference API DNS Deprecation [RESOLVED]
+
+**Issue:** The `requests.post` call inside the FastAPI orchestrator crashed with `NameResolutionError: Failed to resolve 'api-inference.huggingface.co'`, causing a `500 Internal Server Error` when executing the core RAG simulation.
+**Root Cause:** Hugging Face completely deprecated and deleted the DNS records for the old `api-inference.huggingface.co` domain during our deployment window.
+**Solution:** Updated `scripts/api_orchestrator.py` to route all embedding payload requests to the new active domain: `https://router.huggingface.co/hf-inference/...`.
+
+---
+
+## 16. Missing Transitive Machine Learning Dependency [RESOLVED]
+
+**Issue:** The Uvicorn server threw a fatal `ImportError: sklearn needs to be installed in order to use this module` instantly during boot.
+**Root Cause:** The `xgboost` package relies on `scikit-learn` internally to deserialize certain predictive models or metrics, but `scikit-learn` was missing from `requirements.txt`.
+**Solution:** Explicitly appended `scikit-learn==1.6.1` to the repository `requirements.txt` to guarantee the container environment resolves the transitive dependency.
+
+---
+
 ## 15. Cloud Database Networking: IPv6 vs IPv4 (Render to Supabase) [RESOLVED]
 
 **Issue:** The Render backend consistently returned `update_failed` during deployment, with the Uvicorn server silently timing out during boot.
