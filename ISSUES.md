@@ -4,6 +4,22 @@ Tracks real problems encountered during development, root causes, and how they w
 
 ---
 
+## 11. Render OOM Crashes on Deployment [RESOLVED]
+
+**Issue:** Deploying the FastAPI orchestrator on Render's free/starter tier instantly caused Out of Memory (OOM) crashes.
+**Root Cause:** The `SentenceTransformer('BAAI/bge-large-en-v1.5')` model and PyTorch backend were loading massive 1.5GB+ tensor weights entirely into RAM at server boot, suffocating the container memory limit.
+**Solution:** Executed "Strategy B". Ripped `sentence-transformers` out of `requirements.txt` entirely. Converted the embedding generator inside `api_orchestrator.py` to route the text directly to the Hugging Face Inference API via `requests.post`, saving over 90% of local memory footprint.
+
+---
+
+## 12. Persistent Security Leak in NLP Scripts [RESOLVED]
+
+**Issue:** A full security audit revealed that despite earlier credential sanitization efforts, `scripts/extract_temporal_nlp.py` was still carrying a plaintext `DB_PARAMS` dict with `password: "root"`.
+**Root Cause:** The script was written earlier in the project lifecycle and was missed during the initial v1.0.0 credential purge because it wasn't actively utilized by the main API server.
+**Solution:** Removed the hardcoded dictionary. Imported `DB_CONFIG` from `src.config.py` which dynamically loads credentials from `.env` or system environment variables securely.
+
+---
+
 ## 1. USGS API Rate Limits on Bulk Historical Fetch [RESOLVED]
 
 **Issue:** The USGS FDSNWS endpoint returned HTTP 429 and 503 when querying large date ranges (multi-year spans) in a single request. Requests for 2000–2025 in one call consistently timed out or got blocked.
