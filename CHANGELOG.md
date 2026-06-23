@@ -5,6 +5,21 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-06-23
+
+### 🚀 Strategy B Cloud Deployment & Security Audit
+- **Supabase Matrix Migration**: Successfully migrated the local Docker-bound `disaster_narratives` pgvector database to a managed Supabase cloud cluster.
+- **Hugging Face Inference Bridge**: Ripped out the massive local PyTorch/`sentence-transformers` embedding models from the FastAPI orchestrator. Replaced it with a lightweight `requests.post` call to the Hugging Face Inference API (`BAAI/bge-large-en-v1.5`), slashing memory requirements by over 90% and eliminating Render OOM crashes.
+- **Render Web Service Deployment**: The orchestrator is now deployed on a Render Web Service (`calamity-matrix-orchestrator.onrender.com`).
+- **Heartbeat Hack**: Implemented a `/health` endpoint to serve as a target for UptimeRobot cron jobs, ensuring the Render container and HF models remain warm 24/7 without cold start penalties.
+- **Zero-Secret Security Pass**: Audited the entire repository for hardcoded credentials. Surgically removed a legacy plaintext `password: "root"` from `scripts/extract_temporal_nlp.py` and converted it to load dynamically from `src.config.DB_CONFIG`. All endpoints are securely managed via environment variables.
+
+### 🎨 UI/UX V1 Launch Polish
+- **Designer Aesthetic Refactoring**: Replaced the hyper-aggressive neon "cyber-punk" aesthetic with a highly polished, clean, and professional "designer-quality" UI.
+- **Fluid Micro-Animations**: Introduced physics-based `framer-motion` animations, including staggered element entrances, subtle scale/color shifts on interactive elements, and a smooth, low-opacity glowing pointer orb tracking the mouse vector.
+- **Proportional Dashboard Geometry**: Rewrote the dashboard grid system from a fixed static setup to a responsive `minmax(240px, 1fr) 2fr minmax(240px, 1fr)` flex-grid, preventing the map from monopolizing horizontal screen space.
+- **Legibility Sweep**: Boosted base contrast metrics for non-critical elements (`--text-3`) to improve legibility on dark surfaces while retaining the dark mode aesthetic.
+
 ## [1.4.0] - 2026-06-22
 
 ### AI Integration & Cloud Inference
