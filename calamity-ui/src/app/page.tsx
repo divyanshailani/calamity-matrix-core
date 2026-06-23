@@ -1,155 +1,376 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import Header from "../components/Header";
-import SimulationConfig from "../components/SimulationConfig";
-import GeospatialMap from "../components/GeospatialMap";
-import HistoricalContext from "../components/HistoricalContext";
-import TelemetryHUD from "../components/TelemetryHUD";
-import { countryCoords } from "../lib/constants";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
-export default function Dashboard() {
-  const [isMounted, setIsMounted] = useState(false);
-  const [formData, setFormData] = useState({
-    country: "USA",
-    disaster_type: "Earthquake",
-    month: 1,
-    event_year: "2026",
-    severity: 5.0,
-    query_text: "A massive earthquake striking a populated urban area.",
-  });
-
-  const [viewState, setViewState] = useState({
-    latitude: 37.0902,
-    longitude: -95.7129,
-    zoom: 3
-  });
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [consoleLogs, setConsoleLogs] = useState<string[]>([
-    "System Initialized.",
-    "Ready for simulation."
-  ]);
+// ─── Background Effects ───────────────────────────────────────
+function BackgroundEffect() {
+  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
 
   useEffect(() => {
-    setIsMounted(true);
+    const handleMouseMove = (e: MouseEvent) => setMousePos({ x: e.clientX, y: e.clientY });
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  const addLog = (msg: string) => {
-    setConsoleLogs(prev => [...prev.slice(-3), `[${new Date().toLocaleTimeString()}] ${msg}`]);
-  };
-
-  const runSimulation = async (dataToSubmit: typeof formData) => {
-    setIsLoading(true);
-    setError(null);
-    setResults(null);
-    addLog(`Simulating ${dataToSubmit.disaster_type} in ${dataToSubmit.country}...`);
-
-    const coords = countryCoords[dataToSubmit.country];
-    if (coords) {
-      setViewState({
-        latitude: coords.lat,
-        longitude: coords.lng,
-        zoom: coords.zoom
-      });
-    }
-
-    try {
-      // Phase 1: ML and RAG
-      const response = await axios.post("http://localhost:8000/api/v1/simulate_calamity", {
-        query_text: dataToSubmit.query_text,
-        country: dataToSubmit.country,
-        disaster_type: dataToSubmit.disaster_type,
-        month: Number(dataToSubmit.month),
-        event_year: Number(dataToSubmit.event_year),
-        severity: Number(dataToSubmit.severity),
-      });
-      setResults(response.data);
-      addLog("ML Predictors & RAG Engine executed successfully. Triggering LLM Synthesis...");
-      
-      if (coords) {
-        setViewState({
-          latitude: coords.lat,
-          longitude: coords.lng,
-          zoom: coords.zoom + 2.5
-        });
-      }
-
-    } catch (err: any) {
-      console.error(err);
-      const errMsg = err.response?.data?.detail || err.message || "Connection offline.";
-      setError(errMsg);
-      addLog(`Execution failed: ${errMsg}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await runSimulation(formData);
-  };
-
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-zinc-950 overflow-x-hidden flex flex-col relative">
-      <div className="fixed inset-0 z-0 bg-[linear-gradient(to_right,rgba(39,39,42,0.4)_1px,transparent_1px),linear-gradient(to_bottom,rgba(39,39,42,0.4)_1px,transparent_1px)] bg-[size:40px_40px] animate-bg-pan opacity-60 pointer-events-none" />
+    <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
+      {/* Subtle faint grid pattern */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)",
+        backgroundSize: "32px 32px",
+        opacity: 0.4,
+        maskImage: "linear-gradient(to bottom, black 30%, transparent 100%)",
+        WebkitMaskImage: "linear-gradient(to bottom, black 30%, transparent 100%)",
+      }} />
+      {/* Smooth glowing pointer */}
+      <motion.div
+        animate={{ x: mousePos.x, y: mousePos.y }}
+        transition={{ type: "spring", stiffness: 60, damping: 25, mass: 0.5 }}
+        style={{
+          position: "absolute",
+          top: -400, left: -400,
+          width: 800, height: 800,
+          background: "radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 60%)",
+        }}
+      />
+    </div>
+  );
+}
 
-      <Header />
+// ─── Animations ───────────────────────────────────────────────
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
 
-      <main className="p-6 mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow w-full max-w-[1600px] relative z-10">
-        
-        {/* COLUMN 1: CONFIGURATION (Span 3) */}
-        <div className="lg:col-span-3 flex flex-col">
-          <SimulationConfig 
-            formData={formData}
-            setFormData={setFormData}
-            handleSubmit={handleSubmit}
-            isLoading={isLoading}
-            consoleLogs={consoleLogs}
-            addLog={addLog}
-          />
-        </div>
+const itemVariant = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+};
 
-        {/* COLUMN 2: CENTER STAGE / MAP CANVAS (Span 6) */}
-        <div className="lg:col-span-6 flex flex-col min-h-[500px]">
-          {isMounted && (
-            <GeospatialMap 
-              viewState={viewState}
-              setViewState={setViewState}
-              results={results}
-              error={error}
-              country={formData.country}
-            />
-          )}
-        </div>
+// ─── Stat item ────────────────────────────────────────────────
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <motion.div variants={itemVariant} whileHover={{ y: -3 }} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+      <span style={{ fontSize: "22px", fontWeight: 600, color: "var(--text-1)", letterSpacing: "-0.02em" }}>
+        {value}
+      </span>
+      <span style={{ fontSize: "12px", color: "var(--text-2)" }}>{label}</span>
+    </motion.div>
+  );
+}
 
-        {/* COLUMN 3: THE ORACLE / RAG Context (Span 3) */}
-        <div className="lg:col-span-3 flex flex-col gap-6">
-          {/* Full Height: RAG Vector Memory */}
-          <div className="flex-1 overflow-y-auto flex flex-col">
-            <HistoricalContext 
-              results={results} 
-              country={formData.country}
-              onSuggestionClick={(updates) => {
-                const newFormData = { ...formData, ...updates };
-                setFormData(newFormData);
-                runSimulation(newFormData);
+// ─── Step card ────────────────────────────────────────────────
+function Step({ n, title, desc }: { n: string; title: string; desc: string }) {
+  return (
+    <motion.div 
+      variants={itemVariant}
+      whileHover={{ y: -4, borderColor: "var(--border-hover)", backgroundColor: "var(--surface-raised)" }}
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "10px",
+        padding: "24px",
+        transition: "background-color 0.3s ease, border-color 0.3s ease"
+      }}>
+      <p style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-3)", letterSpacing: "0.08em", marginBottom: "12px" }}>
+        {n}
+      </p>
+      <p style={{ fontSize: "15px", fontWeight: 600, color: "var(--text-1)", marginBottom: "8px" }}>
+        {title}
+      </p>
+      <p style={{ fontSize: "13px", lineHeight: "1.65", color: "var(--text-2)" }}>
+        {desc}
+      </p>
+    </motion.div>
+  );
+}
+
+// ─── Tech badge ───────────────────────────────────────────────
+function TechBadge({ name }: { name: string }) {
+  return (
+    <motion.span 
+      variants={itemVariant}
+      whileHover={{ scale: 1.05, backgroundColor: "var(--surface-raised)", color: "var(--text-1)", borderColor: "var(--border-hover)" }}
+      style={{
+        fontSize: "12px",
+        color: "var(--text-2)",
+        border: "1px solid var(--border)",
+        borderRadius: "6px",
+        padding: "5px 10px",
+        background: "var(--surface)",
+        cursor: "default",
+        transition: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease"
+      }}>
+      {name}
+    </motion.span>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────
+export default function LandingPage() {
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+      <BackgroundEffect />
+
+      {/* NAV */}
+      <nav style={{
+        borderBottom: "1px solid var(--border)",
+        padding: "0 32px",
+        height: "56px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        background: "rgba(10,10,10,0.85)",
+        backdropFilter: "blur(16px)",
+      }}>
+        <Link href="/" style={{ textDecoration: "none" }}>
+          <motion.span whileHover={{ opacity: 0.8 }} style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-1)", letterSpacing: "-0.01em" }}>
+            Calamity AI
+          </motion.span>
+        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <motion.a
+            whileHover={{ color: "var(--text-1)" }}
+            href="https://github.com/divyanshailani/calamity-matrix-core"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: "13px", color: "var(--text-2)", textDecoration: "none", transition: "color 0.2s ease" }}
+          >
+            GitHub ↗
+          </motion.a>
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+            <Link
+              href="/dashboard"
+              id="nav-launch-btn"
+              style={{
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "white",
+                background: "var(--accent)",
+                borderRadius: "6px",
+                padding: "6px 14px",
+                textDecoration: "none",
+                display: "inline-block"
               }}
+            >
+              Launch Simulator →
+            </Link>
+          </motion.div>
+        </div>
+      </nav>
+
+      <motion.div variants={staggerContainer} initial="hidden" animate="visible" style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", zIndex: 1 }}>
+        
+        {/* HERO */}
+        <section style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "120px 24px 100px",
+          textAlign: "center",
+          maxWidth: "680px",
+          margin: "0 auto",
+          width: "100%",
+        }}>
+          {/* Label pill */}
+          <motion.div variants={itemVariant} style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "11px",
+            fontWeight: 500,
+            color: "var(--text-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "9999px",
+            padding: "4px 12px",
+            marginBottom: "32px",
+            background: "var(--surface)",
+            letterSpacing: "0.05em",
+          }}>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--green)", display: "inline-block" }} />
+            V1 Beta · Early Access
+          </motion.div>
+
+          <motion.h1 variants={itemVariant} style={{
+            fontSize: "clamp(36px, 6vw, 58px)",
+            fontWeight: 700,
+            lineHeight: 1.1,
+            letterSpacing: "-0.03em",
+            color: "var(--text-1)",
+            marginBottom: "20px",
+          }}>
+            A Neuro-Symbolic Disaster
+            <br />Intelligence Engine.
+          </motion.h1>
+
+          <motion.p variants={itemVariant} style={{
+            fontSize: "16px",
+            lineHeight: "1.7",
+            color: "var(--text-2)",
+            maxWidth: "520px",
+            marginBottom: "40px",
+          }}>
+            Combines XGBoost impact regression with pgvector semantic search over
+            2,281 historical disaster reports to simulate affected population and
+            economic damage for any hazard event, anywhere in the world.
+          </motion.p>
+
+          <motion.div variants={itemVariant} style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+              <Link
+                href="/dashboard"
+                id="hero-launch-btn"
+                style={{
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "white",
+                  background: "var(--accent)",
+                  borderRadius: "8px",
+                  padding: "10px 22px",
+                  textDecoration: "none",
+                  display: "inline-block"
+                }}
+              >
+                Launch Simulator →
+              </Link>
+            </motion.div>
+            <motion.a
+              whileHover={{ scale: 1.03, backgroundColor: "var(--surface-raised)", color: "var(--text-1)" }}
+              whileTap={{ scale: 0.97 }}
+              href="https://github.com/divyanshailani/calamity-matrix-core"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                color: "var(--text-2)",
+                border: "1px solid var(--border)",
+                borderRadius: "8px",
+                padding: "10px 22px",
+                textDecoration: "none",
+                background: "var(--surface)",
+                display: "inline-block",
+                transition: "background-color 0.2s ease, color 0.2s ease"
+              }}
+            >
+              View on GitHub
+            </motion.a>
+          </motion.div>
+        </section>
+
+        {/* DIVIDER */}
+        <motion.div variants={itemVariant} style={{ borderTop: "1px solid var(--border)", maxWidth: "960px", margin: "0 auto", width: "100%" }} />
+
+        {/* STATS */}
+        <motion.section variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} style={{ padding: "64px 24px", maxWidth: "960px", margin: "0 auto", width: "100%" }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: "40px",
+          }}>
+            <Stat value="25 Years" label="of global disaster data (2000–2025)" />
+            <Stat value="2,281" label="situation report narratives in vector DB" />
+            <Stat value="1,024" label="embedding dimensions (BGE-Large)" />
+            <Stat value="5+" label="hazard classes with domain-specific models" />
+            <Stat value="4-source" label="fusion: USGS · NASA · EM-DAT · Smithsonian" />
+          </div>
+        </motion.section>
+
+        {/* DIVIDER */}
+        <motion.div variants={itemVariant} style={{ borderTop: "1px solid var(--border)", maxWidth: "960px", margin: "0 auto", width: "100%" }} />
+
+        {/* HOW IT WORKS */}
+        <motion.section variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} style={{ padding: "80px 24px", maxWidth: "960px", margin: "0 auto", width: "100%" }}>
+          <motion.h2 variants={itemVariant} style={{
+            fontSize: "13px",
+            fontWeight: 600,
+            color: "var(--text-3)",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            marginBottom: "32px",
+          }}>
+            How it works
+          </motion.h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
+            <Step
+              n="01"
+              title="Configure the Event"
+              desc="Select a country, hazard class (earthquake, flood, etc.), month, year, and severity on the Richter or Saffir–Simpson scale."
+            />
+            <Step
+              n="02"
+              title="Run the Math Engine"
+              desc="XGBoost regression models — trained separately for each disaster type — predict estimated affected population and economic impact in USD."
+            />
+            <Step
+              n="03"
+              title="Retrieve Historical Context"
+              desc="pgvector performs a cosine similarity search over 2,281 embedded disaster narratives to surface the 3 most analogous historical events by meaning."
             />
           </div>
-        </div>
+        </motion.section>
 
-        {/* BOTTOM ROW: TELEMETRY HUD (Span 12) */}
-        <div className="lg:col-span-12 mt-2">
-          {results?.telemetry && (
-            <TelemetryHUD telemetry={results.telemetry} />
-          )}
-        </div>
+        {/* DIVIDER */}
+        <motion.div variants={itemVariant} style={{ borderTop: "1px solid var(--border)", maxWidth: "960px", margin: "0 auto", width: "100%" }} />
 
-      </main>
+        {/* TECH STACK */}
+        <motion.section variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} style={{ padding: "64px 24px", maxWidth: "960px", margin: "0 auto", width: "100%" }}>
+          <motion.h2 variants={itemVariant} style={{
+            fontSize: "13px",
+            fontWeight: 600,
+            color: "var(--text-3)",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            marginBottom: "20px",
+          }}>
+            Built with
+          </motion.h2>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {["Python 3.11", "XGBoost", "PostgreSQL", "pgvector", "FastAPI",
+              "sentence-transformers", "BGE-Large-en-v1.5", "Next.js 16", "MapLibre GL", "Framer Motion"].map(t => (
+              <TechBadge key={t} name={t} />
+            ))}
+          </div>
+        </motion.section>
+
+        {/* FOOTER */}
+        <motion.footer variants={itemVariant} style={{
+          borderTop: "1px solid var(--border)",
+          padding: "32px 32px 48px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          maxWidth: "960px",
+          margin: "0 auto",
+          width: "100%",
+        }}>
+          <span style={{ fontSize: "12px", color: "var(--text-3)" }}>
+            Built by Divyansh Ailani
+          </span>
+          <motion.a
+            whileHover={{ color: "var(--text-1)" }}
+            href="https://github.com/divyanshailani/calamity-matrix-core"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: "12px", color: "var(--text-3)", textDecoration: "none", transition: "color 0.2s ease" }}
+          >
+            GitHub ↗
+          </motion.a>
+        </motion.footer>
+
+      </motion.div>
     </div>
   );
 }

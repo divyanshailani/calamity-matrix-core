@@ -7,7 +7,7 @@ import xgboost as xgb
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer
+import requests
 from psycopg2 import pool
 from contextlib import asynccontextmanager
 
@@ -16,7 +16,7 @@ import sys
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
-from src.config import DB_CONFIG
+from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN
 MODEL_DIR = os.path.join(SCRIPT_DIR, "..", "models")
 XGB_AFFECTED_PATH = os.path.join(MODEL_DIR, "xgb_log_affected.json")
 XGB_DAMAGE_PATH = os.path.join(MODEL_DIR, "xgb_log_damage.json")
@@ -43,13 +43,18 @@ async def lifespan(app: FastAPI):
     with open(XGB_DAMAGE_PATH.replace('.json', '_meta.json'), 'r') as f:
         models['universal_damage_meta'] = json.load(f)
     
-    # 2. Load Embedding Model
-    print("[*] Booting Embedding Engine (BAAI/bge-large-en-v1.5)...")
-    models['embedder'] = SentenceTransformer('BAAI/bge-large-en-v1.5')
+    # 2. Setup Embedding Bridge
+    print("[*] Connecting to Neural Bridge (Hugging Face Inference API)...")
+    if not HF_TOKEN:
+        print("[!] Warning: HF_TOKEN is not set. Inference API may rate limit heavily.")
     
     # 3. Initialize Postgres Connection Pool
-    print("[*] Establishing pgvector connection pool on port 5433...")
-    models['db_pool'] = pool.SimpleConnectionPool(1, 10, **DB_CONFIG)
+    if DATABASE_URL:
+        print("[*] Establishing cloud pgvector connection pool to Supabase...")
+        models['db_pool'] = pool.SimpleConnectionPool(1, 10, dsn=DATABASE_URL)
+    else:
+        print("[*] Establishing local pgvector connection pool on port 5433...")
+        models['db_pool'] = pool.SimpleConnectionPool(1, 10, **DB_CONFIG)
     
     print("[+] Orchestrator successfully primed and listening on port 8000.\n")
     
@@ -64,11 +69,15 @@ app = FastAPI(title="Calamity AI: Neuro-Symbolic Orchestrator", lifespan=lifespa
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "https://*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/health")
+def health_check():
+    return {"status": "alive", "service": "calamity-orchestrator"}
 
 # Pydantic Payload
 class SimulationRequest(BaseModel):
@@ -154,11 +163,29 @@ async def simulate_calamity(payload: SimulationRequest):
         # ---------------------------------------------------------
         # 2. The RAG Engine Execution (Historical Context)
         # ---------------------------------------------------------
-        # Generate Vector Embedding for Semantic Search
+        # Generate Vector Embedding via Hugging Face API
         instruction = "Represent this sentence for searching relevant passages: "
         master_semantic_query = f"{payload.disaster_type} in {payload.country} (Year: {payload.event_year}). Additional Context: {payload.query_text}"
         full_query = instruction + master_semantic_query
-        query_embedding = models['embedder'].encode(full_query, normalize_embeddings=True).tolist()
+        
+        hf_api_url = "https://api-inference.huggingface.co/pipeline/feature-extraction/BAAI/bge-large-en-v1.5"
+        headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
+        resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}})
+        
+        if resp.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Hugging Face API Error: {resp.text}")
+            
+        embed_result = resp.json()
+        # Ensure we have a flat list of floats
+        if isinstance(embed_result, list) and len(embed_result) > 0 and isinstance(embed_result[0], list):
+            embed_result = embed_result[0] # handle batch outer list
+            
+        # Normalize embeddings (equivalent to normalize_embeddings=True)
+        vec = np.array(embed_result, dtype=float)
+        norm = np.linalg.norm(vec)
+        if norm > 0:
+            vec = vec / norm
+        query_embedding = vec.tolist()
 
         # Map EM-DAT taxonomy to ReliefWeb taxonomy for RAG matching
         rw_types = [payload.disaster_type]

@@ -20,6 +20,8 @@ DB_CONFIG = {
     "dbname":   os.getenv("POSTGRES_DB", "calamity_rag"),
 }
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+HF_TOKEN = os.getenv("HF_TOKEN")
 EMBEDDING_MODEL    = os.getenv("EMBEDDING_MODEL", "BAAI/bge-large-en-v1.5")
 RELIEFWEB_APPNAME  = os.getenv("RELIEFWEB_APPNAME", "")
 MODAL_TOKEN_ID     = os.getenv("MODAL_TOKEN_ID", "")
