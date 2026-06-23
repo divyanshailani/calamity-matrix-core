@@ -4,13 +4,9 @@ from collections import Counter
 import re
 import os
 
-DB_PARAMS = {
-    "host": "localhost",
-    "port": "5433",
-    "user": "admin",
-    "password": "root",
-    "dbname": "calamity_rag"
-}
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src.config import DB_CONFIG as DB_PARAMS
 
 def extract_temporal_nlp():
     print("==================================================")
