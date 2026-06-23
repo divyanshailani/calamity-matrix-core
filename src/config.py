@@ -16,7 +16,7 @@ DB_CONFIG = {
     "host":     os.getenv("POSTGRES_HOST", "localhost"),
     "port":     os.getenv("POSTGRES_PORT", "5433"),
     "user":     os.getenv("POSTGRES_USER", "admin"),
-    "password": _require("POSTGRES_PASSWORD"),
+    "password": os.getenv("POSTGRES_PASSWORD", ""),
     "dbname":   os.getenv("POSTGRES_DB", "calamity_rag"),
 }
 
