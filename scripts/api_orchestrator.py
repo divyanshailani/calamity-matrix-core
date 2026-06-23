@@ -168,7 +168,7 @@ async def simulate_calamity(payload: SimulationRequest):
         master_semantic_query = f"{payload.disaster_type} in {payload.country} (Year: {payload.event_year}). Additional Context: {payload.query_text}"
         full_query = instruction + master_semantic_query
         
-        hf_api_url = "https://api-inference.huggingface.co/pipeline/feature-extraction/BAAI/bge-large-en-v1.5"
+        hf_api_url = "https://router.huggingface.co/hf-inference/models/BAAI/bge-large-en-v1.5"
         headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
         resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}})
         
