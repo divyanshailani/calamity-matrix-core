@@ -1,5 +1,4 @@
 import React from "react";
-import { Cpu } from "lucide-react";
 import { getSeverityLabel, countries, disasters, months, defaultContexts } from "../lib/constants";
 
 interface SimulationConfigProps {
@@ -11,139 +10,154 @@ interface SimulationConfigProps {
   addLog: (msg: string) => void;
 }
 
-export default function SimulationConfig({
-  formData,
-  setFormData,
-  handleSubmit,
-  isLoading,
-  consoleLogs,
-  addLog
-}: SimulationConfigProps) {
+function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-6 pb-3 border-b border-zinc-800">
-        <Cpu className="w-4 h-4 text-zinc-400" />
-        <h2 className="text-xs font-semibold tracking-widest uppercase text-zinc-400">
-          Simulation Config
-        </h2>
+    <label style={{ display: "block", fontSize: "11px", fontWeight: 500, color: "var(--text-2)", marginBottom: "6px", letterSpacing: "0.04em" }}>
+      {children}
+    </label>
+  );
+}
+
+export default function SimulationConfig({ formData, setFormData, handleSubmit, isLoading, consoleLogs }: SimulationConfigProps) {
+  return (
+    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+
+      {/* Header */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+        <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-1)" }}>Simulation Config</p>
       </div>
-      
-      <form onSubmit={handleSubmit} className="space-y-5 flex-grow flex flex-col justify-between">
-        <div className="space-y-4">
-          
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase block">Country</label>
-            <select 
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-100 focus:border-zinc-800 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-              value={formData.country}
-              onChange={(e) => {
-                setFormData({...formData, country: e.target.value});
-                addLog(`Country changed to ${e.target.value}`);
-              }}
-            >
-              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} style={{ padding: "20px", flex: 1, display: "flex", flexDirection: "column", gap: "16px", overflowY: "auto" }}>
+
+        <div>
+          <Label>Country</Label>
+          <select
+            className="form-select"
+            value={formData.country}
+            onChange={e => setFormData({ ...formData, country: e.target.value })}
+          >
+            {countries.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <Label>Hazard Type</Label>
+          <select
+            className="form-select"
+            value={formData.disaster_type}
+            onChange={e => {
+              const t = e.target.value;
+              setFormData({ ...formData, disaster_type: t, query_text: defaultContexts[t] });
+            }}
+          >
+            {disasters.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <Label>Month</Label>
+            <select className="form-select" value={formData.month} onChange={e => setFormData({ ...formData, month: Number(e.target.value) })}>
+              {months.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase block">Disaster Type</label>
-            <select 
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-100 focus:border-zinc-800 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-              value={formData.disaster_type}
-              onChange={(e) => {
-                const newType = e.target.value;
-                setFormData({...formData, disaster_type: newType, query_text: defaultContexts[newType]});
-                addLog(`Disaster changed to ${newType}`);
+          <div>
+            <Label>Year</Label>
+            <input
+              type="text"
+              maxLength={4}
+              className="form-input"
+              style={{ fontFamily: "var(--font-geist-mono)" }}
+              value={formData.event_year}
+              onChange={e => {
+                let v = e.target.value.replace(/\D/g, "");
+                if (v.length === 4 && parseInt(v) > 2026) v = "2026";
+                setFormData({ ...formData, event_year: v });
               }}
-            >
-              {disasters.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase block">Month</label>
-              <select 
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-100 focus:border-zinc-800 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                value={formData.month}
-                onChange={(e) => setFormData({...formData, month: Number(e.target.value)})}
-              >
-                {months.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase block">Year</label>
-              <input 
-                type="text"
-                maxLength={4}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm font-mono text-zinc-100 focus:border-zinc-800 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                value={formData.event_year}
-                onChange={(e) => {
-                  let val = e.target.value.replace(/[^0-9]/g, '');
-                  if (val.length === 4 && parseInt(val) > 2026) val = "2026";
-                  setFormData({...formData, event_year: val});
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2 pt-2">
-            <div className="flex justify-between items-center text-[11px]">
-              <label className="font-semibold tracking-wider text-zinc-400 uppercase">
-                {getSeverityLabel(formData.disaster_type)}
-              </label>
-              <span className="font-mono font-medium text-zinc-100 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800">
-                {formData.severity}
-              </span>
-            </div>
-            <input 
-              type="range"
-              min="1" max="10" step="0.1"
-              className="w-full accent-blue-500 cursor-pointer"
-              value={formData.severity}
-              onChange={(e) => setFormData({...formData, severity: Number(e.target.value)})}
-            />
-          </div>
-
-          <div className="space-y-1.5 pt-2">
-            <label className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase block">Contextual Details</label>
-            <textarea 
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-3 text-sm text-zinc-100 focus:border-zinc-800 focus:ring-1 focus:ring-blue-500 outline-none h-24 resize-none transition-all"
-              value={formData.query_text}
-              onChange={(e) => setFormData({...formData, query_text: e.target.value})}
-              placeholder="Describe specific scenario metrics..."
             />
           </div>
         </div>
 
-        {/* Execute Button */}
-        <div className="pt-4 mt-auto">
-          <button 
-            type="submit" 
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <Label>{getSeverityLabel(formData.disaster_type)}</Label>
+            <span style={{ fontSize: "12px", fontFamily: "var(--font-geist-mono)", color: "var(--text-1)", background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: "4px", padding: "2px 8px" }}>
+              {formData.severity}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="1" max="10" step="0.1"
+            className="range-input"
+            value={formData.severity}
+            onChange={e => setFormData({ ...formData, severity: Number(e.target.value) })}
+          />
+        </div>
+
+        <div>
+          <Label>Scenario Context</Label>
+          <textarea
+            className="form-input"
+            style={{ resize: "none", height: "80px", lineHeight: "1.5" }}
+            value={formData.query_text}
+            onChange={e => setFormData({ ...formData, query_text: e.target.value })}
+            placeholder="Describe the scenario..."
+          />
+        </div>
+
+        <div style={{ marginTop: "auto" }}>
+          <button
+            id="run-simulation-btn"
+            type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-600/90 text-white font-medium py-3 px-4 rounded-lg text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            style={{
+              width: "100%",
+              padding: "10px",
+              background: isLoading ? "var(--surface-raised)" : "var(--accent)",
+              color: isLoading ? "var(--text-3)" : "white",
+              border: "1px solid " + (isLoading ? "var(--border)" : "transparent"),
+              borderRadius: "6px",
+              fontSize: "13px",
+              fontWeight: 500,
+              cursor: isLoading ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              transition: "background 0.15s ease",
+              fontFamily: "var(--font-sans)",
+            }}
           >
             {isLoading ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
               <>
-                Run Simulation
+                <span style={{ width: "12px", height: "12px", border: "1.5px solid var(--text-3)", borderTopColor: "var(--text-2)", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} />
+                Running...
               </>
-            )}
+            ) : "Run Simulation"}
           </button>
         </div>
       </form>
-      
-      {/* Diagnostics console */}
-      <div className="mt-5 pt-4 border-t border-zinc-800">
-        <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800/60 max-h-[80px] overflow-y-auto space-y-1 text-[11px] font-mono text-zinc-400">
-          {consoleLogs.map((log, idx) => (
-            <p key={idx} className={log.includes("failed") ? "text-red-500" : "text-zinc-400"}>
-              {log}
-            </p>
-          ))}
+
+      {/* Console */}
+      <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)" }}>
+        <div style={{
+          background: "var(--bg)",
+          border: "1px solid var(--border)",
+          borderRadius: "6px",
+          padding: "10px 12px",
+          maxHeight: "64px",
+          overflowY: "auto",
+          fontFamily: "var(--font-geist-mono)",
+          fontSize: "10px",
+          color: "var(--text-2)",
+          lineHeight: "1.6",
+        }}>
+          {consoleLogs.map((log, i) => <div key={i}>{log}</div>)}
         </div>
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

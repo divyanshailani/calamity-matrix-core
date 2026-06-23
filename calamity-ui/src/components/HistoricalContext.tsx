@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Database, Search, Clock, AlertTriangle, MapPin, Calendar } from "lucide-react";
+import { MapPin, Calendar } from "lucide-react";
 
 interface HistoricalContextProps {
   results: any;
@@ -8,150 +8,111 @@ interface HistoricalContextProps {
   onSuggestionClick?: (updates: any) => void;
 }
 
+function scoreColor(s: number) {
+  if (s >= 0.75) return "var(--green)";
+  if (s >= 0.60) return "var(--amber)";
+  return "var(--red)";
+}
+
 export default function HistoricalContext({ results, country, onSuggestionClick }: HistoricalContextProps) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm flex flex-col h-full relative overflow-hidden">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800">
-        <div className="flex items-center gap-2">
-          <Database className="w-4 h-4 text-zinc-400" />
-          <h2 className="text-xs font-semibold tracking-widest uppercase text-zinc-400">
-            Historical Context
-          </h2>
-        </div>
+    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+
+      {/* Header */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+        <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-1)" }}>Historical Context</p>
+        <span style={{ fontSize: "11px", color: "var(--text-2)", fontFamily: "var(--font-geist-mono)" }}>pgvector RAG</span>
       </div>
 
-      <div className="flex-grow space-y-4 overflow-y-auto max-h-[calc(100vh-250px)] pr-2">
-        <p className="text-xs text-zinc-400 italic leading-relaxed mb-4">
-          Displaying closest historical analogy from vector memory...
-        </p>
-
+      {/* Content */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px", minHeight: 0 }}>
         <AnimatePresence mode="wait">
           {!results ? (
-            <motion.div 
-              key="empty"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="h-full min-h-[250px] flex flex-col items-center justify-center p-6 text-center text-zinc-400 gap-3 border border-dashed border-zinc-800 rounded-lg bg-zinc-950"
-            >
-              <Search className="w-5 h-5 opacity-50" />
-              <p className="text-xs">No simulation active</p>
+            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              style={{ height: "100%", minHeight: "200px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <p style={{ fontSize: "13px", color: "var(--text-2)" }}>No simulation active</p>
+              <p style={{ fontSize: "11px", color: "var(--text-3)" }}>Run a simulation to retrieve analogies</p>
             </motion.div>
           ) : (
-            <motion.div 
-              key="results"
-              initial="hidden" animate="show"
-              variants={{
-                hidden: { opacity: 0 },
-                show: {
-                  opacity: 1,
-                  transition: { staggerChildren: 0.1 }
-                }
-              }}
-              className="space-y-4"
-            >
+            <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+
               {results.historical_context.length === 0 ? (
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-start gap-3 p-4 bg-orange-950/20 border border-orange-900/50 rounded-lg text-orange-500">
-                    <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs font-mono uppercase leading-relaxed">
-                      [ SYS_INFO: GENERALIZED PHYSICS MODE ACTIVE - NO EXACT RETRIEVAL ANCHORS FOUND FOR {country || "REGION"} ]
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ padding: "12px 14px", background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: "6px" }}>
+                    <p style={{ fontSize: "12px", color: "var(--amber)", fontWeight: 500, marginBottom: "4px" }}>No exact matches found</p>
+                    <p style={{ fontSize: "11px", color: "var(--text-2)", lineHeight: "1.5" }}>
+                      No historical records for this combination. Try an alternative below.
                     </p>
                   </div>
 
-                  {results.suggested_alternatives && (
-                    <div className="space-y-4 mt-2">
-                      {results.suggested_alternatives.same_country_disasters?.length > 0 && (
-                        <div className="space-y-2">
-                          <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
-                            <MapPin className="w-3 h-3" /> Alternate Hazards in {country}
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {results.suggested_alternatives.same_country_disasters.map((disaster: string) => (
-                              <button
-                                key={disaster}
-                                onClick={() => onSuggestionClick && onSuggestionClick({ disaster_type: disaster })}
-                                className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 rounded text-xs text-zinc-300 transition-colors"
-                              >
-                                {disaster}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                  {results.suggested_alternatives?.same_country_disasters?.length > 0 && (
+                    <div>
+                      <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-2)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+                        <MapPin size={10} /> Other hazards in {country}
+                      </p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                        {results.suggested_alternatives.same_country_disasters.map((d: string) => (
+                          <button key={d} onClick={() => onSuggestionClick?.({ disaster_type: d })}
+                            style={{ fontSize: "11px", padding: "4px 10px", background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: "4px", color: "var(--text-2)", cursor: "pointer", fontFamily: "var(--font-sans)" }}>
+                            {d}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                      {results.suggested_alternatives.closest_historical_years?.length > 0 && (
-                        <div className="space-y-2 mt-4">
-                          <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
-                            <Calendar className="w-3 h-3" /> Closest Historical Anchors
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {results.suggested_alternatives.closest_historical_years.map((year: number) => (
-                              <button
-                                key={year}
-                                onClick={() => onSuggestionClick && onSuggestionClick({ event_year: year })}
-                                className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 rounded text-xs text-zinc-300 transition-colors"
-                              >
-                                {year}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                  {results.suggested_alternatives?.closest_historical_years?.length > 0 && (
+                    <div>
+                      <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-2)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+                        <Calendar size={10} /> Nearest recorded years
+                      </p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                        {results.suggested_alternatives.closest_historical_years.map((y: number) => (
+                          <button key={y} onClick={() => onSuggestionClick?.({ event_year: y })}
+                            style={{ fontSize: "11px", padding: "4px 10px", background: "var(--surface-raised)", border: "1px solid var(--border)", borderRadius: "4px", color: "var(--text-2)", cursor: "pointer", fontFamily: "var(--font-geist-mono)" }}>
+                            {y}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
               ) : (
-                results.historical_context.map((ctx: any, idx: number) => (
-                  <motion.div 
-                    key={idx}
-                    variants={{
-                      hidden: { opacity: 0, y: 10 },
-                      show: { opacity: 1, y: 0 }
-                    }}
-                    className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-sm hover:shadow transition-all duration-300"
-                  >
-                    <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-3">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs font-semibold text-zinc-100 uppercase">
-                          {String(ctx.country).startsWith("http") ? "ReliefWeb" : String(ctx.country)}
-                        </span>
-                        <span className="text-[10px] font-medium text-zinc-400 uppercase">
-                          {String(ctx.disaster_type).match(/^\d+$/) ? `ID:${ctx.disaster_type}` : String(ctx.disaster_type)}
-                        </span>
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <div className="flex items-center gap-1 text-zinc-400 text-[10px] font-medium">
-                          <Clock className="w-3 h-3" />
-                          {ctx.event_year || "HIST"}
+                results.historical_context.map((ctx: any, idx: number) => {
+                  const color = scoreColor(ctx.similarity_score);
+                  const pct = (ctx.similarity_score * 100).toFixed(0);
+                  return (
+                    <div key={idx} style={{
+                      background: "var(--surface-raised)",
+                      border: "1px solid var(--border)",
+                      borderLeft: `2px solid ${color}`,
+                      borderRadius: "6px",
+                      padding: "12px 14px",
+                    }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                        <div>
+                          <p style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-1)", marginBottom: "2px" }}>
+                            {String(ctx.country).startsWith("http") ? "ReliefWeb" : String(ctx.country)}
+                          </p>
+                          <p style={{ fontSize: "10px", color: "var(--text-2)" }}>
+                            {String(ctx.disaster_type).match(/^\d+$/) ? `ID: ${ctx.disaster_type}` : ctx.disaster_type}
+                            {ctx.event_year ? ` · ${ctx.event_year}` : ""}
+                          </p>
                         </div>
-                        <span className="text-zinc-400 bg-zinc-950 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium">
-                          {(ctx.similarity_score * 100).toFixed(0)}% Match
+                        <span style={{ fontSize: "10px", fontWeight: 600, fontFamily: "var(--font-geist-mono)", color, flexShrink: 0, marginLeft: "8px" }}>
+                          {pct}%
                         </span>
                       </div>
+                      <p style={{ fontSize: "11px", lineHeight: "1.6", color: "var(--text-2)" }}>
+                        {ctx.text_preview || ctx.narrative_preview}
+                      </p>
                     </div>
-                    
-                    <p className="text-xs text-zinc-400 leading-relaxed">
-                      {ctx.text_preview || ctx.narrative_preview}
-                    </p>
-                  </motion.div>
-                ))
+                  );
+                })
               )}
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-
-      {/* Intelligence Terminal (LLM UI Scaffolding) */}
-      <div className="bg-zinc-900/50 border-t border-zinc-700 p-4 mt-4 flex flex-col gap-3 shrink-0 rounded-b-xl">
-        <p className="text-zinc-400 font-mono text-xs">Awaiting simulation data for synthesis...</p>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-zinc-500 font-mono text-sm">{'>'}</span>
-          <input 
-            type="text" 
-            disabled 
-            placeholder="Request deeper tactical analysis..." 
-            className="bg-transparent border-none outline-none text-zinc-300 font-mono text-xs w-full placeholder-zinc-600 cursor-not-allowed"
-          />
-        </div>
       </div>
     </div>
   );
