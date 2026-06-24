@@ -7,7 +7,7 @@
 
 set -e
 
-DOMAIN=${1:-"calamityai.tech"}
+DOMAIN=${1:-"api.calamityai.tech"}
 EMAIL="divyanshailani@gmail.com"
 
 echo ""
@@ -22,7 +22,6 @@ systemctl stop nginx
 echo "[2/3] Issuing Let's Encrypt certificate..."
 certbot certonly --standalone \
     -d "$DOMAIN" \
-    -d "www.$DOMAIN" \
     --email "$EMAIL" \
     --agree-tos \
     --non-interactive
