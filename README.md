@@ -4,9 +4,9 @@
 > **PROJECT STATUS: V1 BETA / EARLY ACCESS**  
 > Calamity Matrix is currently in active beta. The core Neuro-Symbolic RAG engine (pgvector) and XGBoost predictors are 100% operational, providing fast, deterministic hazard simulations. The experimental LLM synthesis layer has been temporarily decoupled in this version to prioritize UI stability and infrastructure efficiency.
 
-> Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, semantic RAG over 2,281 historical disaster narratives via pgvector, and Qwen3-8B domain fine-tuning on Hosted Workbench (L40S, 32GB RAM, 8 Core CPU).
+> Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, and semantic RAG over 2,281 historical disaster narratives via pgvector.
 
-**Stack:** Python · PostgreSQL + pgvector · XGBoost · sentence-transformers (BGE-Large) · Qwen3-8B · LoRA · Cloud Service
+**Stack:** Python · PostgreSQL (Supabase) + pgvector · XGBoost · sentence-transformers (BGE-Large) · Vercel (Frontend) · DigitalOcean (Backend)
 
 ---
 
@@ -17,8 +17,6 @@ Two parallel intelligence layers over 25 years of global natural disaster data (
 **Math Engine** — XGBoost regression trained on fused structured matrices (USGS seismic, NASA EONET fires/floods/storms, EM-DAT casualties/impacts, Smithsonian volcanism). Outputs base-rate hazard probability and historical impact estimates (casualties, affected population) for a given disaster type and region.
 
 **Narrative Engine** — 2,281 situation reports from HDX/ReliefWeb embedded via `BAAI/bge-large-en-v1.5` into a pgvector database. Semantic search retrieves analogous historical events by meaning, not keyword matching, enabling grounded narrative synthesis when combined with the fine-tuned LLM.
-
-**Fine-tuned LLM** — Qwen3-8B fine-tuned via LoRA on Cloud Service's L40S GPU using domain-specific disaster QA pairs. Synthesizes Math Engine output + RAG-retrieved narratives into structured situation assessments.
 
 ---
 
@@ -40,29 +38,32 @@ All data is 2000–2025 only. No live forecasting in v1 — historical risk and 
 
 ```mermaid
 graph TD
+    subgraph Frontend [Vercel Global Edge CDN]
+        UI[Next.js UI]
+    end
+
+    subgraph Backend [DigitalOcean Droplet]
+        API[FastAPI Orchestrator]
+        
+        subgraph Math Engine v3
+            Matrices[Structured Matrices] --> XGBoost[XGBoost Predictors]
+        end
+    end
+
+    subgraph Database [Supabase Cloud]
+        PGVector[(pgvector DB)]
+    end
+    
     subgraph Data Sources
-        USGS[USGS Earthquake Catalog]
-        NASA[NASA EONET]
-        EMDAT[EM-DAT]
-        GVP[Smithsonian GVP]
-        HDX[HDX / ReliefWeb]
+        USGS[USGS] & NASA[NASA] & EMDAT[EM-DAT] & GVP[GVP] --> Matrices
+        HDX[HDX/ReliefWeb] -->|Text Embeddings| PGVector
     end
 
-    subgraph Math Engine v3
-        USGS -->|CSV| Matrices[Structured Matrices]
-        NASA -->|Spatial| Matrices
-        EMDAT -->|Casualties| Matrices
-        GVP -->|Volcanism| Matrices
-        Matrices --> XGBoost[XGBoost Predictors]
-        XGBoost -->|Hazard Prob & Impact| Output[Response]
-    end
-
-    subgraph Narrative Engine
-        HDX -->|Text| BGE[BGE-Large Embeddings]
-        BGE -->|1024D Vectors| PGVector[(pgvector DB)]
-        PGVector -->|Semantic Search| RAG[RAG Retrieval]
-        RAG -->|Context| Output
-    end
+    UI <-->|API Requests| API
+    API -->|Features| XGBoost
+    API -->|Semantic Search| PGVector
+    XGBoost -->|Hazard Prob & Impact| API
+    PGVector -->|Analogous Events| API
 ```
 ---
 
@@ -225,9 +226,7 @@ graph TD
 - **Phase 15 (Completed):** Integrity & Security Restoration — Heuristic Hybrid RAG, Offline HDX metadata resolution bypass, Backend credential sanitization
 - **Phase 16 (Completed):** Multi-Physics Architecture (Math Engine v3) — Disaster-specific segregated XGBoost tuning & dynamic API routing
 - **Phase 17 (Completed):** Telemetry HUD & Guardrails — Diagnostic HUD, Telemetry Arcs, Strict Geographic Enclosure, Recommendation Engine, and Zero-Vector Schema Fixes
-- **Phase 18 (Completed):** Qwen3-8B QLoRA fine-tuning on Hosted Workbench (L40S, 32GB RAM, 8 Core CPU) — domain-specific disaster QA dataset
-- **Phase 19 (Completed):** Synthesizer bridge — Math Engine output + RAG retrieval → LLM grounded response
-- **Phase 20 (Completed):** Cloud Service LLM Integration — Wired the local Next.js frontend to the Cloud Service serverless endpoint
-- **Phase 21 (Completed):** V1 Beta Pivot — Decoupled the experimental LLM synthesis layer to prioritize UI stability, launching the project as a pure Neuro-Symbolic RAG engine.
+- **Phase 18 (Completed):** DevOps Infrastructure — Migrated backend to DigitalOcean Droplet, Database to Supabase pgvector, and Frontend to Vercel.
+- **Phase 19 (Completed):** V1 Beta Pivot — Fully launched as a pure Neuro-Symbolic RAG engine and Math predictor with LLM decoupling for UI stability.
 
 See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.
