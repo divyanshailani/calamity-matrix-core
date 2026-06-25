@@ -63,8 +63,6 @@ graph TD
         PGVector -->|Semantic Search| RAG[RAG Retrieval]
         RAG -->|Context| Output
     end
-    
-    Qwen[Qwen3-8B LoRA] -.->|Synthesizer - Decoupled in v1 Beta| Output
 ```
 ---
 
@@ -201,8 +199,8 @@ graph TD
     subgraph Droplet [DigitalOcean Ubuntu 24.04 Server]
         Nginx[Nginx Reverse Proxy] -->|Routes traffic| FastAPI[FastAPI Backend + Docker]
         FastAPI <-->|Reads Models| Models[(XGBoost Models)]
-        FastAPI <-->|Searches Vector DB| Supabase[(Supabase pgvector)]
     end
+    FastAPI <-->|Searches Vector DB| Supabase[(Supabase Cloud pgvector)]
 ```
 
 | Layer | Technology |
