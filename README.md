@@ -38,17 +38,34 @@ All data is 2000–2025 only. No live forecasting in v1 — historical risk and 
 
 ## Architecture
 
-```
-Data Sources
-  USGS ──────────────────────────────────────────────┐
-  NASA EONET ─────────────────────────────────────── ├──► Structured Matrices (CSV)
-  EM-DAT ─────────────────────────────────────────── ┤       ↓
-  Smithsonian GVP ────────────────────────────────── ┘   XGBoost Math Engine
-                                                          (hazard prob + impact regression)
-  HDX / ReliefWeb ──► BGE-Large Embeddings ──► pgvector    ↓
-                       (1024D vectors)           RAG Engine ──► Qwen3-8B (LoRA) ──► Response
-```
+```mermaid
+graph TD
+    subgraph Data Sources
+        USGS[USGS Earthquake Catalog]
+        NASA[NASA EONET]
+        EMDAT[EM-DAT]
+        GVP[Smithsonian GVP]
+        HDX[HDX / ReliefWeb]
+    end
 
+    subgraph Math Engine v3
+        USGS -->|CSV| Matrices[Structured Matrices]
+        NASA -->|Spatial| Matrices
+        EMDAT -->|Casualties| Matrices
+        GVP -->|Volcanism| Matrices
+        Matrices --> XGBoost[XGBoost Predictors]
+        XGBoost -->|Hazard Prob & Impact| Output[Response]
+    end
+
+    subgraph Narrative Engine
+        HDX -->|Text| BGE[BGE-Large Embeddings]
+        BGE -->|1024D Vectors| PGVector[(pgvector DB)]
+        PGVector -->|Semantic Search| RAG[RAG Retrieval]
+        RAG -->|Context| Output
+    end
+    
+    Qwen[Qwen3-8B LoRA] -.->|Synthesizer - Decoupled in v1 Beta| Output
+```
 ---
 
 ## Multi-Physics Architecture (Math Engine v3)
@@ -166,6 +183,39 @@ Results (cosine similarity):
 - 0.6989 — Kao-hsiung, Taiwan (M7.1, December 2006)
 
 Retrieval correctly resolved geographic and semantic context without keyword matching.
+
+---
+
+## Deployment Architecture (DevOps)
+
+The application is fully decoupled in production for maximum resilience and scale:
+
+```mermaid
+graph TD
+    User([User Browser]) -->|Visits calamityai.tech| Vercel[Vercel Global Edge CDN]
+    Vercel -->|Serves Next.js UI| User
+    
+    User -->|Runs Simulation| Internet((Internet))
+    Internet -->|https://api.calamityai.tech| Droplet[DigitalOcean Droplet]
+    
+    subgraph Droplet [DigitalOcean Ubuntu 24.04 Server]
+        Nginx[Nginx Reverse Proxy] -->|Routes traffic| FastAPI[FastAPI Backend + Docker]
+        FastAPI <-->|Reads Models| Models[(XGBoost Models)]
+        FastAPI <-->|Searches Vector DB| Supabase[(Supabase pgvector)]
+    end
+```
+
+| Layer | Technology |
+|---|---|
+| **Frontend Server** | Vercel Global Edge Network |
+| **Backend Server** | DigitalOcean Droplet (Ubuntu 24.04) |
+| **Containerization** | Docker + Docker Compose |
+| **Proxy / SSL** | Nginx (alpine) + Let's Encrypt (Certbot) |
+| **API** | FastAPI + Uvicorn |
+| **Database** | Supabase pgvector (External Pooler) |
+| **Domains** | `calamityai.tech`, `api.calamityai.tech` |
+
+*For full infrastructure setup scripts, SSL automation, and CI/CD deployment instructions, see the [`deploy/README.md`](./deploy/README.md).*
 
 ---
 
