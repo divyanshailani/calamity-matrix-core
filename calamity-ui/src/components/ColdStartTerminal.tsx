@@ -16,6 +16,7 @@ const BOOT_MESSAGES = [
 export default function ColdStartTerminal({ formData, results }: ColdStartTerminalProps) {
   const [streamData, setStreamData] = useState("");
   const [isSimulating, setIsSimulating] = useState(false);
+  const [hasRequested, setHasRequested] = useState(false);
   const [bootStage, setBootStage] = useState(0);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -37,19 +38,18 @@ export default function ColdStartTerminal({ formData, results }: ColdStartTermin
     return () => clearInterval(interval);
   }, [isSimulating, streamData]);
 
-  // Fetch the SSE Stream when simulation results are available
-  useEffect(() => {
+  // Fetch the SSE Stream when the user explicitly requests it
+  const fetchStream = async () => {
     if (!results || !formData) return;
 
-    let isMounted = true;
+    setHasRequested(true);
     setIsSimulating(true);
-    setStreamData(""); // Reset terminal on new simulation
+    setStreamData(""); // Reset terminal
 
-    const fetchStream = async () => {
-      try {
-        const apiUrl = process.env.NODE_ENV === "production" 
-          ? "https://api.calamityai.tech/api/v1/ask_ai" 
-          : "https://api.calamityai.tech/api/v1/ask_ai"; // Usually http://localhost:8000/api/v1/ask_ai for dev
+    try {
+      const apiUrl = process.env.NODE_ENV === "production" 
+        ? "https://api.calamityai.tech/api/v1/ask_ai" 
+        : "https://api.calamityai.tech/api/v1/ask_ai"; // Usually http://localhost:8000/api/v1/ask_ai for dev
 
         const response = await fetch(apiUrl, {
           method: "POST",
@@ -78,7 +78,6 @@ export default function ColdStartTerminal({ formData, results }: ColdStartTermin
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-          if (!isMounted) break;
 
           buffer += decoder.decode(value, { stream: true });
           
@@ -106,20 +105,11 @@ export default function ColdStartTerminal({ formData, results }: ColdStartTermin
         }
       } catch (err) {
         console.error("Stream connection failed:", err);
-        if (isMounted) {
-          setStreamData(prev => prev + "\n\n[!] CONNECTION TO NEURAL ORCHESTRATOR LOST.");
-        }
+        setStreamData(prev => prev + "\n\n[!] CONNECTION TO NEURAL ORCHESTRATOR LOST.");
       } finally {
-        if (isMounted) setIsSimulating(false);
+        setIsSimulating(false);
       }
-    };
-
-    fetchStream();
-
-    return () => {
-      isMounted = false; // Cleanup on dismount
-    };
-  }, [results]); // Only re-run when we get new ML predictions from the backend
+  };
 
   // Helper to cleanly render DeepSeek / Qwen reasoning tags progressively
   const formatStream = (text: string) => {
@@ -139,6 +129,13 @@ export default function ColdStartTerminal({ formData, results }: ColdStartTermin
       return <span key={index}>{part}</span>;
     });
   };
+
+  // Auto reset if new results arrive
+  useEffect(() => {
+    setHasRequested(false);
+    setStreamData("");
+    setIsSimulating(false);
+  }, [results]);
 
   if (!results) {
     return (
@@ -163,6 +160,8 @@ export default function ColdStartTerminal({ formData, results }: ColdStartTermin
               <div className="w-2 h-2 rounded-full bg-amber-500 animate-ping opacity-75"></div>
               <div className="w-2 h-2 rounded-full bg-amber-500"></div>
             </>
+          ) : hasRequested && streamData ? (
+            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
           ) : (
             <div className="w-2 h-2 rounded-full bg-zinc-600"></div>
           )}
@@ -170,7 +169,19 @@ export default function ColdStartTerminal({ formData, results }: ColdStartTermin
       </div>
 
       <div className="flex-grow whitespace-pre-wrap">
-        {streamData ? (
+        {!hasRequested ? (
+          <div className="flex flex-col items-center justify-center h-full pb-8">
+            <button 
+              onClick={fetchStream}
+              className="border border-amber-600/60 text-amber-500 bg-amber-900/20 hover:bg-amber-900/40 px-5 py-2.5 rounded font-bold uppercase tracking-widest text-xs transition-colors shadow-sm"
+            >
+              Generate AI Synthesis
+            </button>
+            <p className="text-amber-700/50 text-[10px] mt-4 text-center max-w-[220px]">
+              Requires cloud GPU wake-up.<br/>Cold starts may take ~20-30s.
+            </p>
+          </div>
+        ) : streamData ? (
           <div className="leading-relaxed">{formatStream(streamData)}</div>
         ) : (
           <div className="flex flex-col gap-4 mt-4 h-full justify-center pb-8">
