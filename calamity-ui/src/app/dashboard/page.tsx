@@ -7,6 +7,7 @@ import SimulationConfig from "../../components/SimulationConfig";
 import GeospatialMap from "../../components/GeospatialMap";
 import HistoricalContext from "../../components/HistoricalContext";
 import TelemetryHUD from "../../components/TelemetryHUD";
+import ColdStartTerminal from "../../components/ColdStartTerminal";
 import { countryCoords } from "../../lib/constants";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Zap, Database, Activity } from "lucide-react";
@@ -153,10 +154,15 @@ export default function Dashboard() {
           {mounted && <GeospatialMap viewState={viewState} setViewState={setViewState} results={results} error={error} country={formData.country} />}
         </div>
 
-        {/* RAG */}
-        <div style={{ gridRow: "1", display: "flex", flexDirection: "column", minHeight: 0 }}>
-          <HistoricalContext results={results} country={formData.country}
-            onSuggestionClick={u => { const d = { ...formData, ...u }; setFormData(d); run(d); }} />
+        {/* RAG & Synthesis */}
+        <div style={{ gridRow: "1", display: "flex", flexDirection: "column", minHeight: 0, gap: "12px" }}>
+          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+            <HistoricalContext results={results} country={formData.country}
+              onSuggestionClick={u => { const d = { ...formData, ...u }; setFormData(d); run(d); }} />
+          </div>
+          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+            <ColdStartTerminal formData={formData} results={results} />
+          </div>
         </div>
 
         {/* Telemetry — bottom row */}
