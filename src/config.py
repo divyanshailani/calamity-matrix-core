@@ -26,6 +26,7 @@ EMBEDDING_MODEL    = os.getenv("EMBEDDING_MODEL", "BAAI/bge-large-en-v1.5")
 RELIEFWEB_APPNAME  = os.getenv("RELIEFWEB_APPNAME", "")
 MODAL_TOKEN_ID     = os.getenv("MODAL_TOKEN_ID", "")
 MODAL_TOKEN_SECRET = os.getenv("MODAL_TOKEN_SECRET", "")
+CLOUD_LLM_ENDPOINT = os.getenv("CLOUD_LLM_ENDPOINT", "")
 
 BASE_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR      = os.path.join(BASE_DIR, "data")

@@ -1,8 +1,8 @@
 # Calamity Matrix Core — ML Pipeline
 
 > [!TIP]
-> **PROJECT STATUS: V1 BETA / EARLY ACCESS**  
-> Calamity Matrix is currently in active beta. The core Neuro-Symbolic RAG engine (pgvector) and XGBoost predictors are 100% operational, providing fast, deterministic hazard simulations. The experimental LLM synthesis layer has been temporarily decoupled in this version to prioritize UI stability and infrastructure efficiency.
+> **PROJECT STATUS: V2 ACTIVE DEVELOPMENT**  
+> Calamity Matrix has officially reintegrated the LLM synthesis layer! The core Neuro-Symbolic RAG engine (pgvector) and XGBoost predictors now stream their deterministic outputs directly to a serverless A10G (24GB VRAM) cloud platform powering a fine-tuned Qwen3-8B LoRA.
 
 > Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, and semantic RAG over 2,281 historical disaster narratives via pgvector.
 
@@ -228,5 +228,7 @@ graph TD
 - **Phase 17 (Completed):** Telemetry HUD & Guardrails — Diagnostic HUD, Telemetry Arcs, Strict Geographic Enclosure, Recommendation Engine, and Zero-Vector Schema Fixes
 - **Phase 18 (Completed):** DevOps Infrastructure — Migrated backend to DigitalOcean Droplet, Database to Supabase pgvector, and Frontend to Vercel.
 - **Phase 19 (Completed):** V1 Beta Pivot — Fully launched as a pure Neuro-Symbolic RAG engine and Math predictor with LLM decoupling for UI stability.
+- **Phase 20 (Completed):** Serverless Cloud LLM Integration — Deployed a fine-tuned Qwen3-8B LoRA to a serverless A10G (24GB VRAM) cloud platform with OpenAI-compatible SSE streaming.
+- **Phase 21 (Upcoming):** UI/UX Portfolio Overhaul — Redesign the Next.js UI into a high-end defense-grade dashboard, parse LLM streaming output into styled Markdown.
 
 See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.
