@@ -192,16 +192,15 @@ This is clearly documented in the README. No model in this project claims to pre
 
 ---
 
-## 15. UI Glitch: JSON Hallucination & Container Overflow [PENDING]
+## 15. UI Glitch: JSON Hallucination & Container Overflow [RESOLVED]
 
 **Issue:** Upon successful LLM inference, the right-side "Tactical Synthesis" panel violently glitched. Text spilled outside the panel container, overlapping the map and destroying the layout. Furthermore, the text was raw, unformatted JSON.
 **Root Cause:** 
 1. **Prompting:** The model's system prompt strictly commanded it to output valid JSON for downstream parsing. However, the orchestrator streams the raw output token-by-token directly to the UI.
 2. **CSS:** The `ColdStartTerminal` container in Next.js lacked `overflow-y-auto` and `break-words` properties, so the massive unbroken JSON string forcefully expanded its parent container.
-**Solution (Planned):** 
-1. Rewrite the LLM system prompt to output a highly formatted Markdown "Tactical Report" instead of JSON.
-2. Add proper `overflow-y-auto`, `whitespace-pre-wrap`, and `break-words` CSS classes. 
-3. Perform a holistic UI/UX overhaul to elevate the aesthetic from a "developer console" to a portfolio-grade, high-end defense dashboard (e.g., Palantir aesthetic).
+**Solution:** 
+1. **SSE Streaming:** Converted the FastAPI endpoint (`/api/v1/ask_ai`) to use Server-Sent Events (`StreamingResponse`). The model now streams raw text tokens (bypassing JSON wrappers).
+2. **System Prompt Alignment:** Reverted the backend prompt to exactly match the `calamity_training_data.jsonl` structure, forcing the model into a strict analytical markdown output format that prevents structural hallucinations.
 
 ---
 

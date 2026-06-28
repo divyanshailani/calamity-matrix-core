@@ -5,6 +5,15 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-06-28
+
+### 🧠 Serverless LLM Integration & SSE Streaming
+- **Cloud Inference Engine:** Successfully deployed the fine-tuned `calamity-qwen3-lora-v1` adapter on top of the base `Qwen3-8B` model to a serverless cloud platform using an A10G (24GB VRAM) GPU.
+- **Cost-Optimized Architecture:** Configured a strict 60-second idle container timeout. The system scales to 0 when idle, incurring zero costs, and cold-boots instantly upon receiving a new RAG query.
+- **SSE Water Pipe (Streaming):** Integrated `StreamingResponse` via Server-Sent Events (SSE) into the FastAPI `/api/v1/ask_ai` endpoint. Bypassed fragile JSON block generation, allowing the model to stream raw analytical text and `<think>` tags directly to the UI, entirely eliminating previous hallucination bugs and JSON parsing crashes.
+- **Exact Payload Mapping:** Formatted the orchestrator's backend prompt to strictly mirror the exact string structure from `calamity_training_data.jsonl`, locking the model into a rigid, hallucination-free behavioral alignment.
+- **Security:** Fully sanitized GitHub repositories by extracting hardcoded cloud URLs into `.env` (via `CLOUD_LLM_ENDPOINT`), ensuring no external platform metadata is leaked.
+
 ## [1.5.1] - 2026-06-23
 
 ### ⏸️ Project Status: Stable Maintenance Mode

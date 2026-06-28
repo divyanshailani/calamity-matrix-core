@@ -5,18 +5,20 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import requests
 from psycopg2 import pool
 from contextlib import asynccontextmanager
+import openai
 
 import sys
 
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
-from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN
+from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT
 MODEL_DIR = os.path.join(SCRIPT_DIR, "..", "models")
 XGB_AFFECTED_PATH = os.path.join(MODEL_DIR, "xgb_log_affected.json")
 XGB_DAMAGE_PATH = os.path.join(MODEL_DIR, "xgb_log_damage.json")
@@ -87,6 +89,17 @@ class SimulationRequest(BaseModel):
     month: int
     event_year: int
     severity: float
+
+class ChatRequest(BaseModel):
+    messages: list
+    stream: bool = True
+
+class AskAIRequest(BaseModel):
+    query_text: str
+    historical_context: list
+    simulation_parameters: dict
+    math_predictions: dict
+    stream: bool = True
 
 COUNTRY_ALIASES = {
     "Turkey": "Türkiye",
@@ -302,6 +315,70 @@ async def simulate_calamity(payload: SimulationRequest):
             }
         }
         
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ---------------------------------------------------------
+# LLM Integration (OpenAI Compatible via Serverless GPU)
+# ---------------------------------------------------------
+client = openai.AsyncOpenAI(
+    base_url=CLOUD_LLM_ENDPOINT,
+    api_key="dummy" # Cloud endpoint doesn't require a key
+)
+
+@app.post("/api/v1/chat")
+async def chat_endpoint(payload: ChatRequest):
+    try:
+        response = await client.chat.completions.create(
+            model="calamity-ai",
+            messages=payload.messages,
+            stream=payload.stream
+        )
+        if payload.stream:
+            async def generate():
+                async for chunk in response:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        yield f"data: {json.dumps({'text': chunk.choices[0].delta.content})}\n\n"
+                yield "data: [DONE]\n\n"
+            return StreamingResponse(generate(), media_type="text/event-stream")
+        else:
+            return {"response": response.choices[0].message.content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/ask_ai")
+async def ask_ai_endpoint(payload: AskAIRequest):
+    try:
+        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments."
+        
+        sim_params_str = json.dumps(payload.simulation_parameters, indent=2)
+        math_preds_str = json.dumps(payload.math_predictions, indent=2)
+        
+        rag_data_str = ""
+        for i, ctx in enumerate(payload.historical_context):
+            rag_data_str += f"[Context {i+1}]\nDate: {ctx.get('date')}\nLocation: {ctx.get('country')}\nDisaster: {ctx.get('disaster_type')}\nNarrative: {ctx.get('text_preview')}\n\n"
+            
+        user_message = f"A simulation has been run for the following scenario. Using the Math Engine predictions and historical context provided, generate a structured, grounded impact assessment.\n\n**Simulation Parameters:**\n{sim_params_str}\n\n**Math Engine Predictions (XGBoost):**\n{math_preds_str}\n\n**Closest Historical Analogy (RAG Engine):**\n{rag_data_str.strip()}\n\n**Your Task:**\nWrite a 3-4 sentence impact assessment..."
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message}
+        ]
+        
+        response = await client.chat.completions.create(
+            model="calamity-ai",
+            messages=messages,
+            stream=payload.stream
+        )
+        if payload.stream:
+            async def generate():
+                async for chunk in response:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        yield f"data: {json.dumps({'text': chunk.choices[0].delta.content})}\n\n"
+                yield "data: [DONE]\n\n"
+            return StreamingResponse(generate(), media_type="text/event-stream")
+        else:
+            return {"response": response.choices[0].message.content}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
