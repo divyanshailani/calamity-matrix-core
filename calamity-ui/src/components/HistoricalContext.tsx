@@ -1,11 +1,12 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Calendar } from "lucide-react";
+import { MapPin, Calendar, Sparkles } from "lucide-react";
 
 interface HistoricalContextProps {
   results: any;
   country?: string;
   onSuggestionClick?: (updates: any) => void;
+  onAskAI?: () => void;
 }
 
 function scoreColor(s: number) {
@@ -14,14 +15,16 @@ function scoreColor(s: number) {
   return "var(--red)";
 }
 
-export default function HistoricalContext({ results, country, onSuggestionClick }: HistoricalContextProps) {
+export default function HistoricalContext({ results, country, onSuggestionClick, onAskAI }: HistoricalContextProps) {
   return (
-    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", backfaceVisibility: "hidden" }}>
 
       {/* Header */}
-      <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-        <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-1)" }}>Historical Context</p>
-        <span style={{ fontSize: "11px", color: "var(--text-2)", fontFamily: "var(--font-geist-mono)" }}>pgvector RAG</span>
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+        <div>
+          <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-1)" }}>Historical Context</p>
+          <span style={{ fontSize: "11px", color: "var(--text-2)", fontFamily: "var(--font-geist-mono)" }}>pgvector RAG</span>
+        </div>
       </div>
 
       {/* Content */}
@@ -99,13 +102,34 @@ export default function HistoricalContext({ results, country, onSuggestionClick 
                             {ctx.event_year ? ` · ${ctx.event_year}` : ""}
                           </p>
                         </div>
-                        <span style={{ fontSize: "10px", fontWeight: 600, fontFamily: "var(--font-geist-mono)", color, flexShrink: 0, marginLeft: "8px" }}>
-                          {pct}%
-                        </span>
                       </div>
                       <p style={{ fontSize: "11px", lineHeight: "1.6", color: "var(--text-2)" }}>
                         {ctx.text_preview || ctx.narrative_preview}
                       </p>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "12px" }}>
+                        <span style={{ fontSize: "10px", fontWeight: 600, fontFamily: "var(--font-geist-mono)", color, flexShrink: 0 }}>
+                          {pct}%
+                        </span>
+                        <button
+                          onClick={onAskAI}
+                          style={{
+                            padding: "4px 8px",
+                            background: "var(--bg)",
+                            border: "1px solid var(--border-hover)",
+                            borderRadius: "4px",
+                            color: "var(--text-1)",
+                            fontSize: "10px",
+                            fontWeight: 500,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            transition: "all 0.2s"
+                          }}
+                        >
+                          Ask AI <Sparkles size={10} />
+                        </button>
+                      </div>
                     </div>
                   );
                 })

@@ -6,8 +6,8 @@ import Header from "../../components/Header";
 import SimulationConfig from "../../components/SimulationConfig";
 import GeospatialMap from "../../components/GeospatialMap";
 import HistoricalContext from "../../components/HistoricalContext";
+import CalamityAiChat from "../../components/CalamityAiChat";
 import TelemetryHUD from "../../components/TelemetryHUD";
-import ColdStartTerminal from "../../components/ColdStartTerminal";
 import { countryCoords } from "../../lib/constants";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Zap, Database, Activity } from "lucide-react";
@@ -92,6 +92,7 @@ function OnboardingModal({ onDismiss }: { onDismiss: () => void }) {
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [isChatFlipped, setIsChatFlipped] = useState(false);
 
   const [formData, setFormData] = useState({
     country: "USA", disaster_type: "Earthquake", month: 1,
@@ -113,7 +114,7 @@ export default function Dashboard() {
   const addLog = (m: string) => setConsoleLogs(p => [...p.slice(-4), `[${new Date().toLocaleTimeString()}] ${m}`]);
 
   const run = async (data: typeof formData) => {
-    setIsLoading(true); setError(null); setResults(null);
+    setIsLoading(true); setError(null); setResults(null); setIsChatFlipped(false);
     addLog(`Running ${data.disaster_type} · ${data.country}...`);
     const coords = countryCoords[data.country];
     if (coords) setViewState({ latitude: coords.lat, longitude: coords.lng, zoom: coords.zoom });
@@ -154,15 +155,32 @@ export default function Dashboard() {
           {mounted && <GeospatialMap viewState={viewState} setViewState={setViewState} results={results} error={error} country={formData.country} />}
         </div>
 
-        {/* RAG & Synthesis */}
-        <div style={{ gridRow: "1", display: "flex", flexDirection: "column", minHeight: 0, gap: "12px" }}>
-          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-            <HistoricalContext results={results} country={formData.country}
-              onSuggestionClick={u => { const d = { ...formData, ...u }; setFormData(d); run(d); }} />
-          </div>
-          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-            <ColdStartTerminal formData={formData} results={results} />
-          </div>
+        {/* RAG & Synthesis Flip Container */}
+        <div style={{ gridRow: "1", display: "flex", flexDirection: "column", minHeight: 0, gap: "12px", perspective: "1000px" }}>
+          <motion.div
+            animate={{ rotateY: isChatFlipped ? 180 : 0 }}
+            transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+            style={{ flex: 1, height: "100%", transformStyle: "preserve-3d", position: "relative" }}
+          >
+            {/* Front: Historical Context */}
+            <div style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", position: "absolute", inset: 0, pointerEvents: isChatFlipped ? "none" : "auto" }}>
+              <HistoricalContext 
+                results={results} 
+                country={formData.country} 
+                onSuggestionClick={u => { const d = { ...formData, ...u }; setFormData(d); run(d); }}
+                onAskAI={() => setIsChatFlipped(true)}
+              />
+            </div>
+
+            {/* Back: Calamity AI Chat */}
+            <div style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", inset: 0, pointerEvents: isChatFlipped ? "auto" : "none" }}>
+              <CalamityAiChat 
+                formData={formData} 
+                results={results} 
+                onClose={() => setIsChatFlipped(false)} 
+              />
+            </div>
+          </motion.div>
         </div>
 
         {/* Telemetry — bottom row */}
