@@ -214,6 +214,13 @@ graph TD
 | **API** | FastAPI + Uvicorn |
 | **Database** | Supabase pgvector (External Pooler) |
 | **Domains** | `calamityai.tech`, `api.calamityai.tech` |
+| **LLM Inference** | Serverless Modal Endpoint (vLLM / A10G 24GB VRAM) |
+
+### Serverless Cold Starts (Why the AI might be "Sleeping")
+To make running a 24GB VRAM GPU cost-efficient, the AI synthesis layer is hosted on a **serverless** architecture. 
+- **Idle Timeout:** If the AI hasn't been queried for 5 minutes, the cloud GPU is spun down ("Sleeping") to save costs.
+- **Cold Booting:** When a user queries the AI after an idle period, a brand new A10G GPU container is provisioned, and the fine-tuned Qwen-3 model weights are instantly loaded into memory.
+- **Latency:** This "cold start" causes the initial response to take slightly longer. However, once the machine is "warm," subsequent chat interactions are near-instantaneous. We intentionally trade initial latency for massive cost savings compared to maintaining a permanently warm GPU.
 
 *For full infrastructure setup scripts, SSL automation, and CI/CD deployment instructions, see the [`deploy/README.md`](./deploy/README.md).*
 
