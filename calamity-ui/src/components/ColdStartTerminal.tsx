@@ -69,6 +69,9 @@ export default function ColdStartTerminal({ formData, results }: ColdStartTermin
           })
         });
 
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText} (Is the backend deployed?)`);
+        }
         if (!response.body) throw new Error("No readable stream available");
 
         const reader = response.body.getReader();
@@ -103,9 +106,9 @@ export default function ColdStartTerminal({ formData, results }: ColdStartTermin
             }
           }
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Stream connection failed:", err);
-        setStreamData(prev => prev + "\n\n[!] CONNECTION TO NEURAL ORCHESTRATOR LOST.");
+        setStreamData(prev => prev + `\n\n[!] SYNTHESIS FAILED: ${err.message || "Connection to orchestrator lost."}`);
       } finally {
         setIsSimulating(false);
       }
