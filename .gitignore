@@ -41,3 +41,4 @@ logs/
 # Cloud Scripts (Hidden from GitHub)
 scripts/modal_inference.py
 scripts/modal_train.py
+.agents/
