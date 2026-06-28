@@ -6,7 +6,8 @@
 
 > Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, and semantic RAG over 2,281 historical disaster narratives via pgvector.
 
-**Stack:** Python · PostgreSQL (Supabase) + pgvector · XGBoost · sentence-transformers (BGE-Large) · Vercel (Frontend) · DigitalOcean (Backend)
+**Stack:** Python · PostgreSQL (Supabase) + pgvector · XGBoost · Vercel (Frontend) · DigitalOcean (Backend)
+**AI/ML Hardware:** BAAI/bge-large-en-v1.5 · Qwen-3 8B LoRA (Fine-tuned on L40S, 32GB RAM, 8-Core CPU) · Inference (Serverless A10G, 24GB VRAM)
 
 ---
 
