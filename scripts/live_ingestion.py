@@ -22,7 +22,7 @@ def fetch_existing_ids(conn):
     print("[*] Engaging Pre-Fetch Shield (Querying existing DB records)...")
     cur = conn.cursor()
     # Fetching slightly more than 7 days to be safe
-    query = "SELECT unique_id FROM disaster_narratives WHERE event_year >= %s AND unique_id IS NOT NULL"
+    query = "SELECT COALESCE(unique_id, id::text) FROM disaster_narratives WHERE event_year >= %s"
     cur.execute(query, (datetime.now().year - 1,))
     existing_ids = {row[0] for row in cur.fetchall()}
     cur.close()
