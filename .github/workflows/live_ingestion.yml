@@ -17,6 +17,6 @@ jobs:
       env:
         INGESTION_SECRET_KEY: ${{ secrets.INGESTION_SECRET_KEY }}
       run: |
-        curl -X POST http://143.244.134.76:8000/api/v1/trigger_ingestion \
+        curl -k -X POST https://143.244.134.76/api/v1/trigger_ingestion \
              -H "X-Ingestion-Secret: $INGESTION_SECRET_KEY" \
              -w "\nHTTP Status: %{http_code}\n"
