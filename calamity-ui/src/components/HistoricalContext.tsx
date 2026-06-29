@@ -6,7 +6,8 @@ interface HistoricalContextProps {
   results: any;
   country?: string;
   onSuggestionClick?: (updates: any) => void;
-  onAskAI?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onAskAI?: (ctx?: any) => void;
 }
 
 function scoreColor(s: number) {
