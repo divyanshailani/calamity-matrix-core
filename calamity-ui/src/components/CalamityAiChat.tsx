@@ -5,6 +5,8 @@ interface CalamityAiChatProps {
   formData: any;
   results: any;
   onClose: () => void;
+  isActive: boolean;
+  activeContext?: any;
 }
 
 interface Message {
@@ -14,7 +16,7 @@ interface Message {
   isStreaming?: boolean;
 }
 
-export default function CalamityAiChat({ formData, results, onClose }: CalamityAiChatProps) {
+export default function CalamityAiChat({ formData, results, onClose, isActive, activeContext }: CalamityAiChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSimulating, setIsSimulating] = useState(false);
@@ -64,7 +66,7 @@ export default function CalamityAiChat({ formData, results, onClose }: CalamityA
 
       const payloadBody = isInitial ? {
           query_text: queryText || formData.query_text || "",
-          historical_context: results.historical_context || [],
+          historical_context: activeContext ? [activeContext] : (results.historical_context || []),
           simulation_parameters: {
             country: formData.country,
             disaster_type: formData.disaster_type,
@@ -175,13 +177,16 @@ export default function CalamityAiChat({ formData, results, onClose }: CalamityA
     });
   };
 
-  // Kick off an initial synthesis when the component mounts if it's empty
+  // Kick off an initial synthesis when the component becomes active
   useEffect(() => {
-    if (messages.length === 0) {
-      fetchStream("Provide a tactical synthesis based on the historical context.", true);
+    if (isActive && messages.length === 0) {
+      const query = activeContext 
+        ? `Provide a tactical synthesis focusing specifically on this historical context: ${activeContext.country} (${activeContext.event_year}) - ${activeContext.disaster_type}.` 
+        : "Provide a tactical synthesis based on the historical context.";
+      fetchStream(query, true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isActive]);
 
   return (
     <div className="flex flex-col h-full w-full bg-[#09090b] text-zinc-100 overflow-hidden border border-zinc-800 rounded-lg">

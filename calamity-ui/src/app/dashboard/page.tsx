@@ -93,6 +93,7 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isChatFlipped, setIsChatFlipped] = useState(false);
+  const [activeChatContext, setActiveChatContext] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     country: "USA", disaster_type: "Earthquake", month: 1,
@@ -168,15 +169,21 @@ export default function Dashboard() {
                 results={results} 
                 country={formData.country} 
                 onSuggestionClick={u => { const d = { ...formData, ...u }; setFormData(d); run(d); }}
-                onAskAI={() => setIsChatFlipped(true)}
+                onAskAI={(ctx?: any) => { 
+                  setActiveChatContext(ctx || null);
+                  setIsChatFlipped(true); 
+                }}
               />
             </div>
 
             {/* Back: Calamity AI Chat */}
             <div style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", inset: 0, pointerEvents: isChatFlipped ? "auto" : "none" }}>
               <CalamityAiChat 
+                key={activeChatContext ? activeChatContext.date : "global"}
                 formData={formData} 
                 results={results} 
+                isActive={isChatFlipped}
+                activeContext={activeChatContext}
                 onClose={() => setIsChatFlipped(false)} 
               />
             </div>

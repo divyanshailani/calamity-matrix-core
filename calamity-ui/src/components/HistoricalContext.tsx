@@ -20,11 +20,30 @@ export default function HistoricalContext({ results, country, onSuggestionClick,
     <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", backfaceVisibility: "hidden" }}>
 
       {/* Header */}
-      <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
         <div>
           <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-1)" }}>Historical Context</p>
           <span style={{ fontSize: "11px", color: "var(--text-2)", fontFamily: "var(--font-geist-mono)" }}>pgvector RAG</span>
         </div>
+        <button
+          onClick={() => onAskAI?.()}
+          style={{
+            padding: "6px 12px",
+            background: "var(--accent)",
+            border: "1px solid var(--border-hover)",
+            borderRadius: "6px",
+            color: "white",
+            fontSize: "12px",
+            fontWeight: 500,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            transition: "all 0.2s"
+          }}
+        >
+          Ask AI <Sparkles size={12} />
+        </button>
       </div>
 
       {/* Content */}
@@ -111,7 +130,7 @@ export default function HistoricalContext({ results, country, onSuggestionClick,
                           {pct}%
                         </span>
                         <button
-                          onClick={onAskAI}
+                          onClick={() => onAskAI?.(ctx)}
                           style={{
                             padding: "4px 8px",
                             background: "var(--bg)",
