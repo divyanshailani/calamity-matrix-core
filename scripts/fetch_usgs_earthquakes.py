@@ -29,8 +29,12 @@ def fetch_month_chunk(year, month):
     filename = f"usgs_mag5_{year}_{month:02d}.csv"
     filepath = os.path.join(OUTPUT_DIR, filename)
     
-    # Checkpointing: Skip if already downloaded
-    if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    is_current_month = (year == current_year and month == current_month)
+    
+    # Checkpointing: Skip if already downloaded, UNLESS it's the current month (to fetch live updates)
+    if not is_current_month and os.path.exists(filepath) and os.path.getsize(filepath) > 0:
         print(f"[*] Skipping {start_date} to {end_date} (Already downloaded: {filename})")
         return True
 

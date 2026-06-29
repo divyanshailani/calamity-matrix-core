@@ -12,3 +12,4 @@ pydantic==2.10.0
 openai==1.55.0
 optuna==4.1.0
 slowapi==0.1.9
+pycountry==24.6.1
