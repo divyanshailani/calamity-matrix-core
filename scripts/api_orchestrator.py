@@ -113,7 +113,7 @@ COUNTRY_ALIASES = {
 }
 
 @app.post("/api/v1/simulate_calamity")
-async def simulate_calamity(payload: SimulationRequest):
+def simulate_calamity(payload: SimulationRequest):
     payload.country = COUNTRY_ALIASES.get(payload.country, payload.country)
     try:
         # ---------------------------------------------------------
@@ -184,12 +184,36 @@ async def simulate_calamity(payload: SimulationRequest):
         master_semantic_query = f"{payload.disaster_type} in {payload.country} (Year: {payload.event_year}). Additional Context: {payload.query_text}"
         full_query = instruction + master_semantic_query
         
+        # Robust Retry Mechanism for Hugging Face API
         hf_api_url = "https://router.huggingface.co/hf-inference/models/BAAI/bge-large-en-v1.5"
         headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
-        resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}})
         
-        if resp.status_code != 200:
-            raise HTTPException(status_code=500, detail=f"Hugging Face API Error: {resp.text}")
+        import time
+        max_retries = 3
+        resp = None
+        for attempt in range(max_retries):
+            try:
+                print(f"[DEBUG] Hitting HF API (Attempt {attempt+1}/{max_retries})...")
+                # Increase timeout progressively: 10s, 15s, 20s
+                resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=10 + (attempt * 5))
+                if resp.status_code == 200:
+                    break
+                elif resp.status_code == 503:
+                    print(f"[!] HF API 503 Model Loading (Attempt {attempt+1}). Waiting...")
+                    time.sleep(2)
+                else:
+                    print(f"[!] HF API Error {resp.status_code}: {resp.text}")
+                    break # Don't retry on 400 Bad Request etc.
+            except requests.exceptions.Timeout:
+                print(f"[!] HF API Timeout on attempt {attempt+1}.")
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+            except Exception as e:
+                print(f"[!] HF API Request Exception: {e}")
+                break
+                
+        if not resp or resp.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Hugging Face API Error: Failed after {max_retries} attempts.")
             
         embed_result = resp.json()
         # Ensure we have a flat list of floats
