@@ -125,7 +125,7 @@ def health_check():
 
 # Pydantic Payload
 class SimulationRequest(BaseModel):
-    query_text: str
+    query_text: str = Field(..., min_length=1, max_length=4000)
     country: str
     disaster_type: str
     month: int
@@ -133,11 +133,11 @@ class SimulationRequest(BaseModel):
     severity: float = Field(..., ge=0.0, lt=1000000.0)
 
 class ChatRequest(BaseModel):
-    query_text: str
+    query_text: str = Field(..., min_length=1, max_length=4000)
     stream: bool = True
 
 class AskAIRequest(BaseModel):
-    query_text: str
+    query_text: str = Field(..., min_length=1, max_length=4000)
     historical_context: list
     simulation_parameters: dict
     math_predictions: dict
