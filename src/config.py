@@ -27,6 +27,7 @@ RELIEFWEB_APPNAME  = os.getenv("RELIEFWEB_APPNAME", "")
 MODAL_TOKEN_ID     = os.getenv("MODAL_TOKEN_ID", "")
 MODAL_TOKEN_SECRET = os.getenv("MODAL_TOKEN_SECRET", "")
 CLOUD_LLM_ENDPOINT = os.getenv("CLOUD_LLM_ENDPOINT", "")
+CLOUD_LLM_API_KEY = os.getenv("CLOUD_LLM_API_KEY", "dummy")
 INGESTION_SECRET_KEY = _require("INGESTION_SECRET_KEY")
 
 BASE_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
