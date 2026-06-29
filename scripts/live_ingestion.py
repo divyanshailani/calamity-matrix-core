@@ -225,12 +225,15 @@ def fetch_nasa_eonet():
         event_year = int(date_str[:4]) if date_str else datetime.now().year
         
         coords = latest_geom.get("coordinates", [])
-        if isinstance(coords, list) and len(coords) >= 2:
-            if isinstance(coords[0], list): # Polygon
-                lng, lat = coords[0][0][0], coords[0][0][1]
-            else: # Point
-                lng, lat = coords[0], coords[1]
-        else:
+        try:
+            if isinstance(coords, list) and len(coords) >= 2:
+                if isinstance(coords[0], list): # Polygon
+                    lng, lat = coords[0][0][0], coords[0][0][1]
+                else: # Point
+                    lng, lat = coords[0], coords[1]
+            else:
+                lat, lng = None, None
+        except (IndexError, TypeError):
             lat, lng = None, None
             
         narrative_text = f"A {category_name} event titled '{title}' was recorded on {date_str}."
