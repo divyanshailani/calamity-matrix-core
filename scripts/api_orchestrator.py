@@ -39,7 +39,7 @@ logger.addHandler(handler)
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
-from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT, INGESTION_SECRET_KEY
+from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT, INGESTION_SECRET_KEY, CLOUD_LLM_API_KEY
 import scripts.live_ingestion as live_ingestion
 
 MODEL_DIR = os.path.join(SCRIPT_DIR, "..", "models")
@@ -424,7 +424,7 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
 # ---------------------------------------------------------
 client = openai.AsyncOpenAI(
     base_url=CLOUD_LLM_ENDPOINT,
-    api_key="dummy" # Cloud endpoint doesn't require a key
+    api_key=CLOUD_LLM_API_KEY
 )
 
 @app.post("/api/v1/chat")
