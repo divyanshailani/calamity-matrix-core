@@ -45,7 +45,8 @@ def build_db():
             event_year INT,
             lat FLOAT,
             lng FLOAT,
-            embedding VECTOR(1024)
+            embedding VECTOR(1024),
+            unique_id VARCHAR(255) UNIQUE
         );
     """)
     conn.commit()
