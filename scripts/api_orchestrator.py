@@ -60,6 +60,19 @@ async def lifespan(app: FastAPI):
     else:
         print("[*] Establishing local pgvector connection pool on port 5433...")
         models['db_pool'] = pool.SimpleConnectionPool(1, 10, **DB_CONFIG)
+        
+    print("[*] Validating Database Connection...")
+    conn = models['db_pool'].getconn()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT 1;")
+        cur.close()
+        print("[+] Database connection pool validated successfully.")
+    except Exception as e:
+        print(f"[-] Database connection failed during startup: {e}")
+        raise e
+    finally:
+        models['db_pool'].putconn(conn)
     
     print("[+] Orchestrator successfully primed and listening on port 8000.\n")
     
