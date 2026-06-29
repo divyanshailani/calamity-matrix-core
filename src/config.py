@@ -30,6 +30,14 @@ CLOUD_LLM_ENDPOINT = os.getenv("CLOUD_LLM_ENDPOINT", "")
 CLOUD_LLM_API_KEY = os.getenv("CLOUD_LLM_API_KEY", "dummy")
 INGESTION_SECRET_KEY = _require("INGESTION_SECRET_KEY")
 
+MIN_EVENT_YEAR = int(os.getenv("MIN_EVENT_YEAR", "2000"))
+
+TIME_DECAY_PENALTY = {
+    "earthquake": float(os.getenv("DECAY_EARTHQUAKE", "0.002")),
+    "flood": float(os.getenv("DECAY_FLOOD", "0.008")),
+    "default": float(os.getenv("DECAY_DEFAULT", "0.005"))
+}
+
 BASE_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR      = os.path.join(BASE_DIR, "data")
 RAW_DIR       = os.path.join(DATA_DIR, "raw")

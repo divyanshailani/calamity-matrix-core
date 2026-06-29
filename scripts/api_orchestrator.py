@@ -39,7 +39,7 @@ logger.addHandler(handler)
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
-from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT, INGESTION_SECRET_KEY, CLOUD_LLM_API_KEY
+from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT, INGESTION_SECRET_KEY, CLOUD_LLM_API_KEY, MIN_EVENT_YEAR, TIME_DECAY_PENALTY
 import scripts.live_ingestion as live_ingestion
 
 MODEL_DIR = os.path.join(SCRIPT_DIR, "..", "models")
@@ -289,6 +289,7 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         # Map EM-DAT taxonomy to ReliefWeb taxonomy for RAG matching
         rw_types = [payload.disaster_type]
         dt_lower = payload.disaster_type.lower()
+        decay_factor = TIME_DECAY_PENALTY.get(dt_lower, TIME_DECAY_PENALTY["default"])
         if dt_lower == "extreme temperature":
             rw_types = ["Heat Wave", "Cold Wave", "Extreme temperature"]
         elif dt_lower == "storm":
@@ -306,29 +307,29 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         try:
             cur = conn.cursor()
             
-            # Pass 1: Strict match (Year, Country, Disaster Type) + 2000s Quarantine
+            # Pass 1: Strict match (Year, Country, Disaster Type) + Quarantine
             sql_query_pass1 = """
                 SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                       (1 - (embedding <=> %s::vector)) - (0.005 * ABS(event_year - %s)) AS hybrid_similarity
+                       (1 - (embedding <=> %s::vector)) - (%s * ABS(event_year - %s)) AS hybrid_similarity
                 FROM disaster_narratives
-                WHERE event_year = %s AND disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= 2000
+                WHERE event_year = %s AND disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= %s
                 ORDER BY hybrid_similarity DESC
                 LIMIT 3;
             """
-            cur.execute(sql_query_pass1, (query_embedding, payload.event_year, payload.event_year, rw_types, payload.country))
+            cur.execute(sql_query_pass1, (query_embedding, decay_factor, payload.event_year, payload.event_year, rw_types, payload.country, MIN_EVENT_YEAR))
             results = cur.fetchall()
             
-            # Pass 2: Relax Year completely, strictly enforce Country and Disaster Type + Time-Decay + 2000s Quarantine
+            # Pass 2: Relax Year completely, strictly enforce Country and Disaster Type + Time-Decay + Quarantine
             if len(results) < 3:
                 sql_query_pass2 = """
                     SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                           (1 - (embedding <=> %s::vector)) - (0.005 * ABS(event_year - %s)) AS hybrid_similarity
+                           (1 - (embedding <=> %s::vector)) - (%s * ABS(event_year - %s)) AS hybrid_similarity
                     FROM disaster_narratives
-                    WHERE disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= 2000
+                    WHERE disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= %s
                     ORDER BY hybrid_similarity DESC
                     LIMIT 3;
                 """
-                cur.execute(sql_query_pass2, (query_embedding, payload.event_year, rw_types, payload.country))
+                cur.execute(sql_query_pass2, (query_embedding, decay_factor, payload.event_year, rw_types, payload.country, MIN_EVENT_YEAR))
                 results = cur.fetchall()
                 
             # Pass 3: Recommendation Engine (If Pass 2 yields 0 results)
@@ -363,7 +364,7 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             total_cosine_sim += sim_score
             event_year = row[4]
             
-            penalty = 0.005 * abs(event_year - payload.event_year)
+            penalty = decay_factor * abs(event_year - payload.event_year)
             raw_score = sim_score + penalty
             
             logger.info(f"Rank {idx+1}: {row[2]} in {row[1]} ({event_year})")
