@@ -428,7 +428,8 @@ client = openai.AsyncOpenAI(
 )
 
 @app.post("/api/v1/chat")
-async def chat_endpoint(payload: ChatRequest):
+@limiter.limit("10/minute")
+async def chat_endpoint(request: Request, payload: ChatRequest):
     try:
         system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments."
         
@@ -455,7 +456,8 @@ async def chat_endpoint(payload: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/v1/ask_ai")
-async def ask_ai_endpoint(payload: AskAIRequest):
+@limiter.limit("10/minute")
+async def ask_ai_endpoint(request: Request, payload: AskAIRequest):
     try:
         system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments."
         
