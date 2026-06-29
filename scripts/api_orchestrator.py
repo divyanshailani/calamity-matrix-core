@@ -21,6 +21,7 @@ import logging
 import pycountry
 import contextvars
 import uuid
+import hmac
 
 request_id_ctx = contextvars.ContextVar("request_id", default=None)
 
@@ -506,7 +507,7 @@ async def ask_ai_endpoint(request: Request, payload: AskAIRequest):
 @app.post("/api/v1/trigger_ingestion")
 async def trigger_ingestion(background_tasks: BackgroundTasks, x_ingestion_secret: str = Header(None)):
     request_id_ctx.set(str(uuid.uuid4()))
-    if not x_ingestion_secret or x_ingestion_secret != INGESTION_SECRET_KEY:
+    if not x_ingestion_secret or not hmac.compare_digest(x_ingestion_secret, INGESTION_SECRET_KEY):
         raise HTTPException(status_code=401, detail="Unauthorized Ingestion Trigger")
         
     def run_crawler():
