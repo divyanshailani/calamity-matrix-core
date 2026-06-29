@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project source
 COPY src/ ./src/
-COPY scripts/api_orchestrator.py ./scripts/api_orchestrator.py
+COPY scripts/ ./scripts/
 COPY models/ ./models/
 
 # Expose FastAPI port
