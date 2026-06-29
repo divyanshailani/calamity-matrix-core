@@ -226,7 +226,7 @@ async def simulate_calamity(payload: SimulationRequest):
             # Pass 1: Strict match (Year, Country, Disaster Type) + 2000s Quarantine
             sql_query_pass1 = """
                 SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                       (1 - (embedding <=> %s::vector)) - (0.05 * ABS(event_year - %s)) AS hybrid_similarity
+                       (1 - (embedding <=> %s::vector)) - (0.005 * ABS(event_year - %s)) AS hybrid_similarity
                 FROM disaster_narratives
                 WHERE event_year = %s AND disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= 2000
                 ORDER BY hybrid_similarity DESC
@@ -239,7 +239,7 @@ async def simulate_calamity(payload: SimulationRequest):
             if len(results) < 3:
                 sql_query_pass2 = """
                     SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                           (1 - (embedding <=> %s::vector)) - (0.05 * ABS(event_year - %s)) AS hybrid_similarity
+                           (1 - (embedding <=> %s::vector)) - (0.005 * ABS(event_year - %s)) AS hybrid_similarity
                     FROM disaster_narratives
                     WHERE disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= 2000
                     ORDER BY hybrid_similarity DESC
@@ -271,9 +271,24 @@ async def simulate_calamity(payload: SimulationRequest):
         # Format Context
         historical_context = []
         total_cosine_sim = 0.0
-        for row in results:
+        
+        print(f"\n[RAG] Top 3 Semantic Search Results for {payload.disaster_type} in {payload.country} (Target Year: {payload.event_year})")
+        print("-" * 70)
+        
+        for idx, row in enumerate(results):
             sim_score = float(row[7])
             total_cosine_sim += sim_score
+            event_year = row[4]
+            
+            penalty = 0.005 * abs(event_year - payload.event_year)
+            raw_score = sim_score + penalty
+            
+            print(f"Rank {idx+1}: {row[2]} in {row[1]} ({event_year})")
+            print(f"  -> Raw Vector Score: {raw_score:.4f}")
+            print(f"  -> Time-Decay Penalty: -{penalty:.4f} ({abs(event_year - payload.event_year)} years diff)")
+            print(f"  -> Final Hybrid Score: {sim_score:.4f}")
+            print("-" * 70)
+            
             text_preview = row[3][:300] + "..." if len(row[3]) > 300 else row[3]
             historical_context.append({
                 "date": str(row[0]),
