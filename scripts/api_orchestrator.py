@@ -226,6 +226,8 @@ def simulate_calamity(payload: SimulationRequest):
         norm = np.linalg.norm(vec)
         if norm > 0:
             vec = vec / norm
+        else:
+            raise HTTPException(status_code=500, detail="Hugging Face API returned an invalid zero-vector.")
         query_embedding = vec.tolist()
 
         # Map EM-DAT taxonomy to ReliefWeb taxonomy for RAG matching
