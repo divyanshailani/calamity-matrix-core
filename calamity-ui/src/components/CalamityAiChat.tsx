@@ -180,10 +180,21 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
   // Kick off an initial synthesis when the component becomes active
   useEffect(() => {
     if (isActive && messages.length === 0) {
-      const query = activeContext 
-        ? `Provide a tactical synthesis focusing specifically on this historical context: ${activeContext.country} (${activeContext.event_year}) - ${activeContext.disaster_type}.` 
-        : (results ? "Provide a tactical synthesis based on the historical context." : "Hello! I am Calamity AI. How can I assist you with disaster intelligence today?");
-      fetchStream(query, !!results && !activeContext ? true : (!!activeContext));
+      if (activeContext || results) {
+        const query = activeContext 
+          ? `Provide a tactical synthesis focusing specifically on this historical context: ${activeContext.country} (${activeContext.event_year}) - ${activeContext.disaster_type}.` 
+          : "Provide a tactical synthesis based on the historical context.";
+        fetchStream(query, !!results && !activeContext ? true : (!!activeContext));
+      } else {
+        // Just show the welcome message locally instead of sending it to the AI
+        setMessages([
+          {
+            id: Date.now().toString(),
+            role: "ai",
+            content: "Hello! I am Calamity AI. How can I assist you with disaster intelligence today?"
+          }
+        ]);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
