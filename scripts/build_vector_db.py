@@ -81,17 +81,24 @@ def build_db():
         # Prepare records for execute_values
         records = []
         for i, row in enumerate(batch_df.itertuples()):
+            date_str = str(row.date)
+            try:
+                event_year = int(date_str[:4])
+            except ValueError:
+                event_year = None
+                
             records.append((
-                str(row.date),
+                date_str,
                 str(row.country),
                 str(row.disaster_type),
                 str(row.narrative_text),
+                event_year,
                 embeddings[i].tolist()
             ))
             
         # Batch insert
         insert_query = """
-            INSERT INTO disaster_narratives (date, country, disaster_type, narrative_text, embedding)
+            INSERT INTO disaster_narratives (date, country, disaster_type, narrative_text, event_year, embedding)
             VALUES %s
         """
         execute_values(cur, insert_query, records)

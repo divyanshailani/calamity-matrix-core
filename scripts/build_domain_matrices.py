@@ -60,9 +60,27 @@ def build_atmospheric_impact_matrix():
     df_emdat = df_emdat.dropna(subset=['year', 'month'])
     df_nasa = df_nasa.dropna(subset=['year', 'month'])
     
-    # Spatial Temporal Join on Year + Month
-    # Note: This is a loose heuristic merge. Multiple events in the same month will cross-join.
-    # To prevent explosion, we aggregate NASA events by year/month/category first.
+    # Map EM-DAT disaster type to NASA Category to prevent Cartesian explosion
+    def map_to_nasa_category(disaster_type):
+        dt_lower = str(disaster_type).lower()
+        if 'wildfire' in dt_lower or 'fire' in dt_lower:
+            return 'Wildfires'
+        elif 'storm' in dt_lower or 'cyclone' in dt_lower or 'hurricane' in dt_lower or 'typhoon' in dt_lower:
+            return 'Severe Storms'
+        elif 'volcan' in dt_lower:
+            return 'Volcanoes'
+        elif 'earthquake' in dt_lower:
+            return 'Earthquakes'
+        elif 'flood' in dt_lower:
+            return 'Floods'
+        elif 'extreme temperature' in dt_lower:
+            return 'Extreme temperature' # NASA may not have this, but helps bound the join
+        return 'Unknown'
+        
+    df_emdat['category'] = df_emdat['Disaster Type'].apply(map_to_nasa_category)
+    
+    # Spatial Temporal Join on Year + Month + Category
+    # Note: We aggregate NASA events by year/month/category first to ensure 1:1 or N:1 clean joins.
     
     nasa_agg = df_nasa.groupby(['year', 'month', 'category']).agg(
         nasa_events_count=('event_id', 'count'),
@@ -70,7 +88,7 @@ def build_atmospheric_impact_matrix():
         avg_lon=('longitude', 'mean')
     ).reset_index()
     
-    df_impact = pd.merge(df_emdat, nasa_agg, on=['year', 'month'], how='left')
+    df_impact = pd.merge(df_emdat, nasa_agg, on=['year', 'month', 'category'], how='left')
     
     # Output
     out_path = os.path.join(PROCESSED_DIR, "atmospheric_impact_matrix.csv")

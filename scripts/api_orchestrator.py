@@ -16,6 +16,24 @@ import openai
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+import logging
+import pycountry
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "time": self.formatTime(record, self.datefmt),
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "name": record.name
+        }
+        return json.dumps(log_record)
+
+logger = logging.getLogger("calamity-orchestrator")
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JSONFormatter())
+logger.addHandler(handler)
 
 import sys
 
@@ -36,53 +54,56 @@ models = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("\n[*] Initializing Calamity AI Neuro-Symbolic Orchestrator...")
+    logger.info("\n[*] Initializing Calamity AI Neuro-Symbolic Orchestrator...")
     
     # 1. Load Universal XGBoost Predictors (Fallback)
     import json
-    print("[*] Loading Universal XGBoost Predictors (v2 Fallback)...")
-    models['universal_affected'] = xgb.XGBRegressor()
-    models['universal_affected'].load_model(XGB_AFFECTED_PATH)
-    with open(XGB_AFFECTED_PATH.replace('.json', '_meta.json'), 'r') as f:
-        models['universal_affected_meta'] = json.load(f)
-    
-    models['universal_damage'] = xgb.XGBRegressor()
-    models['universal_damage'].load_model(XGB_DAMAGE_PATH)
-    with open(XGB_DAMAGE_PATH.replace('.json', '_meta.json'), 'r') as f:
-        models['universal_damage_meta'] = json.load(f)
+    logger.info("[*] Loading Universal XGBoost Predictors (v2 Fallback)...")
+    if not os.path.exists(XGB_AFFECTED_PATH) or not os.path.exists(XGB_DAMAGE_PATH):
+        logger.warning(f"[!] Critical Warning: Universal fallback models not found at {XGB_AFFECTED_PATH} or {XGB_DAMAGE_PATH}. Math engine will fail if queried.")
+    else:
+        models['universal_affected'] = xgb.XGBRegressor()
+        models['universal_affected'].load_model(XGB_AFFECTED_PATH)
+        with open(XGB_AFFECTED_PATH.replace('.json', '_meta.json'), 'r') as f:
+            models['universal_affected_meta'] = json.load(f)
+        
+        models['universal_damage'] = xgb.XGBRegressor()
+        models['universal_damage'].load_model(XGB_DAMAGE_PATH)
+        with open(XGB_DAMAGE_PATH.replace('.json', '_meta.json'), 'r') as f:
+            models['universal_damage_meta'] = json.load(f)
     
     # 2. Setup Embedding Bridge
-    print("[*] Connecting to Neural Bridge (Hugging Face Inference API)...")
+    logger.info("[*] Connecting to Neural Bridge (Hugging Face Inference API)...")
     if not HF_TOKEN:
-        print("[!] Warning: HF_TOKEN is not set. Inference API may rate limit heavily.")
+        logger.warning(" HF_TOKEN is not set. Inference API may rate limit heavily.")
     
     # 3. Initialize Postgres Connection Pool
     if DATABASE_URL:
-        print("[*] Establishing cloud pgvector connection pool to Supabase...")
+        logger.info("[*] Establishing cloud pgvector connection pool to Supabase...")
         models['db_pool'] = pool.SimpleConnectionPool(1, 10, dsn=DATABASE_URL)
     else:
-        print("[*] Establishing local pgvector connection pool on port 5433...")
+        logger.info("[*] Establishing local pgvector connection pool on port 5433...")
         models['db_pool'] = pool.SimpleConnectionPool(1, 10, **DB_CONFIG)
         
-    print("[*] Validating Database Connection...")
+    logger.info("[*] Validating Database Connection...")
     conn = models['db_pool'].getconn()
     try:
         cur = conn.cursor()
         cur.execute("SELECT 1;")
         cur.close()
-        print("[+] Database connection pool validated successfully.")
+        logger.info("[+] Database connection pool validated successfully.")
     except Exception as e:
-        print(f"[-] Database connection failed during startup: {e}")
+        logger.error(f"[-] Database connection failed during startup: {e}")
         raise e
     finally:
         models['db_pool'].putconn(conn)
     
-    print("[+] Orchestrator successfully primed and listening on port 8000.\n")
+    logger.info("[+] Orchestrator successfully primed and listening on port 8000.\n")
     
     yield
     
     # Shutdown gracefully
-    print("\n[*] Shutting down Orchestrator...")
+    logger.info("\n[*] Shutting down Orchestrator...")
     if 'db_pool' in models and models['db_pool']:
         models['db_pool'].closeall()
 
@@ -131,10 +152,24 @@ COUNTRY_ALIASES = {
     "Vietnam": "Viet Nam"
 }
 
+def resolve_country(name: str):
+    if name in COUNTRY_ALIASES:
+        return COUNTRY_ALIASES[name]
+    try:
+        return pycountry.countries.lookup(name).name
+    except LookupError:
+        try:
+            matches = pycountry.countries.search_fuzzy(name)
+            if matches:
+                return matches[0].name
+        except Exception as e:
+            logger.warning(f"Fuzzy search failed for country '{name}': {e}")
+    return name
+
 @app.post("/api/v1/simulate_calamity")
 @limiter.limit("5/minute")
 def simulate_calamity(request: Request, payload: SimulationRequest):
-    payload.country = COUNTRY_ALIASES.get(payload.country, payload.country)
+    payload.country = resolve_country(payload.country)
     payload.country = payload.country.replace('%', '').replace('_', '')
     try:
         # ---------------------------------------------------------
@@ -188,6 +223,8 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             pred_log_damage = model_damage.predict(input_data)[0]
         else:
             # Fallback to Universal v2 Model for rare physics
+            if 'universal_affected' not in models:
+                raise HTTPException(status_code=500, detail="Universal fallback models are missing from the server. Check logs.")
             pred_log_affected = models['universal_affected'].predict(input_data)[0]
             pred_log_damage = models['universal_damage'].predict(input_data)[0]
             meta_affected = models['universal_affected_meta']
@@ -214,23 +251,23 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         resp = None
         for attempt in range(max_retries):
             try:
-                print(f"[DEBUG] Hitting HF API (Attempt {attempt+1}/{max_retries})...")
+                logger.info(f"[DEBUG] Hitting HF API (Attempt {attempt+1}/{max_retries})...")
                 # Increase timeout progressively: 10s, 15s, 20s
                 resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=10 + (attempt * 5))
                 if resp.status_code == 200:
                     break
                 elif resp.status_code == 503:
-                    print(f"[!] HF API 503 Model Loading (Attempt {attempt+1}). Waiting...")
+                    logger.warning(f"[!] HF API 503 Model Loading (Attempt {attempt+1}). Waiting...")
                     time.sleep(2)
                 else:
-                    print(f"[!] HF API Error {resp.status_code}: {resp.text}")
+                    logger.warning(f"[!] HF API Error {resp.status_code}: {resp.text}")
                     break # Don't retry on 400 Bad Request etc.
             except requests.exceptions.Timeout:
-                print(f"[!] HF API Timeout on attempt {attempt+1}.")
+                logger.warning(f"[!] HF API Timeout on attempt {attempt+1}.")
                 if attempt < max_retries - 1:
                     time.sleep(1)
             except Exception as e:
-                print(f"[!] HF API Request Exception: {e}")
+                logger.warning(f"[!] HF API Request Exception: {e}")
                 break
                 
         if not resp or resp.status_code != 200:
@@ -319,7 +356,7 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         historical_context = []
         total_cosine_sim = 0.0
         
-        print(f"\n[RAG] Top 3 Semantic Search Results for {payload.disaster_type} in {payload.country} (Target Year: {payload.event_year})")
+        logger.info(f"\n[RAG] Top 3 Semantic Search Results for {payload.disaster_type} in {payload.country} (Target Year: {payload.event_year})")
         print("-" * 70)
         
         for idx, row in enumerate(results):
@@ -330,10 +367,10 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             penalty = 0.005 * abs(event_year - payload.event_year)
             raw_score = sim_score + penalty
             
-            print(f"Rank {idx+1}: {row[2]} in {row[1]} ({event_year})")
-            print(f"  -> Raw Vector Score: {raw_score:.4f}")
-            print(f"  -> Time-Decay Penalty: -{penalty:.4f} ({abs(event_year - payload.event_year)} years diff)")
-            print(f"  -> Final Hybrid Score: {sim_score:.4f}")
+            logger.info(f"Rank {idx+1}: {row[2]} in {row[1]} ({event_year})")
+            logger.info(f"  -> Raw Vector Score: {raw_score:.4f}")
+            logger.info(f"  -> Time-Decay Penalty: -{penalty:.4f} ({abs(event_year - payload.event_year)} years diff)")
+            logger.info(f"  -> Final Hybrid Score: {sim_score:.4f}")
             print("-" * 70)
             
             text_preview = row[3][:300] + "..." if len(row[3]) > 300 else row[3]
@@ -461,10 +498,10 @@ async def trigger_ingestion(background_tasks: BackgroundTasks, x_ingestion_secre
         
     def run_crawler():
         try:
-            print("[*] Background Ingestion Triggered!")
+            logger.info("[*] Background Ingestion Triggered!")
             live_ingestion.main()
         except Exception as e:
-            print(f"[-] Background Ingestion Failed: {e}")
+            logger.error(f"[-] Background Ingestion Failed: {e}")
             
     background_tasks.add_task(run_crawler)
     return {"status": "success", "message": "Tri-API Ingestion started in the background."}
