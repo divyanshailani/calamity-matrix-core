@@ -61,12 +61,33 @@ def build_db():
     df = pd.read_csv(MASTER_CORPUS)
     df = df.fillna('') # Handle any stray nulls
     
-    # 4. Boot Embedding Model
+    # 4. Geocode Countries
+    print("[*] Geocoding unique countries using Nominatim...")
+    unique_countries = df['country'].unique()
+    country_coords = {}
+    import requests
+    import time
+    for c in unique_countries:
+        if not c or pd.isna(c):
+            continue
+        try:
+            resp = requests.get(f"https://nominatim.openstreetmap.org/search?q={c}&format=json&limit=1", headers={"User-Agent": "CalamityMatrix/1.0"})
+            if resp.status_code == 200 and len(resp.json()) > 0:
+                data = resp.json()[0]
+                country_coords[c] = (float(data['lat']), float(data['lon']))
+            else:
+                country_coords[c] = (None, None)
+            time.sleep(1) # Respect Nominatim 1req/s rate limit
+        except Exception as e:
+            print(f"  [-] Geocoding failed for {c}: {e}")
+            country_coords[c] = (None, None)
+            
+    # 5. Boot Embedding Model
     # BAAI/bge-large-en-v1.5 is a top-tier open-source embedding model generating 1024D vectors
     print("[*] Booting Embedding Model (BAAI/bge-large-en-v1.5) [1024 Dimensions]...")
     model = SentenceTransformer('BAAI/bge-large-en-v1.5')
     
-    # 5. Batch Embedding and Ingestion
+    # 6. Batch Embedding and Ingestion
     print("[*] Generating embeddings and injecting to pgvector...")
     batch_size = 64
     total_records = len(df)
@@ -89,18 +110,23 @@ def build_db():
             except ValueError:
                 event_year = None
                 
+            country_str = str(row.country)
+            lat, lng = country_coords.get(country_str, (None, None))
+                
             records.append((
                 date_str,
-                str(row.country),
+                country_str,
                 str(row.disaster_type),
                 str(row.narrative_text),
                 event_year,
+                lat,
+                lng,
                 embeddings[i].tolist()
             ))
             
         # Batch insert
         insert_query = """
-            INSERT INTO disaster_narratives (date, country, disaster_type, narrative_text, event_year, embedding)
+            INSERT INTO disaster_narratives (date, country, disaster_type, narrative_text, event_year, lat, lng, embedding)
             VALUES %s
         """
         execute_values(cur, insert_query, records)
