@@ -223,10 +223,15 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
               {msg.role === "user" ? msg.content : formatStream(msg.content)}
               
               {msg.isStreaming && !msg.content && (
-                <div className="flex items-center gap-1 h-5">
-                  <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                  <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                  <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                <div className="flex flex-col gap-2 py-1">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                    <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                    <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                  </div>
+                  <div className="text-[11px] text-zinc-500 animate-pulse mt-1 font-medium">
+                    Waking up Serverless A10G GPU from cold sleep... this may take up to 2 minutes.
+                  </div>
                 </div>
               )}
             </div>
