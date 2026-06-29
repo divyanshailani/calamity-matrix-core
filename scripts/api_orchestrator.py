@@ -91,7 +91,7 @@ class SimulationRequest(BaseModel):
     severity: float
 
 class ChatRequest(BaseModel):
-    messages: list
+    query_text: str
     stream: bool = True
 
 class AskAIRequest(BaseModel):
@@ -329,9 +329,16 @@ client = openai.AsyncOpenAI(
 @app.post("/api/v1/chat")
 async def chat_endpoint(payload: ChatRequest):
     try:
+        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments."
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": payload.query_text}
+        ]
+        
         response = await client.chat.completions.create(
             model="calamity-ai",
-            messages=payload.messages,
+            messages=messages,
             stream=payload.stream
         )
         if payload.stream:
