@@ -19,6 +19,10 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import logging
 import pycountry
+import contextvars
+import uuid
+
+request_id_ctx = contextvars.ContextVar("request_id", default=None)
 
 class JSONFormatter(logging.Formatter):
     def format(self, record):
@@ -28,6 +32,9 @@ class JSONFormatter(logging.Formatter):
             "message": record.getMessage(),
             "name": record.name
         }
+        req_id = request_id_ctx.get()
+        if req_id:
+            log_record["request_id"] = req_id
         return json.dumps(log_record)
 
 logger = logging.getLogger("calamity-orchestrator")
@@ -168,6 +175,7 @@ def resolve_country(name: str):
 @app.post("/api/v1/simulate_calamity")
 @limiter.limit("5/minute")
 def simulate_calamity(request: Request, payload: SimulationRequest):
+    request_id_ctx.set(str(uuid.uuid4()))
     payload.country = resolve_country(payload.country)
     payload.country = payload.country.replace('%', '').replace('_', '')
     try:
@@ -431,6 +439,7 @@ client = openai.AsyncOpenAI(
 @app.post("/api/v1/chat")
 @limiter.limit("10/minute")
 async def chat_endpoint(request: Request, payload: ChatRequest):
+    request_id_ctx.set(str(uuid.uuid4()))
     try:
         system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments."
         
@@ -459,6 +468,7 @@ async def chat_endpoint(request: Request, payload: ChatRequest):
 @app.post("/api/v1/ask_ai")
 @limiter.limit("10/minute")
 async def ask_ai_endpoint(request: Request, payload: AskAIRequest):
+    request_id_ctx.set(str(uuid.uuid4()))
     try:
         system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments."
         
@@ -495,6 +505,7 @@ async def ask_ai_endpoint(request: Request, payload: AskAIRequest):
 
 @app.post("/api/v1/trigger_ingestion")
 async def trigger_ingestion(background_tasks: BackgroundTasks, x_ingestion_secret: str = Header(None)):
+    request_id_ctx.set(str(uuid.uuid4()))
     if not x_ingestion_secret or x_ingestion_secret != INGESTION_SECRET_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized Ingestion Trigger")
         
