@@ -1,4 +1,4 @@
-name: Autonomous ReliefWeb Ingestion
+name: Autonomous Tri-API Ingestion
 
 on:
   schedule:
