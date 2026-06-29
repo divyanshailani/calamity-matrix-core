@@ -219,8 +219,8 @@ graph TD
 ### Serverless Cold Starts (Why the AI might be "Sleeping")
 To make running a 24GB VRAM GPU cost-efficient, the AI synthesis layer is hosted on a **serverless** architecture. 
 - **Idle Timeout:** If the AI hasn't been queried for 5 minutes, the cloud GPU is spun down ("Sleeping") to save costs.
-- **Cold Booting:** When a user queries the AI after an idle period, a brand new A10G GPU container is provisioned, and the fine-tuned Qwen-3 model weights are instantly loaded into memory.
-- **Latency:** This "cold start" causes the initial response to take slightly longer. However, once the machine is "warm," subsequent chat interactions are near-instantaneous. We intentionally trade initial latency for massive cost savings compared to maintaining a permanently warm GPU.
+- **Cold Booting (The Volume Hack):** When a user queries the AI after an idle period, a brand new A10G GPU container is provisioned. We mount a persistent Modal Volume (`HF_HOME`) to instantly cache the 15GB Qwen-3 model weights. This drops the cold-boot latency from 260s down to ~70s, safely bypassing browser timeouts.
+- **Latency:** This "cold start" causes the initial response to take slightly longer (~70s). However, once the machine is "warm," subsequent chat interactions are blazing fast (~1.2s). We intentionally trade initial latency for massive cost savings compared to maintaining a permanently warm GPU.
 
 *For full infrastructure setup scripts, SSL automation, and CI/CD deployment instructions, see the [`deploy/README.md`](./deploy/README.md).*
 
@@ -237,6 +237,6 @@ To make running a 24GB VRAM GPU cost-efficient, the AI synthesis layer is hosted
 - **Phase 18 (Completed):** DevOps Infrastructure — Migrated backend to DigitalOcean Droplet, Database to Supabase pgvector, and Frontend to Vercel.
 - **Phase 19 (Completed):** V1 Beta Pivot — Fully launched as a pure Neuro-Symbolic RAG engine and Math predictor with LLM decoupling for UI stability.
 - **Phase 20 (Completed):** Serverless Cloud LLM Integration — Deployed a fine-tuned Qwen3-8B LoRA to a serverless A10G (24GB VRAM) cloud platform with OpenAI-compatible SSE streaming.
-- **Phase 21 (Upcoming):** UI/UX Portfolio Overhaul — Redesign the Next.js UI into a high-end defense-grade dashboard, parse LLM streaming output into styled Markdown.
+- **Phase 21 (Completed):** UI/UX Portfolio Overhaul & V2 Lock — Redesigned the Next.js UI into a high-end defense-grade dashboard with 3D flip architecture. Resolved Serverless network timeouts via Volume Caching. Disabled open chat to mitigate LLM identity injection vulnerabilities.
 
 See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.
