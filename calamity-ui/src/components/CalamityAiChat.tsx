@@ -43,7 +43,7 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
   };
 
   const fetchStream = async (queryText: string, isInitial: boolean = false) => {
-    if (!results || !formData) return;
+    // Allow chat even if results is null
 
     const userMsgId = Date.now().toString();
     const aiMsgId = (Date.now() + 1).toString();
@@ -65,16 +65,16 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
         : `https://api.calamityai.tech${endpoint}`;
 
       const payloadBody = isInitial ? {
-          query_text: queryText || formData.query_text || "",
-          historical_context: activeContext ? [activeContext] : (results.historical_context || []),
+          query_text: queryText || formData?.query_text || "",
+          historical_context: activeContext ? [activeContext] : (results?.historical_context || []),
           simulation_parameters: {
-            country: formData.country,
-            disaster_type: formData.disaster_type,
-            month: formData.month,
-            event_year: formData.event_year,
-            severity: formData.severity,
+            country: formData?.country || "Global",
+            disaster_type: formData?.disaster_type || "Unknown",
+            month: formData?.month || 1,
+            event_year: formData?.event_year || 2026,
+            severity: formData?.severity || 5.0,
           },
-          math_predictions: results.predictions || {},
+          math_predictions: results?.predictions || {},
           stream: true,
       } : {
           query_text: queryText,
@@ -182,8 +182,8 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
     if (isActive && messages.length === 0) {
       const query = activeContext 
         ? `Provide a tactical synthesis focusing specifically on this historical context: ${activeContext.country} (${activeContext.event_year}) - ${activeContext.disaster_type}.` 
-        : "Provide a tactical synthesis based on the historical context.";
-      fetchStream(query, true);
+        : (results ? "Provide a tactical synthesis based on the historical context." : "Hello! I am Calamity AI. How can I assist you with disaster intelligence today?");
+      fetchStream(query, !!results && !activeContext ? true : (!!activeContext));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
