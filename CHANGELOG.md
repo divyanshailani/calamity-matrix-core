@@ -5,6 +5,13 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-06-29
+
+### 🚀 Calamity Matrix Core V2 Official Release
+- **Serverless Volume Caching**: Resolved critical cold-boot network timeouts. The Modal A10G serverless GPU now mounts a persistent volume (`HF_HOME`) to cache the 15GB Qwen3-8B model weights. This drops cold-start latency from 260s to ~70s, completely bypassing the browser's 5-minute timeout window.
+- **Dedicated Conversational Routing**: Decoupled the `/api/v1/chat` and `/api/v1/ask_ai` endpoints. The system now strictly isolates raw conversational queries from the rigid JSON RAG payload structure to prevent prompt fusion and model confusion.
+- **UI/UX 3D Flip Architecture**: Upgraded the right-hand panel in the Next.js frontend with a full-column CSS 3D flip architecture. The front face displays RAG semantic context, and the back face features a minimalist dark-mode LLM chat interface.
+- **Security & Identity Constraints**: Hardcoded the AI's identity ("Engineered by Divyansh Ailani") directly into the FastAPI System Prompt to prevent LoRA pre-trained weight bleed. Disabled open conversational input boxes in production, strictly limiting AI synthesis to exact RAG historical contexts to eliminate prompt injection vulnerabilities.
 ## [1.6.0] - 2026-06-28
 
 ### 🧠 Serverless LLM Integration & SSE Streaming
