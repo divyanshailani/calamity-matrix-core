@@ -11,8 +11,11 @@ from pydantic import BaseModel, Field
 import requests
 from psycopg2 import pool
 from contextlib import asynccontextmanager
-from fastapi import BackgroundTasks, Header
+from fastapi import BackgroundTasks, Header, Request
 import openai
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 import sys
 
@@ -83,7 +86,10 @@ async def lifespan(app: FastAPI):
     if 'db_pool' in models and models['db_pool']:
         models['db_pool'].closeall()
 
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Calamity AI: Neuro-Symbolic Orchestrator", lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -126,7 +132,8 @@ COUNTRY_ALIASES = {
 }
 
 @app.post("/api/v1/simulate_calamity")
-def simulate_calamity(payload: SimulationRequest):
+@limiter.limit("5/minute")
+def simulate_calamity(request: Request, payload: SimulationRequest):
     payload.country = COUNTRY_ALIASES.get(payload.country, payload.country)
     payload.country = payload.country.replace('%', '').replace('_', '')
     try:
