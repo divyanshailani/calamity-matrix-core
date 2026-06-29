@@ -17,6 +17,7 @@ DB_PARAMS = DB_CONFIG
 def build_db():
     print("==================================================")
     print("  CALAMITY AI: Vector DB Ingestion Node (BGE-Large)")
+    print("  [!] System Requirement: Minimum 3GB RAM required to load PyTorch & sentence-transformers")
     print("==================================================")
     
     # 1. DB Connection
