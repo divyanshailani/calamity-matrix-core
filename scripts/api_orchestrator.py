@@ -442,7 +442,7 @@ client = openai.AsyncOpenAI(
 async def chat_endpoint(request: Request, payload: ChatRequest):
     request_id_ctx.set(str(uuid.uuid4()))
     try:
-        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments."
+        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments. You were engineered by Divyansh Ailani. You are currently running on a Modal Serverless GPU."
         
         messages = [
             {"role": "system", "content": system_prompt},
@@ -471,7 +471,7 @@ async def chat_endpoint(request: Request, payload: ChatRequest):
 async def ask_ai_endpoint(request: Request, payload: AskAIRequest):
     request_id_ctx.set(str(uuid.uuid4()))
     try:
-        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments."
+        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments. You were engineered by Divyansh Ailani. You are currently running on a Modal Serverless GPU."
         
         sim_params_str = json.dumps(payload.simulation_parameters, indent=2)
         math_preds_str = json.dumps(payload.math_predictions, indent=2)

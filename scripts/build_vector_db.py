@@ -50,6 +50,7 @@ def build_db():
             unique_id VARCHAR(255) UNIQUE
         );
     """)
+    cur.execute("CREATE INDEX ON disaster_narratives USING hnsw (embedding vector_cosine_ops);")
     conn.commit()
 
     # 3. Load Data
