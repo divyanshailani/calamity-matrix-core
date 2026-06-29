@@ -251,26 +251,6 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
         <div ref={endRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-3 bg-[#09090b] border-t border-zinc-800 shrink-0">
-        <form onSubmit={handleSend} className="relative flex items-center">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a follow-up question..."
-            disabled={isSimulating}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-full py-2.5 pl-4 pr-10 text-[13px] text-white focus:outline-none focus:border-zinc-600 disabled:opacity-50 transition-colors"
-          />
-          <button 
-            type="submit" 
-            disabled={!input.trim() || isSimulating}
-            className="absolute right-2 p-1.5 bg-white text-black rounded-full disabled:bg-zinc-800 disabled:text-zinc-500 transition-colors"
-          >
-            <Send size={12} />
-          </button>
-        </form>
-      </div>
     </div>
   );
 }
