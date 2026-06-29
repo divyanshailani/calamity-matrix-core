@@ -220,29 +220,29 @@ async def simulate_calamity(payload: SimulationRequest):
         try:
             cur = conn.cursor()
             
-            # Pass 1: Strict match (Year, Country, Disaster Type)
+            # Pass 1: Strict match (Year, Country, Disaster Type) + 2000s Quarantine
             sql_query_pass1 = """
                 SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                       1 - (embedding <=> %s::vector) AS cosine_similarity
+                       (1 - (embedding <=> %s::vector)) - (0.05 * ABS(event_year - %s)) AS hybrid_similarity
                 FROM disaster_narratives
-                WHERE event_year = %s AND disaster_type = ANY(%s) AND country ILIKE %s
-                ORDER BY embedding <=> %s::vector
+                WHERE event_year = %s AND disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= 2000
+                ORDER BY hybrid_similarity DESC
                 LIMIT 3;
             """
-            cur.execute(sql_query_pass1, (query_embedding, payload.event_year, rw_types, payload.country, query_embedding))
+            cur.execute(sql_query_pass1, (query_embedding, payload.event_year, payload.event_year, rw_types, payload.country))
             results = cur.fetchall()
             
-            # Pass 2: Relax Year completely, strictly enforce Country and Disaster Type
+            # Pass 2: Relax Year completely, strictly enforce Country and Disaster Type + Time-Decay + 2000s Quarantine
             if len(results) < 3:
                 sql_query_pass2 = """
                     SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                           1 - (embedding <=> %s::vector) AS cosine_similarity
+                           (1 - (embedding <=> %s::vector)) - (0.05 * ABS(event_year - %s)) AS hybrid_similarity
                     FROM disaster_narratives
-                    WHERE disaster_type = ANY(%s) AND country ILIKE %s
-                    ORDER BY embedding <=> %s::vector
+                    WHERE disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= 2000
+                    ORDER BY hybrid_similarity DESC
                     LIMIT 3;
                 """
-                cur.execute(sql_query_pass2, (query_embedding, rw_types, payload.country, query_embedding))
+                cur.execute(sql_query_pass2, (query_embedding, payload.event_year, rw_types, payload.country))
                 results = cur.fetchall()
                 
             # Pass 3: Recommendation Engine (If Pass 2 yields 0 results)
