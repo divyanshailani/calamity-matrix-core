@@ -11,6 +11,7 @@ from pydantic import BaseModel
 import requests
 from psycopg2 import pool
 from contextlib import asynccontextmanager
+from fastapi import BackgroundTasks, Header
 import openai
 
 import sys
@@ -18,7 +19,9 @@ import sys
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
-from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT
+from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT, INGESTION_SECRET_KEY
+import scripts.live_ingestion as live_ingestion
+
 MODEL_DIR = os.path.join(SCRIPT_DIR, "..", "models")
 XGB_AFFECTED_PATH = os.path.join(MODEL_DIR, "xgb_log_affected.json")
 XGB_DAMAGE_PATH = os.path.join(MODEL_DIR, "xgb_log_damage.json")
@@ -388,6 +391,21 @@ async def ask_ai_endpoint(payload: AskAIRequest):
             return {"response": response.choices[0].message.content}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/trigger_ingestion")
+async def trigger_ingestion(background_tasks: BackgroundTasks, x_ingestion_secret: str = Header(None)):
+    if not x_ingestion_secret or x_ingestion_secret != INGESTION_SECRET_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized Ingestion Trigger")
+        
+    def run_crawler():
+        try:
+            print("[*] Background Ingestion Triggered!")
+            live_ingestion.main()
+        except Exception as e:
+            print(f"[-] Background Ingestion Failed: {e}")
+            
+    background_tasks.add_task(run_crawler)
+    return {"status": "success", "message": "Tri-API Ingestion started in the background."}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

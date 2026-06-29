@@ -13,19 +13,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests psycopg2-binary numpy python-dotenv
-
-    - name: Run Autonomous Crawler
+    - name: Trigger Autonomous Crawler Proxy
       env:
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        INGESTION_SECRET_KEY: ${{ secrets.INGESTION_SECRET_KEY }}
       run: |
-        python scripts/live_ingestion.py
+        curl -X POST http://143.244.134.76:8000/api/v1/trigger_ingestion \
+             -H "X-Ingestion-Secret: $INGESTION_SECRET_KEY" \
+             -w "\nHTTP Status: %{http_code}\n"
