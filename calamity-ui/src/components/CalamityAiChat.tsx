@@ -40,7 +40,7 @@ export default function CalamityAiChat({ formData, results, onClose }: CalamityA
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const fetchStream = async (queryText: string) => {
+  const fetchStream = async (queryText: string, isInitial: boolean = false) => {
     if (!results || !formData) return;
 
     const userMsgId = Date.now().toString();
@@ -57,14 +57,12 @@ export default function CalamityAiChat({ formData, results, onClose }: CalamityA
     setTimeLeft(300); // Reset timer on new request
 
     try {
+      const endpoint = isInitial ? "/api/v1/ask_ai" : "/api/v1/chat";
       const apiUrl = process.env.NODE_ENV === "production" 
-        ? "https://api.calamityai.tech/api/v1/ask_ai" 
-        : "https://api.calamityai.tech/api/v1/ask_ai";
+        ? `https://api.calamityai.tech${endpoint}`
+        : `https://api.calamityai.tech${endpoint}`;
 
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const payloadBody = isInitial ? {
           query_text: queryText || formData.query_text || "",
           historical_context: results.historical_context || [],
           simulation_parameters: {
@@ -76,7 +74,15 @@ export default function CalamityAiChat({ formData, results, onClose }: CalamityA
           },
           math_predictions: results.predictions || {},
           stream: true,
-        })
+      } : {
+          query_text: queryText,
+          stream: true,
+      };
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payloadBody)
       });
 
       if (!response.ok) {
@@ -172,7 +178,7 @@ export default function CalamityAiChat({ formData, results, onClose }: CalamityA
   // Kick off an initial synthesis when the component mounts if it's empty
   useEffect(() => {
     if (messages.length === 0) {
-      fetchStream("Provide a tactical synthesis based on the historical context.");
+      fetchStream("Provide a tactical synthesis based on the historical context.", true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -224,8 +230,7 @@ export default function CalamityAiChat({ formData, results, onClose }: CalamityA
         <div ref={endRef} />
       </div>
 
-      {/* Input - Hidden for now while we debug the model */}
-      {/* 
+      {/* Input */}
       <div className="p-3 bg-[#09090b] border-t border-zinc-800 shrink-0">
         <form onSubmit={handleSend} className="relative flex items-center">
           <input
@@ -244,8 +249,7 @@ export default function CalamityAiChat({ formData, results, onClose }: CalamityA
             <Send size={12} />
           </button>
         </form>
-      </div> 
-      */}
+      </div>
     </div>
   );
 }
