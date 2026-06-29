@@ -42,6 +42,9 @@ def build_db():
             country VARCHAR(255),
             disaster_type VARCHAR(255),
             narrative_text TEXT,
+            event_year INT,
+            lat FLOAT,
+            lng FLOAT,
             embedding VECTOR(1024)
         );
     """)

@@ -115,6 +115,7 @@ COUNTRY_ALIASES = {
 @app.post("/api/v1/simulate_calamity")
 def simulate_calamity(payload: SimulationRequest):
     payload.country = COUNTRY_ALIASES.get(payload.country, payload.country)
+    payload.country = payload.country.replace('%', '').replace('_', '')
     try:
         # ---------------------------------------------------------
         # 1. The Math Engine Execution (Predictive)
