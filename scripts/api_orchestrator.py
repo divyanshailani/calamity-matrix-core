@@ -7,7 +7,7 @@ import xgboost as xgb
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import requests
 from psycopg2 import pool
 from contextlib import asynccontextmanager
@@ -74,7 +74,7 @@ app = FastAPI(title="Calamity AI: Neuro-Symbolic Orchestrator", lifespan=lifespa
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://calamityai.tech", "https://www.calamityai.tech", "https://calamity-ui.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -91,7 +91,7 @@ class SimulationRequest(BaseModel):
     disaster_type: str
     month: int
     event_year: int
-    severity: float
+    severity: float = Field(..., ge=0.0, lt=1000000.0)
 
 class ChatRequest(BaseModel):
     query_text: str
