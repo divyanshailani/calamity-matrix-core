@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import uvicorn
 import numpy as np
@@ -34,8 +35,6 @@ logger.setLevel(logging.INFO)
 handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(JSONFormatter())
 logger.addHandler(handler)
-
-import sys
 
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
