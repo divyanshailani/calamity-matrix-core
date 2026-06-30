@@ -5,6 +5,13 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-06-30
+
+### 🌩️ Cloud LLM Migration & Smart Prompting Architecture
+- **Cloud LLM Provider Migration**: Shifted the inference engine to a blazing-fast Cloud LLM Provider utilizing a 17B Llama-4 model. This completely eliminates cold-start latency and token limits while dramatically increasing synthesis speed.
+- **Smart Prompting & Behavioral Control**: Replaced the reliance on LoRA fine-tuning with a rigorous "Smart Prompting" architecture in the API orchestrator. By wrapping the RAG context and Math Engine predictions in strict, authoritative instructions, the model is forced to output a definitive military-style tactical synthesis.
+- **Hidden Mechanics**: The LLM is explicitly barred from revealing backend processes (e.g., "Math Engine", "RAG", "simulation parameters"), ensuring the final output reads as an objective intelligence report rather than an algorithmic output.
+
 ## [2.0.0] - 2026-06-29
 
 ### 🚀 Calamity Matrix Core V2 Official Release

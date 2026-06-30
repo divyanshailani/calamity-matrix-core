@@ -2,12 +2,12 @@
 
 > [!TIP]
 > **PROJECT STATUS: V2 ACTIVE DEVELOPMENT**  
-> Calamity Matrix has officially reintegrated the LLM synthesis layer! The core Neuro-Symbolic RAG engine (pgvector) and XGBoost predictors now stream their deterministic outputs directly to a serverless A10G (24GB VRAM) cloud platform powering a fine-tuned Qwen3-8B LoRA.
+> Calamity Matrix has officially reintegrated the LLM synthesis layer! The core Neuro-Symbolic RAG engine (pgvector) and XGBoost predictors now stream their deterministic outputs directly to a blazing-fast Cloud LLM Provider powering a 17B Llama-4 model via Smart Prompting.
 
 > Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, and semantic RAG over 2,281 historical disaster narratives via pgvector.
 
 **Stack:** Python · PostgreSQL (Supabase) + pgvector · XGBoost · Vercel (Frontend) · DigitalOcean (Backend)
-**AI/ML Hardware:** BAAI/bge-large-en-v1.5 · Qwen-3 8B LoRA (Fine-tuned on L40S, 32GB RAM, 8-Core CPU) · Inference (Serverless A10G, 24GB VRAM)
+**AI/ML Hardware:** BAAI/bge-large-en-v1.5 · Llama-4 17B (Cloud LLM Provider)
 
 ---
 
@@ -17,7 +17,7 @@ Two parallel intelligence layers over 25 years of global natural disaster data (
 
 **Math Engine** — XGBoost regression trained on fused structured matrices (USGS seismic, NASA EONET fires/floods/storms, EM-DAT casualties/impacts, Smithsonian volcanism). Outputs base-rate hazard probability and historical impact estimates (casualties, affected population) for a given disaster type and region.
 
-**Narrative Engine** — 2,281 situation reports from HDX/ReliefWeb embedded via `BAAI/bge-large-en-v1.5` into a pgvector database. Semantic search retrieves analogous historical events by meaning, not keyword matching, enabling grounded narrative synthesis when combined with the fine-tuned LLM.
+**Narrative Engine** — 2,281 situation reports from HDX/ReliefWeb embedded via `BAAI/bge-large-en-v1.5` into a pgvector database. Semantic search retrieves analogous historical events by meaning, not keyword matching, enabling grounded narrative synthesis when combined with the Cloud LLM.
 
 ---
 
@@ -214,13 +214,13 @@ graph TD
 | **API** | FastAPI + Uvicorn |
 | **Database** | Supabase pgvector (External Pooler) |
 | **Domains** | `calamityai.tech`, `api.calamityai.tech` |
-| **LLM Inference** | Serverless Modal Endpoint (vLLM / A10G 24GB VRAM) |
+| **LLM Inference** | Cloud LLM Provider (Llama-4 17B) |
 
-### Serverless Cold Starts (Why the AI might be "Sleeping")
-To make running a 24GB VRAM GPU cost-efficient, the AI synthesis layer is hosted on a **serverless** architecture. 
-- **Idle Timeout:** If the AI hasn't been queried for 5 minutes, the cloud GPU is spun down ("Sleeping") to save costs.
-- **Cold Booting (The Volume Hack):** When a user queries the AI after an idle period, a brand new A10G GPU container is provisioned. We mount a persistent Modal Volume (`HF_HOME`) to instantly cache the 15GB Qwen-3 model weights. This drops the cold-boot latency from 260s down to ~70s, safely bypassing browser timeouts.
-- **Latency:** This "cold start" causes the initial response to take slightly longer (~70s). However, once the machine is "warm," subsequent chat interactions are blazing fast (~1.2s). We intentionally trade initial latency for massive cost savings compared to maintaining a permanently warm GPU.
+### Smart Prompting Architecture & Behavioral Control
+To ensure the AI synthesis layer remains strictly objective and authoritative, the system utilizes a robust **Smart Prompting Architecture** injected dynamically at the API orchestrator level.
+- **Hidden Mechanics:** The model is explicitly barred from revealing backend processes (e.g., "Math Engine", "RAG", "simulation parameters"). To the end user, it appears as an intelligent tactical system that *just knows* the answers.
+- **Definitive Tone:** We enforce absolute certainty in the prompt, forbidding the model from using hesitant language like "estimated" or "expected" when reporting casualty and economic damage metrics.
+- **Contextual Anchoring:** The orchestrator forces the LLM to write a comprehensive 2-paragraph military-style impact assessment, combining hard XGBoost metrics in the first paragraph with a physical, ground-reality explanation based on pgvector historical analogies in the second.
 
 *For full infrastructure setup scripts, SSL automation, and CI/CD deployment instructions, see the [`deploy/README.md`](./deploy/README.md).*
 
@@ -238,5 +238,6 @@ To make running a 24GB VRAM GPU cost-efficient, the AI synthesis layer is hosted
 - **Phase 19 (Completed):** V1 Beta Pivot — Fully launched as a pure Neuro-Symbolic RAG engine and Math predictor with LLM decoupling for UI stability.
 - **Phase 20 (Completed):** Serverless Cloud LLM Integration — Deployed a fine-tuned Qwen3-8B LoRA to a serverless A10G (24GB VRAM) cloud platform with OpenAI-compatible SSE streaming.
 - **Phase 21 (Completed):** UI/UX Portfolio Overhaul & V2 Lock — Redesigned the Next.js UI into a high-end defense-grade dashboard with 3D flip architecture. Resolved Serverless network timeouts via Volume Caching. Disabled open chat to mitigate LLM identity injection vulnerabilities.
+- **Phase 22 (Completed):** Cloud LLM Migration & Smart Prompting — Migrated inference to a blazing-fast Cloud LLM Provider using a 17B Llama-4 model. Replaced LoRA fine-tuning with a strict Smart Prompting architecture to enforce military-style objectivity and hide backend mechanics.
 
 See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.
