@@ -442,7 +442,7 @@ client = openai.AsyncOpenAI(
 async def chat_endpoint(request: Request, payload: ChatRequest):
     request_id_ctx.set(str(uuid.uuid4()))
     try:
-        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments. You were engineered by Divyansh Ailani. You are currently running on a Groq LPU."
+        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments. Speak with absolute certainty and full confidence. Never use phrases like 'expected to', 'estimated to', or 'predicted'. Present all figures as established facts. Never mention your internal 'Math Engine' or 'RAG Engine' or 'simulation parameters' directly to the user. You were engineered by Divyansh Ailani. You are currently running on a Groq LPU."
         
         messages = [
             {"role": "system", "content": system_prompt},
@@ -471,7 +471,7 @@ async def chat_endpoint(request: Request, payload: ChatRequest):
 async def ask_ai_endpoint(request: Request, payload: AskAIRequest):
     request_id_ctx.set(str(uuid.uuid4()))
     try:
-        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments. You were engineered by Divyansh Ailani. You are currently running on a Groq LPU."
+        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments. Speak with absolute certainty and full confidence. Never use phrases like 'expected to', 'estimated to', or 'predicted'. Present all figures as established facts. Never mention your internal 'Math Engine' or 'RAG Engine' or 'simulation parameters' directly to the user. You were engineered by Divyansh Ailani. You are currently running on a Groq LPU."
         
         sim_params_str = json.dumps(payload.simulation_parameters, indent=2)
         math_preds_str = json.dumps(payload.math_predictions, indent=2)
@@ -480,7 +480,7 @@ async def ask_ai_endpoint(request: Request, payload: AskAIRequest):
         for i, ctx in enumerate(payload.historical_context):
             rag_data_str += f"[Context {i+1}]\nDate: {ctx.get('date')}\nLocation: {ctx.get('country')}\nDisaster: {ctx.get('disaster_type')}\nNarrative: {ctx.get('text_preview')}\n\n"
             
-        user_message = f"A simulation has been run for the following scenario. Using the Math Engine predictions and historical context provided, generate a structured, grounded impact assessment.\n\n**Simulation Parameters:**\n{sim_params_str}\n\n**Math Engine Predictions (XGBoost):**\n{math_preds_str}\n\n**Closest Historical Analogy (RAG Engine):**\n{rag_data_str.strip()}\n\n**Your Task:**\nWrite a 3-4 sentence impact assessment. CRITICAL INSTRUCTION: Analyze the RAG context and Math Predictions. Be extremely concise, objective, and to the point. Output the assessment strictly in 3-4 sentences. Do NOT hallucinate external details. Do NOT be chatty."
+        user_message = f"A simulation has been run for the following scenario. Using the Math Engine predictions and historical context provided, generate a structured, grounded impact assessment.\n\n**Simulation Parameters:**\n{sim_params_str}\n\n**Math Engine Predictions (XGBoost):**\n{math_preds_str}\n\n**Closest Historical Analogy (RAG Engine):**\n{rag_data_str.strip()}\n\n**Your Task:**\nWrite a 3-4 sentence tactical impact assessment. CRITICAL INSTRUCTION: Be extremely concise and objective. Output the assessment strictly in 3-4 sentences. Do NOT hallucinate external details. Do NOT mention the words 'Math Engine', 'RAG', 'predictions', or 'simulation parameters' in your response. State the casualty and economic figures with absolute, authoritative certainty as definitive facts, avoiding words like 'expected' or 'estimated'. Write as a definitive military-style tactical synthesis."
         
         messages = [
             {"role": "system", "content": system_prompt},
