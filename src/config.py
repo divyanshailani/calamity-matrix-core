@@ -28,6 +28,7 @@ MODAL_TOKEN_ID     = os.getenv("MODAL_TOKEN_ID", "")
 MODAL_TOKEN_SECRET = os.getenv("MODAL_TOKEN_SECRET", "")
 CLOUD_LLM_ENDPOINT = os.getenv("CLOUD_LLM_ENDPOINT", "")
 CLOUD_LLM_API_KEY = os.getenv("CLOUD_LLM_API_KEY", "dummy")
+CLOUD_LLM_MODEL = os.getenv("CLOUD_LLM_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
 INGESTION_SECRET_KEY = _require("INGESTION_SECRET_KEY")
 
 MIN_EVENT_YEAR = int(os.getenv("MIN_EVENT_YEAR", "2000"))
