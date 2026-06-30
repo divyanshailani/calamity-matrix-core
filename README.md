@@ -1,7 +1,7 @@
 # Calamity Matrix Core — ML Pipeline
 
 > [!TIP]
-> **PROJECT STATUS: V2 ACTIVE DEVELOPMENT**  
+> **PROJECT STATUS: V3 FINAL RELEASE**  
 > Calamity Matrix has officially reintegrated the LLM synthesis layer! The core Neuro-Symbolic RAG engine (pgvector) and XGBoost predictors now stream their deterministic outputs directly to a blazing-fast Cloud LLM Provider powering a 17B Llama-4 model via Smart Prompting.
 
 > Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, and semantic RAG over 2,281 historical disaster narratives via pgvector.
