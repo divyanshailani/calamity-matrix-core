@@ -17,6 +17,7 @@ jobs:
       env:
         INGESTION_SECRET_KEY: ${{ secrets.INGESTION_SECRET_KEY }}
       run: |
-        curl -k -X POST https://143.244.134.76/api/v1/trigger_ingestion \
+        curl -X POST https://api.calamityai.tech/api/v1/trigger_ingestion \
              -H "X-Ingestion-Secret: $INGESTION_SECRET_KEY" \
+             --fail --retry 3 --retry-delay 5 --max-time 30 \
              -w "\nHTTP Status: %{http_code}\n"
