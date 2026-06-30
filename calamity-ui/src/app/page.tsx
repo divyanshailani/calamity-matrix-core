@@ -200,7 +200,7 @@ export default function LandingPage() {
             letterSpacing: "0.05em",
           }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--green)", display: "inline-block" }} />
-            V1 Beta · Early Access
+            V3 Final Release
           </motion.div>
 
           <motion.h1 variants={itemVariant} style={{
