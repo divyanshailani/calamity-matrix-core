@@ -124,7 +124,6 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
       );
     } finally {
       setIsSimulating(false);
-      setTimeLeft(300); // Reset timer after finish
       setMessages((prev) => 
         prev.map(msg => 
           msg.id === aiMsgId 
