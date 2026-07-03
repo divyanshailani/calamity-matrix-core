@@ -1,0 +1,11 @@
+calamity-ui/
+data/
+models/
+notebooks/
+images/
+docs/
+.agents/
+*.exp
+raw_training_prompts*.md
+calamity_training_data.jsonl
+test_results.txt
