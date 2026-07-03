@@ -5,6 +5,14 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-07-03
+
+### 🏗️ Decoupled Heroku Architecture Migration
+- **Server Migration**: Successfully decoupled the backend architecture by migrating the FastAPI orchestrator from a monolithic DigitalOcean Droplet to a scalable Heroku Basic Dyno ($7/mo, 1 CPU, 512MB RAM).
+- **Slug Optimization**: Stripped the massive Next.js UI from the backend build process using `.slugignore` while carefully preserving the `models/` directory, maintaining the deployment footprint at ~817MB (under the 1GB limit) and ensuring XGBoost inference remains fully operational.
+- **Python Runtime Normalization**: Replaced deprecated `runtime.txt` with a modern `.python-version` file defining `3.11`, adhering to best practices and allowing Heroku to automatically provision security patches.
+- **Frontend Sync**: Re-wired the Vercel-hosted `calamity-ui` frontend to seamlessly route all prediction and RAG synthesis queries to the new `.herokuapp.com` endpoint.
+
 ## [2.1.0] - 2026-06-30
 
 ### 🌩️ Cloud LLM Migration & Smart Prompting Architecture

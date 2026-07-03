@@ -4,6 +4,14 @@ Tracks real problems encountered during development, root causes, and how they w
 
 ---
 
+## 18. Heroku Slug Size Limit & XGBoost Model Exclusion [RESOLVED]
+
+**Issue:** Deploying the monorepo to Heroku exceeded the hard 1GB Slug Size limit (reaching ~1.5GB) due to the bundled `calamity-ui` frontend node modules and Next.js `.next` cache.
+**Root Cause:** The `calamity-ui` Next.js directory is massive. When fixing this by aggressively adding directories to a new `.slugignore` file, the `models/` folder containing the compiled XGBoost mathematical predictors was accidentally ignored. This caused a successful Heroku deploy but triggered a runtime `500: Universal fallback models are missing from the server` error when simulating.
+**Solution:** Fine-tuned `.slugignore` to strictly exclude `calamity-ui/`, `data/`, and `notebooks/` while crucially re-allowing the `models/` directory. This restored XGBoost functionality while safely reducing the final slug size to 817.1M (well under the 1GB threshold).
+
+---
+
 ## 17. Hugging Face Inference API DNS Deprecation [RESOLVED]
 
 **Issue:** The `requests.post` call inside the FastAPI orchestrator crashed with `NameResolutionError: Failed to resolve 'api-inference.huggingface.co'`, causing a `500 Internal Server Error` when executing the core RAG simulation.

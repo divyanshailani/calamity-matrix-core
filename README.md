@@ -6,7 +6,7 @@
 
 > Global natural disaster intelligence system. Multi-source structured data pipeline, XGBoost impact regression, and semantic RAG over 2,281 historical disaster narratives via pgvector.
 
-**Stack:** Python · PostgreSQL (Supabase) + pgvector · XGBoost · Vercel (Frontend) · DigitalOcean (Backend)
+**Stack:** Python · PostgreSQL (Azure VM) + pgvector · XGBoost · Vercel (Frontend) · Heroku (Backend)
 **AI/ML Hardware:** BAAI/bge-large-en-v1.5 · Llama-4 17B (Cloud LLM Provider)
 
 ---
@@ -43,7 +43,7 @@ graph TD
         UI[Next.js UI]
     end
 
-    subgraph Backend [DigitalOcean Droplet]
+    subgraph Backend [Heroku Serverless Dyno]
         API[FastAPI Orchestrator]
         
         subgraph Math Engine v3
@@ -51,7 +51,7 @@ graph TD
         end
     end
 
-    subgraph Database [Supabase Cloud]
+    subgraph Database [Azure Bare-Metal VM]
         PGVector[(pgvector DB)]
     end
     
@@ -196,24 +196,24 @@ graph TD
     Vercel -->|Serves Next.js UI| User
     
     User -->|Runs Simulation| Internet((Internet))
-    Internet -->|https://api.calamityai.tech| Droplet[DigitalOcean Droplet]
+    Internet -->|https://calamity-matrix-api-*.herokuapp.com| Heroku[Heroku Basic Dyno]
     
-    subgraph Droplet [DigitalOcean Ubuntu 24.04 Server]
-        Nginx[Nginx Reverse Proxy] -->|Routes traffic| FastAPI[FastAPI Backend + Docker]
+    subgraph Heroku [Heroku Cloud Backend]
+        FastAPI[FastAPI Uvicorn Worker]
         FastAPI <-->|Reads Models| Models[(XGBoost Models)]
     end
-    FastAPI <-->|Searches Vector DB| Supabase[(Supabase Cloud pgvector)]
+    FastAPI <-->|Searches Vector DB| Azure[(Azure VM pgvector)]
 ```
 
 | Layer | Technology |
 |---|---|
 | **Frontend Server** | Vercel Global Edge Network |
-| **Backend Server** | DigitalOcean Droplet (Ubuntu 24.04) |
-| **Containerization** | Docker + Docker Compose |
-| **Proxy / SSL** | Nginx (alpine) + Let's Encrypt (Certbot) |
+| **Backend Server** | Heroku Basic Dyno (1x 512MB RAM) |
+| **Containerization** | Heroku Python Buildpack + Procfile |
+| **Proxy / SSL** | Heroku Automated ACM |
 | **API** | FastAPI + Uvicorn |
-| **Database** | Supabase pgvector (External Pooler) |
-| **Domains** | `calamityai.tech`, `api.calamityai.tech` |
+| **Database** | Azure Bare-Metal VM (pgvector) |
+| **Domains** | `calamityai.tech`, `*.herokuapp.com` |
 | **LLM Inference** | Cloud LLM Provider (Llama-4 17B) |
 
 ### Smart Prompting Architecture & Behavioral Control
@@ -239,5 +239,6 @@ To ensure the AI synthesis layer remains strictly objective and authoritative, t
 - **Phase 20 (Completed):** Serverless Cloud LLM Integration — Deployed a fine-tuned Qwen3-8B LoRA to a serverless A10G (24GB VRAM) cloud platform with OpenAI-compatible SSE streaming.
 - **Phase 21 (Completed):** UI/UX Portfolio Overhaul & V2 Lock — Redesigned the Next.js UI into a high-end defense-grade dashboard with 3D flip architecture. Resolved Serverless network timeouts via Volume Caching. Disabled open chat to mitigate LLM identity injection vulnerabilities.
 - **Phase 22 (Completed):** Cloud LLM Migration & Smart Prompting — Migrated inference to a blazing-fast Cloud LLM Provider using a 17B Llama-4 model. Replaced LoRA fine-tuning with a strict Smart Prompting architecture to enforce military-style objectivity and hide backend mechanics.
+- **Phase 28 (Completed):** Heroku Decoupled Architecture Migration — Decommissioned DigitalOcean Droplet and migrated the FastAPI Math Engine backend to Heroku Basic Dynos. Configured `Procfile` and `.slugignore` to isolate XGBoost physics models under the 1GB slug limit, successfully decoupled the API from the frontend and Azure Database.
 
 See [`ISSUES.md`](./ISSUES.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the full engineering logs.
