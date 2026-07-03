@@ -43,12 +43,13 @@ graph TD
         UI[Next.js UI]
     end
 
-    subgraph Backend [Heroku Serverless Dyno]
+    subgraph Backend [Heroku Basic Dyno]
         API[FastAPI Orchestrator]
-        
-        subgraph Math Engine v3
-            Matrices[Structured Matrices] --> XGBoost[XGBoost Predictors]
-        end
+    end
+
+    subgraph External Microservices
+        Math[Serverless Math Engine Webhook]
+        LLM[Cloud LLM Inference]
     end
 
     subgraph Database [Azure Bare-Metal VM]
@@ -56,15 +57,17 @@ graph TD
     end
     
     subgraph Data Sources
-        USGS[USGS] & NASA[NASA] & EMDAT[EM-DAT] & GVP[GVP] --> Matrices
+        USGS[USGS] & NASA[NASA] & EMDAT[EM-DAT] & GVP[GVP] --> Math
         HDX[HDX/ReliefWeb] -->|Text Embeddings| PGVector
     end
 
     UI <-->|API Requests| API
-    API -->|Features| XGBoost
+    API -->|Features via HTTP POST| Math
     API -->|Semantic Search| PGVector
-    XGBoost -->|Hazard Prob & Impact| API
+    API -->|RAG Synthesis| LLM
+    Math -->|Hazard Prob & Impact| API
     PGVector -->|Analogous Events| API
+    LLM -->|Streamed SSE Response| API
 ```
 ---
 

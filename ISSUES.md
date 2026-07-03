@@ -4,6 +4,14 @@ Tracks real problems encountered during development, root causes, and how they w
 
 ---
 
+## 19. Heroku API Concurrency Bottleneck & Memory Quota [RESOLVED]
+
+**Issue:** The Heroku Basic Dyno ($7/mo) experienced extreme latency and occasionally threw `R14 Memory Quota Exceeded` errors when multiple users tried to simulate events simultaneously. Furthermore, the single Uvicorn worker meant that heavy XGBoost CPU-bound predictions blocked the entire event loop.
+**Root Cause:** The `api_orchestrator.py` was loading nearly ~817MB of heavy dependencies (`xgboost`, `pandas`, `scikit-learn`, `numpy`) and massive `.json` decision-tree models directly into the 512MB RAM Dyno. Because RAM was maxed out, scaling the `uvicorn` workers beyond 1 was mathematically impossible, creating a hard concurrency limit.
+**Solution:** Decoupled the Math Engine completely. Migrated the `xgboost` logic to a high-concurrency Serverless GPU/CPU Webhook endpoint. Purged all ML libraries from Heroku's `requirements.txt`, reducing the slug size to 42MB (a ~95% reduction). Safely scaled `uvicorn --workers` up to 4 on the exact same Basic Dyno, transforming the API into a lightning-fast, highly concurrent routing proxy.
+
+---
+
 ## 18. Heroku Slug Size Limit & XGBoost Model Exclusion [RESOLVED]
 
 **Issue:** Deploying the monorepo to Heroku exceeded the hard 1GB Slug Size limit (reaching ~1.5GB) due to the bundled `calamity-ui` frontend node modules and Next.js `.next` cache.

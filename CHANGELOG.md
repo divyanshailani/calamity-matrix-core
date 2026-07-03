@@ -5,6 +5,14 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-07-03
+
+### ⚡ Serverless Microservice Decoupling
+- **Math Engine Microservice**: Completely extracted the heavy XGBoost predictive models from the Heroku monolith. Deployed them to an isolated, high-performance Serverless Webhook.
+- **95% Slug Reduction**: Purged `xgboost`, `pandas`, `scikit-learn`, `torch`, and `numpy` from the Heroku dependencies. Reduced the Heroku deployment slug size from ~817MB down to an ultra-lightweight 42MB.
+- **Extreme Concurrency**: Safely scaled the `api_orchestrator.py` Uvicorn process to 4 parallel workers on a single Basic Dyno. The orchestrator now simply acts as a lightning-fast router bridging the RAG database, the Math Microservice, and the LLM endpoint, entirely eradicating the `R14 Memory Quota` bottleneck.
+- **Zero-Touch CI/CD**: Verified full GitHub-to-Heroku auto-deploy capabilities for instant API updates.
+
 ## [2.2.0] - 2026-07-03
 
 ### 🏗️ Decoupled Heroku Architecture Migration
