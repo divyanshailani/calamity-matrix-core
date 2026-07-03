@@ -2,9 +2,6 @@ import os
 import sys
 import json
 import uvicorn
-import numpy as np
-import pandas as pd
-import xgboost as xgb
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -49,35 +46,12 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
 from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT, INGESTION_SECRET_KEY, CLOUD_LLM_API_KEY, MIN_EVENT_YEAR, TIME_DECAY_PENALTY, CLOUD_LLM_MODEL
 import scripts.live_ingestion as live_ingestion
-
-MODEL_DIR = os.path.join(SCRIPT_DIR, "..", "models")
-XGB_AFFECTED_PATH = os.path.join(MODEL_DIR, "xgb_log_affected.json")
-XGB_DAMAGE_PATH = os.path.join(MODEL_DIR, "xgb_log_damage.json")
-
-
-
 # Global state container
 models = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("\n[*] Initializing Calamity AI Neuro-Symbolic Orchestrator...")
-    
-    # 1. Load Universal XGBoost Predictors (Fallback)
-    import json
-    logger.info("[*] Loading Universal XGBoost Predictors (v2 Fallback)...")
-    if not os.path.exists(XGB_AFFECTED_PATH) or not os.path.exists(XGB_DAMAGE_PATH):
-        logger.warning(f"[!] Critical Warning: Universal fallback models not found at {XGB_AFFECTED_PATH} or {XGB_DAMAGE_PATH}. Math engine will fail if queried.")
-    else:
-        models['universal_affected'] = xgb.XGBRegressor()
-        models['universal_affected'].load_model(XGB_AFFECTED_PATH)
-        with open(XGB_AFFECTED_PATH.replace('.json', '_meta.json'), 'r') as f:
-            models['universal_affected_meta'] = json.load(f)
-        
-        models['universal_damage'] = xgb.XGBRegressor()
-        models['universal_damage'].load_model(XGB_DAMAGE_PATH)
-        with open(XGB_DAMAGE_PATH.replace('.json', '_meta.json'), 'r') as f:
-            models['universal_damage_meta'] = json.load(f)
     
     # 2. Setup Embedding Bridge
     logger.info("[*] Connecting to Neural Bridge (Hugging Face Inference API)...")
@@ -181,66 +155,28 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
     payload.country = payload.country.replace('%', '').replace('_', '')
     try:
         # ---------------------------------------------------------
-        # 1. The Math Engine Execution (Predictive)
+        # 1. The Math Engine Execution (Predictive via Modal Microservice)
         # ---------------------------------------------------------
-        # Format exact columns trained by XGBoost
-        input_data = pd.DataFrame({
-            'Country': [payload.country],
-            'Disaster Type': [payload.disaster_type],
-            'Start Month': [payload.month],
-            'Start Year': [payload.event_year],
-            'Severity': [payload.severity]
-        })
-        
-        # Cast specific columns to native categories exactly as done in training
-        input_data['Country'] = input_data['Country'].astype('category')
-        input_data['Disaster Type'] = input_data['Disaster Type'].astype('category')
-        
-        # Dynamic Multi-Physics Routing
-        import re
-        import json
-        slug = str(payload.disaster_type).lower()
-        slug = re.sub(r'[^a-z0-9]+', '_', slug).strip('_')
-        
-        cache_key_aff = f"{slug}_affected"
-        cache_key_dam = f"{slug}_damage"
-        
-        aff_model_path = os.path.join(MODEL_DIR, f"{cache_key_aff}.json")
-        dam_model_path = os.path.join(MODEL_DIR, f"{cache_key_dam}.json")
-        
-        if os.path.exists(aff_model_path) and os.path.exists(dam_model_path):
-            # Lazy load domain-specific models if not in cache
-            if cache_key_aff not in models:
-                models[cache_key_aff] = xgb.XGBRegressor()
-                models[cache_key_aff].load_model(aff_model_path)
-                with open(aff_model_path.replace('.json', '_meta.json'), 'r') as f:
-                    models[f"{cache_key_aff}_meta"] = json.load(f)
-            if cache_key_dam not in models:
-                models[cache_key_dam] = xgb.XGBRegressor()
-                models[cache_key_dam].load_model(dam_model_path)
-                with open(dam_model_path.replace('.json', '_meta.json'), 'r') as f:
-                    models[f"{cache_key_dam}_meta"] = json.load(f)
-                
-            model_affected = models[cache_key_aff]
-            model_damage = models[cache_key_dam]
-            meta_affected = models[f"{cache_key_aff}_meta"]
-            meta_damage = models[f"{cache_key_dam}_meta"]
-            
-            # Domain-specific inference
-            pred_log_affected = model_affected.predict(input_data)[0]
-            pred_log_damage = model_damage.predict(input_data)[0]
-        else:
-            # Fallback to Universal v2 Model for rare physics
-            if 'universal_affected' not in models:
-                raise HTTPException(status_code=500, detail="Universal fallback models are missing from the server. Check logs.")
-            pred_log_affected = models['universal_affected'].predict(input_data)[0]
-            pred_log_damage = models['universal_damage'].predict(input_data)[0]
-            meta_affected = models['universal_affected_meta']
-            meta_damage = models['universal_damage_meta']
-        
-        # Inverse log1p transform (expm1) back to real-world numbers
-        est_affected = float(np.expm1(pred_log_affected))
-        est_damage = float(np.expm1(pred_log_damage))
+        modal_url = "https://divyanshailani--calamity-matrix-math-engine-mathengine-predict.modal.run"
+        compute_payload = {
+            "country": payload.country,
+            "disaster_type": payload.disaster_type,
+            "month": payload.month,
+            "event_year": payload.event_year,
+            "severity": payload.severity
+        }
+        try:
+            logger.info("[DEBUG] Hitting Modal Math Engine...")
+            modal_resp = requests.post(modal_url, json=compute_payload, timeout=30)
+            modal_resp.raise_for_status()
+            modal_data = modal_resp.json()
+            est_affected = modal_data["est_affected"]
+            est_damage = modal_data["est_damage"]
+            meta_affected = modal_data.get("meta_affected", {})
+            meta_damage = modal_data.get("meta_damage", {})
+        except Exception as e:
+            logger.error(f"[!] Modal Microservice Error: {e}")
+            raise HTTPException(status_code=500, detail="Math Engine Microservice Failed.")
         
         # ---------------------------------------------------------
         # 2. The RAG Engine Execution (Historical Context)
@@ -287,13 +223,11 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             embed_result = embed_result[0] # handle batch outer list
             
         # Normalize embeddings (equivalent to normalize_embeddings=True)
-        vec = np.array(embed_result, dtype=float)
-        norm = np.linalg.norm(vec)
+        norm = sum(x**2 for x in embed_result)**0.5
         if norm > 0:
-            vec = vec / norm
+            query_embedding = [x / norm for x in embed_result]
         else:
             raise HTTPException(status_code=500, detail="Hugging Face API returned an invalid zero-vector.")
-        query_embedding = vec.tolist()
 
         # Map EM-DAT taxonomy to ReliefWeb taxonomy for RAG matching
         rw_types = [payload.disaster_type]
