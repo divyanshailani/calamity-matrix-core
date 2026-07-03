@@ -37,11 +37,11 @@ export default function TelemetryHUD({ telemetry }: TelemetryProps) {
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <p style={{ fontSize: "10px", fontWeight: 500, color: "var(--text-2)", letterSpacing: "0.06em", textTransform: "uppercase" }}>Math Engine</p>
           <div>
-            <p style={{ fontSize: "10px", color: "var(--text-2)", marginBottom: "4px" }}>RMSE — Affected Population</p>
+            <p style={{ fontSize: "10px", color: "var(--text-2)", marginBottom: "4px" }}>Global Training RMSE</p>
             <p style={{ fontSize: "20px", fontWeight: 600, fontFamily: "var(--font-geist-mono)", color: "var(--text-1)", letterSpacing: "-0.02em" }}>{rmse}</p>
           </div>
           <div>
-            <p style={{ fontSize: "10px", color: "var(--text-2)", marginBottom: "4px" }}>MAE — Affected Population</p>
+            <p style={{ fontSize: "10px", color: "var(--text-2)", marginBottom: "4px" }}>Global Training MAE</p>
             <p style={{ fontSize: "20px", fontWeight: 600, fontFamily: "var(--font-geist-mono)", color: "var(--text-1)", letterSpacing: "-0.02em" }}>{mae}</p>
           </div>
         </div>

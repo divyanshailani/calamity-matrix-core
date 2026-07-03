@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Send, Sparkles, Clock } from "lucide-react";
+import { ArrowLeft, Send, Sparkles } from "lucide-react";
 
 interface CalamityAiChatProps {
   formData: any;
@@ -20,7 +20,6 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSimulating, setIsSimulating] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
   const endRef = useRef<HTMLDivElement>(null);
 
   // Auto scroll to bottom
@@ -28,19 +27,6 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Sleep counter
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
 
   const fetchStream = async (queryText: string, isInitial: boolean = false) => {
     // Allow chat even if results is null
@@ -56,7 +42,6 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
 
     setIsSimulating(true);
     setInput("");
-    setTimeLeft(300); // Reset timer on new request
 
     try {
       const endpoint = isInitial ? "/api/v1/ask_ai" : "/api/v1/chat";
@@ -213,15 +198,7 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
         </div>
         
         <div className="flex items-center gap-2">
-          {timeLeft === 0 ? (
-            <span className="text-[10px] text-zinc-500 flex items-center gap-1 bg-zinc-900 px-2 py-1 rounded-full border border-zinc-800">
-              <Clock size={10} /> Endpoint Idle
-            </span>
-          ) : (
-            <span className={`text-[10px] flex items-center gap-1 px-2 py-1 rounded-full border ${timeLeft < 60 ? 'text-amber-500 border-amber-900/50 bg-amber-900/10' : 'text-zinc-400 border-zinc-800 bg-zinc-900'}`}>
-              <Clock size={10} /> AI sleeping in {formatTime(timeLeft)}
-            </span>
-          )}
+          {/* Cloud endpoint is always alive - no sleep timer needed */}
         </div>
       </div>
 
@@ -241,7 +218,7 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
                     <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
                   </div>
                   <div className="text-[11px] text-zinc-500 animate-pulse mt-1 font-medium">
-                    Waking up Serverless A10G GPU from cold sleep... this may take up to 2 minutes.
+                    Synthesizing tactical intelligence...
                   </div>
                 </div>
               )}
