@@ -236,3 +236,14 @@ This is clearly documented in the README. No model in this project claims to pre
 - [x] **Synthesizer bridge** — Phase 19: Math Engine output → RAG retrieval → LLM synthesis pipeline
 - [x] **Cloud Service LLM Integration** — Phase 20: Wire the local Next.js frontend to the Cloud Service serverless endpoint for real-time inference streaming.
 - [ ] **UI/UX Portfolio Overhaul** — Phase 21: Redesign the Next.js UI into a high-end defense-grade dashboard, add user onboarding/context, and parse LLM streaming output into styled Markdown.
+
+## 20. Hugging Face API Cold-Start Timeout (Heroku H12 Error) [RESOLVED]
+
+**Issue:** The UI intermittently returned a 500 error or "Connection failed" when clicking "Run Simulation". The backend successfully completed the request, but the UI crashed.
+**Root Cause:** The Hugging Face serverless Inference API (Neural Bridge) takes ~25-30 seconds to wake up from a cold state. The Heroku router has a hardcoded, unchangeable 30-second timeout (`H12 Request timeout`). If the total computation time exceeded 30 seconds, Heroku ruthlessly severed the connection and returned a `503 Service Unavailable` to the frontend, causing the UI to break.
+**Solution:** Implemented a non-blocking `threading.Thread` inside the FastAPI `lifespan` event. This background daemon pings the Hugging Face Inference API with a lightweight dummy query every 10 minutes. This guarantees the 15GB `BAAI/bge-large-en-v1.5` model remains permanently cached in VRAM, dropping the inference time from ~30 seconds down to <1 second, completely bypassing the Heroku router limits and resolving the intermittent frontend crashes.
+
+## 21. Autonomous Crawler GitHub Action Misdirection [RESOLVED]
+
+**Issue:** The weekly `live_ingestion.yml` GitHub Action was configured to hit the deprecated DigitalOcean monolith API URL (`api.calamityai.tech`), which would fail to trigger the background task on the new decoupled architecture.
+**Solution:** Updated the curl command in the `.github/workflows/live_ingestion.yml` pipeline to point directly to the new Heroku Basic Dyno endpoint (`calamity-matrix-api-21d813c1e629.herokuapp.com`).

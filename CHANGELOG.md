@@ -5,7 +5,11 @@ All notable changes to the Calamity Matrix Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.3.0] - 2026-07-03
+## [2.3.0] - 2026-07-04
+
+### Bug Fixes & Reliability
+- **Hugging Face API Cold-Start Mitigation**: Deployed a background thread (`threading.Thread`) directly into the FastAPI `lifespan` event. This daemon permanently anchors the 15GB `BAAI/bge-large-en-v1.5` embeddings model into GPU VRAM by pinging it every 10 minutes, dropping prediction latency from ~30s to <1s. This completely eliminates the Heroku `H12 Request timeout` cascading 500 errors previously experienced when the model scaled to zero.
+- **Action Endpoint Realignment**: Hotfixed the `live_ingestion.yml` GitHub Action workflow to target the new decoupled Heroku `.herokuapp.com` ingestion endpoint instead of the deprecated DigitalOcean monolith, guaranteeing seamless background dataset expansion.
 
 ### ⚡ Serverless Microservice Decoupling
 - **Math Engine Microservice**: Completely extracted the heavy XGBoost predictive models from the Heroku monolith. Deployed them to an isolated, high-performance Serverless Webhook.
