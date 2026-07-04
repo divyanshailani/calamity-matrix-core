@@ -57,6 +57,25 @@ async def lifespan(app: FastAPI):
     logger.info("[*] Connecting to Neural Bridge (Hugging Face Inference API)...")
     if not HF_TOKEN:
         logger.warning(" HF_TOKEN is not set. Inference API may rate limit heavily.")
+        
+    # Start a background thread to keep the Hugging Face Inference API warm
+    import threading
+    import time
+    def keep_hf_warm():
+        hf_api_url = "https://router.huggingface.co/hf-inference/models/BAAI/bge-large-en-v1.5"
+        headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
+        while True:
+            try:
+                # Send a lightweight dummy query to keep the model loaded in GPU memory
+                requests.post(hf_api_url, headers=headers, json={"inputs": "warmup"}, timeout=10)
+            except Exception:
+                pass
+            time.sleep(600)  # Ping every 10 minutes (HF models usually sleep after 15 mins)
+
+    warmup_thread = threading.Thread(target=keep_hf_warm, daemon=True)
+    warmup_thread.start()
+    logger.info("[+] Neural Bridge Warm-up Thread started.")
+
     
     # 3. Initialize Postgres Connection Pool
     if DATABASE_URL:
