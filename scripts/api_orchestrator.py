@@ -361,6 +361,7 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         }
         
     except Exception as e:
+        logger.error(f"[!] Unhandled Exception in simulate_calamity: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 # ---------------------------------------------------------
