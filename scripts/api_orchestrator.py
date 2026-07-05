@@ -58,23 +58,41 @@ async def lifespan(app: FastAPI):
     if not HF_TOKEN:
         logger.warning(" HF_TOKEN is not set. Inference API may rate limit heavily.")
         
-    # Start a background thread to keep the Hugging Face Inference API warm
+    # Start a background thread to keep both Hugging Face and Modal Inference APIs warm
     import threading
     import time
-    def keep_hf_warm():
+    def keep_services_warm():
         hf_api_url = "https://router.huggingface.co/hf-inference/models/BAAI/bge-large-en-v1.5"
+        modal_url = "https://divyanshailani--calamity-matrix-math-engine-mathengine-predict.modal.run"
         headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
+        
+        # A lightweight dummy payload for the Math Engine
+        modal_dummy_payload = {
+            "country": "warmup",
+            "disaster_type": "warmup",
+            "month": 1,
+            "event_year": 2000,
+            "severity": 1.0
+        }
+        
         while True:
             try:
-                # Send a lightweight dummy query to keep the model loaded in GPU memory
+                # 1. Ping Hugging Face
                 requests.post(hf_api_url, headers=headers, json={"inputs": "warmup"}, timeout=10)
             except Exception:
                 pass
-            time.sleep(600)  # Ping every 10 minutes (HF models usually sleep after 15 mins)
+                
+            try:
+                # 2. Ping Modal Math Engine
+                requests.post(modal_url, json=modal_dummy_payload, timeout=10)
+            except Exception:
+                pass
+                
+            time.sleep(300)  # Ping every 5 minutes (Modal containers often spin down quickly)
 
-    warmup_thread = threading.Thread(target=keep_hf_warm, daemon=True)
+    warmup_thread = threading.Thread(target=keep_services_warm, daemon=True)
     warmup_thread.start()
-    logger.info("[+] Neural Bridge Warm-up Thread started.")
+    logger.info("[+] Services Warm-up Thread (HF + Modal) started.")
 
     
     # 3. Initialize Postgres Connection Pool
