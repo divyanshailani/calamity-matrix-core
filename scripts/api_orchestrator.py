@@ -180,7 +180,6 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
     payload.country = resolve_country(payload.country)
     payload.country = payload.country.replace('%', '').replace('_', '')
     try:
-    try:
         from concurrent.futures import ThreadPoolExecutor
 
         # ---------------------------------------------------------
