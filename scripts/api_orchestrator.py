@@ -67,12 +67,17 @@ async def lifespan(app: FastAPI):
         
         while True:
             try:
-                # 1. Ping Hugging Face to prevent the 30s cold-start
-                requests.post(hf_api_url, headers=headers, json={"inputs": "warmup"}, timeout=10)
-            except Exception:
-                pass
+                # 1. Ping Hugging Face with wait_for_model to force it into VRAM
+                payload = {"inputs": "warmup", "options": {"wait_for_model": True}}
+                resp = requests.post(hf_api_url, headers=headers, json=payload, timeout=40)
+                if resp.status_code == 200:
+                    logger.debug("[~] HF Warmup Ping: Success.")
+                else:
+                    logger.warning(f"[!] HF Warmup Ping: Status {resp.status_code}")
+            except Exception as e:
+                logger.warning(f"[!] HF Warmup Ping Exception: {e}")
                 
-            time.sleep(180)  # Ping every 3 minutes (HF models sleep quickly)
+            time.sleep(180)  # Ping every 3 minutes
 
     warmup_thread = threading.Thread(target=keep_hf_warm, daemon=True)
     warmup_thread.start()
