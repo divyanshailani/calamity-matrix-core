@@ -212,28 +212,20 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             return resp.json()
 
         def fetch_hf():
-            import time
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    logger.info(f"[DEBUG] Hitting HF API (Attempt {attempt+1}/{max_retries})...")
-                    resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=10 + (attempt * 5))
-                    if resp.status_code == 200:
-                        return resp.json()
-                    elif resp.status_code == 503:
-                        logger.warning(f"[!] HF API 503 Model Loading (Attempt {attempt+1}). Waiting...")
-                        time.sleep(2)
-                    else:
-                        logger.warning(f"[!] HF API Error {resp.status_code}: {resp.text}")
-                        break
-                except requests.exceptions.Timeout:
-                    logger.warning(f"[!] HF API Timeout on attempt {attempt+1}.")
-                    if attempt < max_retries - 1:
-                        time.sleep(1)
-                except Exception as e:
-                    logger.warning(f"[!] HF API Request Exception: {e}")
-                    break
-            raise HTTPException(status_code=500, detail=f"Hugging Face API Error: Failed after {max_retries} attempts.")
+            try:
+                logger.info("[DEBUG] Hitting HF API...")
+                resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=28)
+                if resp.status_code == 200:
+                    return resp.json()
+                else:
+                    logger.warning(f"[!] HF API Error {resp.status_code}: {resp.text}")
+                    raise HTTPException(status_code=500, detail=f"Hugging Face API Error: {resp.status_code}")
+            except requests.exceptions.Timeout:
+                logger.warning("[!] HF API Timeout after 28s.")
+                raise HTTPException(status_code=503, detail="Hugging Face API timed out. Model is heavily loaded.")
+            except Exception as e:
+                logger.warning(f"[!] HF API Request Exception: {e}")
+                raise HTTPException(status_code=500, detail="Hugging Face API Request failed.")
 
         # ---------------------------------------------------------
         # 3. Execute in Parallel
