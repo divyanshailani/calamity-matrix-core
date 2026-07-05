@@ -77,7 +77,7 @@ async def lifespan(app: FastAPI):
             except Exception as e:
                 logger.warning(f"[!] HF Warmup Ping Exception: {e}")
                 
-            time.sleep(180)  # Ping every 3 minutes
+            time.sleep(30)  # Ping every 30 seconds to aggressively prevent sleep
 
     warmup_thread = threading.Thread(target=keep_hf_warm, daemon=True)
     warmup_thread.start()
