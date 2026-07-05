@@ -180,8 +180,11 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
     payload.country = resolve_country(payload.country)
     payload.country = payload.country.replace('%', '').replace('_', '')
     try:
+    try:
+        from concurrent.futures import ThreadPoolExecutor
+
         # ---------------------------------------------------------
-        # 1. The Math Engine Execution (Predictive via Modal Microservice)
+        # 1. Prepare Payloads
         # ---------------------------------------------------------
         modal_url = "https://divyanshailani--calamity-matrix-math-engine-mathengine-predict.modal.run"
         compute_payload = {
@@ -191,59 +194,66 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             "event_year": payload.event_year,
             "severity": payload.severity
         }
-        try:
-            logger.info("[DEBUG] Hitting Modal Math Engine...")
-            modal_resp = requests.post(modal_url, json=compute_payload, timeout=30)
-            modal_resp.raise_for_status()
-            modal_data = modal_resp.json()
-            est_affected = modal_data["est_affected"]
-            est_damage = modal_data["est_damage"]
-            meta_affected = modal_data.get("meta_affected", {})
-            meta_damage = modal_data.get("meta_damage", {})
-        except Exception as e:
-            logger.error(f"[!] Modal Microservice Error: {e}")
-            raise HTTPException(status_code=500, detail="Math Engine Microservice Failed.")
         
-        # ---------------------------------------------------------
-        # 2. The RAG Engine Execution (Historical Context)
-        # ---------------------------------------------------------
-        # Generate Vector Embedding via Hugging Face API
         instruction = "Represent this sentence for searching relevant passages: "
         master_semantic_query = f"{payload.disaster_type} in {payload.country} (Year: {payload.event_year}). Additional Context: {payload.query_text}"
         full_query = instruction + master_semantic_query
         
-        # Robust Retry Mechanism for Hugging Face API
         hf_api_url = "https://router.huggingface.co/hf-inference/models/BAAI/bge-large-en-v1.5"
         headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
-        
-        import time
-        max_retries = 3
-        resp = None
-        for attempt in range(max_retries):
-            try:
-                logger.info(f"[DEBUG] Hitting HF API (Attempt {attempt+1}/{max_retries})...")
-                # Increase timeout progressively: 10s, 15s, 20s
-                resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=10 + (attempt * 5))
-                if resp.status_code == 200:
+
+        # ---------------------------------------------------------
+        # 2. Define Network Workers
+        # ---------------------------------------------------------
+        def fetch_modal():
+            logger.info("[DEBUG] Hitting Modal Math Engine...")
+            resp = requests.post(modal_url, json=compute_payload, timeout=30)
+            resp.raise_for_status()
+            return resp.json()
+
+        def fetch_hf():
+            import time
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    logger.info(f"[DEBUG] Hitting HF API (Attempt {attempt+1}/{max_retries})...")
+                    resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=10 + (attempt * 5))
+                    if resp.status_code == 200:
+                        return resp.json()
+                    elif resp.status_code == 503:
+                        logger.warning(f"[!] HF API 503 Model Loading (Attempt {attempt+1}). Waiting...")
+                        time.sleep(2)
+                    else:
+                        logger.warning(f"[!] HF API Error {resp.status_code}: {resp.text}")
+                        break
+                except requests.exceptions.Timeout:
+                    logger.warning(f"[!] HF API Timeout on attempt {attempt+1}.")
+                    if attempt < max_retries - 1:
+                        time.sleep(1)
+                except Exception as e:
+                    logger.warning(f"[!] HF API Request Exception: {e}")
                     break
-                elif resp.status_code == 503:
-                    logger.warning(f"[!] HF API 503 Model Loading (Attempt {attempt+1}). Waiting...")
-                    time.sleep(2)
-                else:
-                    logger.warning(f"[!] HF API Error {resp.status_code}: {resp.text}")
-                    break # Don't retry on 400 Bad Request etc.
-            except requests.exceptions.Timeout:
-                logger.warning(f"[!] HF API Timeout on attempt {attempt+1}.")
-                if attempt < max_retries - 1:
-                    time.sleep(1)
-            except Exception as e:
-                logger.warning(f"[!] HF API Request Exception: {e}")
-                break
-                
-        if not resp or resp.status_code != 200:
             raise HTTPException(status_code=500, detail=f"Hugging Face API Error: Failed after {max_retries} attempts.")
+
+        # ---------------------------------------------------------
+        # 3. Execute in Parallel
+        # ---------------------------------------------------------
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future_modal = executor.submit(fetch_modal)
+            future_hf = executor.submit(fetch_hf)
             
-        embed_result = resp.json()
+            try:
+                modal_data = future_modal.result()
+            except Exception as e:
+                logger.error(f"[!] Modal Microservice Error: {e}")
+                raise HTTPException(status_code=500, detail="Math Engine Microservice Failed.")
+            
+            embed_result = future_hf.result()
+            
+        est_affected = modal_data["est_affected"]
+        est_damage = modal_data["est_damage"]
+        meta_affected = modal_data.get("meta_affected", {})
+        meta_damage = modal_data.get("meta_damage", {})
         # Ensure we have a flat list of floats
         if isinstance(embed_result, list) and len(embed_result) > 0 and isinstance(embed_result[0], list):
             embed_result = embed_result[0] # handle batch outer list
