@@ -123,14 +123,18 @@ export default function Dashboard() {
       const res = await axios.post(
         process.env.NODE_ENV === "production" 
           ? "https://calamity-matrix-api-21d813c1e629.herokuapp.com/api/v1/simulate_calamity"
-          : "https://calamity-matrix-api-21d813c1e629.herokuapp.com/api/v1/simulate_calamity", {
-        query_text: data.query_text, country: data.country, disaster_type: data.disaster_type,
-        month: Number(data.month), event_year: Number(data.event_year), severity: Number(data.severity),
-      });
+          : "https://calamity-matrix-api-21d813c1e629.herokuapp.com/api/v1/simulate_calamity",
+        {
+          query_text: data.query_text, country: data.country, disaster_type: data.disaster_type,
+          month: Number(data.month), event_year: Number(data.event_year), severity: Number(data.severity),
+        },
+        { timeout: 25000 }
+      );
       setResults(res.data);
       addLog("Simulation complete.");
       if (coords) setViewState({ latitude: coords.lat, longitude: coords.lng, zoom: coords.zoom + 2 });
     } catch (e: any) {
+      console.error("[Calamity Debug]", { code: e.code, status: e.response?.status, data: e.response?.data, message: e.message });
       const msg = e.response?.data?.detail || e.message || "Connection failed.";
       setError(msg); addLog(`Error: ${msg}`);
     } finally { setIsLoading(false); }

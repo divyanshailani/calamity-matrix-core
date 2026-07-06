@@ -213,15 +213,15 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         def fetch_hf():
             try:
                 logger.info("[DEBUG] Hitting HF API...")
-                resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=28)
+                resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=120)
                 if resp.status_code == 200:
                     return resp.json()
                 else:
                     logger.warning(f"[!] HF API Error {resp.status_code}: {resp.text}")
                     raise HTTPException(status_code=500, detail=f"Hugging Face API Error: {resp.status_code}")
             except requests.exceptions.Timeout:
-                logger.warning("[!] HF API Timeout after 28s.")
-                raise HTTPException(status_code=503, detail="Hugging Face API timed out. Model is heavily loaded.")
+                logger.warning("[!] HF API Timeout after 120s.")
+                raise HTTPException(status_code=503, detail="Hugging Face API timed out after 120s. Model may be fully cold.")
             except Exception as e:
                 logger.warning(f"[!] HF API Request Exception: {e}")
                 raise HTTPException(status_code=500, detail="Hugging Face API Request failed.")
@@ -387,6 +387,8 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             }
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"[!] Unhandled Exception in simulate_calamity: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
