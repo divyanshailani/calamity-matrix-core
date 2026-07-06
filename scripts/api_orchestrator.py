@@ -44,7 +44,7 @@ logger.addHandler(handler)
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
-from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT, INGESTION_SECRET_KEY, CLOUD_LLM_API_KEY, MIN_EVENT_YEAR, TIME_DECAY_PENALTY, CLOUD_LLM_MODEL
+from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT, INGESTION_SECRET_KEY, CLOUD_LLM_API_KEY, MIN_EVENT_YEAR, TIME_DECAY_PENALTY, CLOUD_LLM_MODEL, MATH_ENGINE_URL
 import scripts.live_ingestion as live_ingestion
 # Global state container
 models = {}
@@ -185,7 +185,7 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         # ---------------------------------------------------------
         # 1. Prepare Payloads
         # ---------------------------------------------------------
-        modal_url = "https://divyanshailani--calamity-matrix-math-engine-mathengine-predict.modal.run"
+        math_engine_url = MATH_ENGINE_URL
         compute_payload = {
             "country": payload.country,
             "disaster_type": payload.disaster_type,
@@ -204,9 +204,9 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         # ---------------------------------------------------------
         # 2. Define Network Workers
         # ---------------------------------------------------------
-        def fetch_modal():
-            logger.info("[DEBUG] Hitting Modal Math Engine...")
-            resp = requests.post(modal_url, json=compute_payload, timeout=30)
+        def fetch_math_engine():
+            logger.info("[DEBUG] Hitting Math Engine Microservice...")
+            resp = requests.post(math_engine_url, json=compute_payload, timeout=30)
             resp.raise_for_status()
             return resp.json()
 
@@ -230,21 +230,21 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         # 3. Execute in Parallel
         # ---------------------------------------------------------
         with ThreadPoolExecutor(max_workers=2) as executor:
-            future_modal = executor.submit(fetch_modal)
+            future_math = executor.submit(fetch_math_engine)
             future_hf = executor.submit(fetch_hf)
             
             try:
-                modal_data = future_modal.result()
+                math_data = future_math.result()
             except Exception as e:
-                logger.error(f"[!] Modal Microservice Error: {e}")
+                logger.error(f"[!] Math Engine Microservice Error: {e}")
                 raise HTTPException(status_code=500, detail="Math Engine Microservice Failed.")
             
             embed_result = future_hf.result()
             
-        est_affected = modal_data["est_affected"]
-        est_damage = modal_data["est_damage"]
-        meta_affected = modal_data.get("meta_affected", {})
-        meta_damage = modal_data.get("meta_damage", {})
+        est_affected = math_data["est_affected"]
+        est_damage = math_data["est_damage"]
+        meta_affected = math_data.get("meta_affected", {})
+        meta_damage = math_data.get("meta_damage", {})
         # Ensure we have a flat list of floats
         if isinstance(embed_result, list) and len(embed_result) > 0 and isinstance(embed_result[0], list):
             embed_result = embed_result[0] # handle batch outer list
