@@ -86,11 +86,25 @@ async def lifespan(app: FastAPI):
     
     # 3. Initialize Postgres Connection Pool
     if DATABASE_URL:
-        logger.info("[*] Establishing cloud pgvector connection pool to Supabase...")
-        models['db_pool'] = pool.SimpleConnectionPool(1, 10, dsn=DATABASE_URL)
+        logger.info("[*] Establishing cloud pgvector connection pool to Azure...")
+        models['db_pool'] = pool.SimpleConnectionPool(
+            1, 10, 
+            dsn=DATABASE_URL,
+            keepalives=1,
+            keepalives_idle=60,
+            keepalives_interval=10,
+            keepalives_count=5,
+            connect_timeout=10,
+            options="-c statement_timeout=10000"
+        )
     else:
         logger.info("[*] Establishing local pgvector connection pool on port 5433...")
-        models['db_pool'] = pool.SimpleConnectionPool(1, 10, **DB_CONFIG)
+        models['db_pool'] = pool.SimpleConnectionPool(
+            1, 10, 
+            **DB_CONFIG,
+            connect_timeout=10,
+            options="-c statement_timeout=10000"
+        )
         
     logger.info("[*] Validating Database Connection...")
     conn = models['db_pool'].getconn()
