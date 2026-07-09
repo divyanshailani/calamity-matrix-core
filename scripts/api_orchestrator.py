@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import time
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
@@ -60,7 +61,6 @@ async def lifespan(app: FastAPI):
         
     # Start a background thread to keep ONLY the Hugging Face API warm
     import threading
-    import time
     def keep_hf_warm():
         hf_api_url = "https://router.huggingface.co/hf-inference/models/BAAI/bge-large-en-v1.5"
         headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
