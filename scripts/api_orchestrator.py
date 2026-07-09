@@ -254,6 +254,8 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                         time.sleep(2 ** attempt)
                         continue
                     raise HTTPException(status_code=500, detail="Hugging Face API Request failed due to network error.")
+                except HTTPException:
+                    raise
                 except Exception as e:
                     logger.warning(f"[!] HF API Unexpected Exception on attempt {attempt+1}: {e}")
                     raise HTTPException(status_code=500, detail="Hugging Face API Request failed unexpectedly.")
