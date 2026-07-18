@@ -174,18 +174,7 @@ COUNTRY_ALIASES = {
 }
 
 def resolve_country(name: str):
-    if name in COUNTRY_ALIASES:
-        return COUNTRY_ALIASES[name]
-    try:
-        return pycountry.countries.lookup(name).name
-    except LookupError:
-        try:
-            matches = pycountry.countries.search_fuzzy(name)
-            if matches:
-                return matches[0].name
-        except Exception as e:
-            logger.warning(f"Fuzzy search failed for country '{name}': {e}")
-    return name
+    return COUNTRY_ALIASES.get(name, name)
 
 @app.post("/api/v1/simulate_calamity")
 @limiter.limit("5/minute")
@@ -225,40 +214,20 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             return resp.json()
 
         def fetch_hf():
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    logger.info(f"[DEBUG] Hitting HF API... (Attempt {attempt+1}/{max_retries})")
-                    resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=120)
-                    
-                    if resp.status_code == 200:
-                        return resp.json()
-                    elif resp.status_code in [500, 502, 503, 504]:
-                        logger.warning(f"[!] HF API Error {resp.status_code} on attempt {attempt+1}: {resp.text}")
-                        if attempt < max_retries - 1:
-                            time.sleep(2 ** attempt)  # Backoff: 1s, 2s
-                            continue
-                        raise HTTPException(status_code=500, detail=f"Hugging Face API Error: {resp.status_code}")
-                    else:
-                        logger.warning(f"[!] HF API Client Error {resp.status_code}: {resp.text}")
-                        raise HTTPException(status_code=500, detail=f"Hugging Face API Error: {resp.status_code}")
-                        
-                except requests.exceptions.Timeout:
-                    logger.warning(f"[!] HF API Timeout on attempt {attempt+1}.")
-                    if attempt < max_retries - 1:
-                        continue
-                    raise HTTPException(status_code=503, detail="Hugging Face API timed out after 120s. Model may be fully cold.")
-                except requests.exceptions.RequestException as e:
-                    logger.warning(f"[!] HF API Network Exception on attempt {attempt+1}: {e}")
-                    if attempt < max_retries - 1:
-                        time.sleep(2 ** attempt)
-                        continue
-                    raise HTTPException(status_code=500, detail="Hugging Face API Request failed due to network error.")
-                except HTTPException:
-                    raise
-                except Exception as e:
-                    logger.warning(f"[!] HF API Unexpected Exception on attempt {attempt+1}: {e}")
-                    raise HTTPException(status_code=500, detail="Hugging Face API Request failed unexpectedly.")
+            from requests.adapters import HTTPAdapter
+            from urllib3.util.retry import Retry
+            session = requests.Session()
+            retries = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+            session.mount('https://', HTTPAdapter(max_retries=retries))
+            try:
+                logger.info("[DEBUG] Hitting HF API with urllib3.Retry...")
+                resp = session.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=120)
+                resp.raise_for_status()
+                return resp.json()
+            except requests.exceptions.Timeout:
+                raise HTTPException(status_code=503, detail="Hugging Face API timed out after 120s. Model may be fully cold.")
+            except requests.exceptions.RequestException as e:
+                raise HTTPException(status_code=500, detail=f"Hugging Face API Request failed: {e}")
 
         # ---------------------------------------------------------
         # 3. Execute in Parallel
@@ -435,32 +404,34 @@ client = openai.AsyncOpenAI(
     api_key=CLOUD_LLM_API_KEY
 )
 
+SYSTEM_PROMPT = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments. Speak with absolute certainty and full confidence. Never use phrases like 'expected to', 'estimated to', or 'predicted'. Present all figures as established facts. Never mention your internal 'Math Engine' or 'RAG Engine' or 'simulation parameters' directly to the user. You were engineered by Divyansh Ailani. You are currently running on a Groq LPU."
+
+async def _stream_llm_response(messages, stream):
+    response = await client.chat.completions.create(
+        model=CLOUD_LLM_MODEL,
+        messages=messages,
+        stream=stream
+    )
+    if stream:
+        async def generate():
+            async for chunk in response:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    yield f"data: {json.dumps({'text': chunk.choices[0].delta.content})}\n\n"
+            yield "data: [DONE]\n\n"
+        return StreamingResponse(generate(), media_type="text/event-stream")
+    else:
+        return {"response": response.choices[0].message.content}
+
 @app.post("/api/v1/chat")
 @limiter.limit("10/minute")
 async def chat_endpoint(request: Request, payload: ChatRequest):
     request_id_ctx.set(str(uuid.uuid4()))
     try:
-        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments. Speak with absolute certainty and full confidence. Never use phrases like 'expected to', 'estimated to', or 'predicted'. Present all figures as established facts. Never mention your internal 'Math Engine' or 'RAG Engine' or 'simulation parameters' directly to the user. You were engineered by Divyansh Ailani. You are currently running on a Groq LPU."
-        
         messages = [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": payload.query_text}
         ]
-        
-        response = await client.chat.completions.create(
-            model=CLOUD_LLM_MODEL,
-            messages=messages,
-            stream=payload.stream
-        )
-        if payload.stream:
-            async def generate():
-                async for chunk in response:
-                    if chunk.choices and chunk.choices[0].delta.content:
-                        yield f"data: {json.dumps({'text': chunk.choices[0].delta.content})}\n\n"
-                yield "data: [DONE]\n\n"
-            return StreamingResponse(generate(), media_type="text/event-stream")
-        else:
-            return {"response": response.choices[0].message.content}
+        return await _stream_llm_response(messages, payload.stream)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -469,8 +440,6 @@ async def chat_endpoint(request: Request, payload: ChatRequest):
 async def ask_ai_endpoint(request: Request, payload: AskAIRequest):
     request_id_ctx.set(str(uuid.uuid4()))
     try:
-        system_prompt = "You are Calamity AI, a disaster impact analysis assistant trained on historical disaster data from USGS, NASA EONET, EM-DAT, and HDX/ReliefWeb. Write cold, objective, highly analytical, and strictly factual impact assessments. Speak with absolute certainty and full confidence. Never use phrases like 'expected to', 'estimated to', or 'predicted'. Present all figures as established facts. Never mention your internal 'Math Engine' or 'RAG Engine' or 'simulation parameters' directly to the user. You were engineered by Divyansh Ailani. You are currently running on a Groq LPU."
-        
         sim_params_str = json.dumps(payload.simulation_parameters, indent=2)
         math_preds_str = json.dumps(payload.math_predictions, indent=2)
         
@@ -481,24 +450,10 @@ async def ask_ai_endpoint(request: Request, payload: AskAIRequest):
         user_message = f"A simulation has been run for the following scenario. Using the Math Engine predictions and historical context provided, generate a structured, grounded impact assessment.\n\n**Simulation Parameters:**\n{sim_params_str}\n\n**Math Engine Predictions (XGBoost):**\n{math_preds_str}\n\n**Closest Historical Analogy (RAG Engine):**\n{rag_data_str.strip()}\n\n**Your Task:**\nWrite a comprehensive 2-paragraph tactical impact assessment. CRITICAL INSTRUCTION: Be highly analytical and objective. Do NOT hallucinate external details. Do NOT mention the words 'Math Engine', 'RAG', 'predictions', or 'simulation parameters' in your response. State the casualty and economic figures with absolute, authoritative certainty as definitive facts, avoiding words like 'expected' or 'estimated'. In the first paragraph, report the direct impact figures. In the second paragraph, provide a deeper explanation of the disaster's physical footprint, using the historical analogy to definitively explain the likely on-the-ground reality, infrastructure damage, and potential cascading effects. Write as a definitive military-style tactical synthesis."
         
         messages = [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_message}
         ]
-        
-        response = await client.chat.completions.create(
-            model=CLOUD_LLM_MODEL,
-            messages=messages,
-            stream=payload.stream
-        )
-        if payload.stream:
-            async def generate():
-                async for chunk in response:
-                    if chunk.choices and chunk.choices[0].delta.content:
-                        yield f"data: {json.dumps({'text': chunk.choices[0].delta.content})}\n\n"
-                yield "data: [DONE]\n\n"
-            return StreamingResponse(generate(), media_type="text/event-stream")
-        else:
-            return {"response": response.choices[0].message.content}
+        return await _stream_llm_response(messages, payload.stream)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
