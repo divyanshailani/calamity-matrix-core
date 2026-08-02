@@ -51,7 +51,7 @@ The deployment phase encountered a cascading series of infrastructural failures 
 > [!CAUTION]
 > **Issue 2: The libpq Connection Refused (Abstract Unix Socket Bug)**
 > **Symptom:** The API container entered a crash-loop, throwing `psycopg2.OperationalError: connection to server on socket "@@***REDACTED***@***REDACTED***/.s.PGSQL.5432" failed: Connection refused`.
-> **Root Cause:** The database password (`***REDACTED***`) contained unescaped `@` symbols. When parsed by the underlying C library (`libpq`), it incorrectly split the string at the *first* `@`. It treated `@@***REDACTED***@***REDACTED***` as the hostname. Because it began with an `@`, PostgreSQL treated it as an Abstract Unix Domain Socket rather than an IP address, instantly throwing a connection refused error.
+> **Root Cause:** The database password (redacted; it contained several literal `@` characters) had unescaped `@` symbols. When parsed by the underlying C library (`libpq`), it incorrectly split the string at the *first* `@`. It treated `@@***REDACTED***@***REDACTED***` as the hostname. Because it began with an `@`, PostgreSQL treated it as an Abstract Unix Domain Socket rather than an IP address, instantly throwing a connection refused error.
 > **Resolution:** We URL-encoded the special characters directly in the DigitalOcean `.env` file (`%40` for `@`, `%23` for `#`, etc.).
 
 > [!IMPORTANT]

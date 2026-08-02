@@ -45,3 +45,6 @@ scripts/modal_train.py
 
 # DevOps automation scripts (contain credentials — NEVER commit)
 *.exp
+
+# Infrastructure reference — contains live credentials, keep local only
+INFRASTRUCTURE.md
