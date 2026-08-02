@@ -263,16 +263,24 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         rw_types = [payload.disaster_type]
         dt_lower = payload.disaster_type.lower()
         decay_factor = TIME_DECAY_PENALTY.get(dt_lower, TIME_DECAY_PENALTY["default"])
-        if dt_lower == "extreme temperature":
+        if dt_lower == "earthquake":
+            rw_types = ["Earthquake"]
+        elif dt_lower == "flood":
+            rw_types = ["Flood", "Flash Flood"]
+        elif dt_lower == "extreme temperature":
             rw_types = ["Heat Wave", "Cold Wave", "Extreme temperature"]
         elif dt_lower == "storm":
             rw_types = ["Storm", "Storm Surge", "Tropical Cyclone", "Extratropical Cyclone", "Severe Local Storm"]
         elif dt_lower == "mass movement (wet)":
             rw_types = ["Mud Slide", "Land Slide", "Mass movement (wet)"]
+        elif dt_lower == "mass movement (dry)":
+            rw_types = ["Land Slide", "Mass movement (dry)"]
         elif dt_lower == "volcanic activity":
             rw_types = ["Volcano", "Volcanic activity"]
         elif dt_lower == "wildfire":
             rw_types = ["Wild Fire", "Fire", "Wildfire"]
+        elif dt_lower == "drought":
+            rw_types = ["Drought"]
             
         db_pool = models['db_pool']
         conn = db_pool.getconn()
