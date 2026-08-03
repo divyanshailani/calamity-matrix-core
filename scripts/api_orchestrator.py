@@ -59,29 +59,25 @@ async def lifespan(app: FastAPI):
     if not HF_TOKEN:
         logger.warning(" HF_TOKEN is not set. Inference API may rate limit heavily.")
         
-    # Start a background thread to keep ONLY the Hugging Face API warm
-    import threading
-    def keep_hf_warm():
-        hf_api_url = "https://router.huggingface.co/hf-inference/models/BAAI/bge-large-en-v1.5"
-        headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
-        
-        while True:
-            try:
-                # 1. Ping Hugging Face with wait_for_model to force it into VRAM
-                payload = {"inputs": "warmup", "options": {"wait_for_model": True}}
-                resp = requests.post(hf_api_url, headers=headers, json=payload, timeout=40)
-                if resp.status_code == 200:
-                    logger.debug("[~] HF Warmup Ping: Success.")
-                else:
-                    logger.warning(f"[!] HF Warmup Ping: Status {resp.status_code}")
-            except Exception as e:
-                logger.warning(f"[!] HF Warmup Ping Exception: {e}")
-                
-            time.sleep(30)  # Ping every 30 seconds to aggressively prevent sleep
-
-    warmup_thread = threading.Thread(target=keep_hf_warm, daemon=True)
-    warmup_thread.start()
-    logger.info("[+] Neural Bridge Warm-up Thread (HF) started.")
+    # NOTE: A background "keep HF warm" thread used to live here, pinging the
+    # embedding model every 30s with options.wait_for_model=True.
+    #
+    # It was removed because it burned the entire HF inference allowance while
+    # delivering no benefit:
+    #   - The thread started once PER UVICORN WORKER (Procfile uses --workers 4),
+    #     so it was 8 real inference calls/minute => ~345,600 calls/month with
+    #     zero visitors.
+    #   - HF serverless evicts idle models regardless of traffic; pinging does
+    #     not reserve capacity, so the cold start it was meant to prevent
+    #     happened anyway.
+    #   - wait_for_model=True made each call the most expensive variant and
+    #     blocked for up to 40s, so the loop self-throttled once quota ran low.
+    #
+    # Cold starts are handled where they actually matter instead: the per-request
+    # embedding call in get_embedding() already retries via urllib3.Retry.
+    # If warming is ever genuinely needed, do it in ONE place (a single external
+    # scheduler, not per-worker) and at a low frequency.
+    logger.info("[*] HF keep-warm thread intentionally disabled (quota preservation).")
 
     
     # 3. Initialize Postgres Connection Pool
