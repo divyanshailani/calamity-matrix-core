@@ -121,12 +121,12 @@ export default function Dashboard() {
     if (coords) setViewState({ latitude: coords.lat, longitude: coords.lng, zoom: coords.zoom });
     try {
       const res = await axios.post(
-        "https://api.calamityai.tech/api/v1/simulate_calamity",
+        "https://calamity-matrix-api-21d813c1e629.herokuapp.com/api/v1/simulate_calamity",
         {
           query_text: data.query_text, country: data.country, disaster_type: data.disaster_type,
           month: Number(data.month), event_year: Number(data.event_year), severity: Number(data.severity),
         },
-        { timeout: 25000 }
+        { timeout: 29000 }
       );
       setResults(res.data);
       addLog("Simulation complete.");

@@ -45,7 +45,7 @@ export default function CalamityAiChat({ formData, results, onClose, isActive, a
 
     try {
       const endpoint = isInitial ? "/api/v1/ask_ai" : "/api/v1/chat";
-      const apiUrl = `https://api.calamityai.tech${endpoint}`;
+      const apiUrl = `https://calamity-matrix-api-21d813c1e629.herokuapp.com${endpoint}`;
 
       const payloadBody = isInitial ? {
           query_text: queryText || formData?.query_text || "",
