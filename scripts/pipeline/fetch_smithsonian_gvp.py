@@ -5,8 +5,8 @@ import numpy as np
 
 # Configuration
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-RAW_DIR = os.path.join(SCRIPT_DIR, "..", "data", "raw", "smithsonian_gvp")
-PROCESSED_FILE = os.path.join(SCRIPT_DIR, "..", "data", "processed", "global_volcano_master.csv")
+RAW_DIR = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "raw", "smithsonian_gvp")
+PROCESSED_FILE = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "processed", "global_volcano_master.csv")
 
 os.makedirs(RAW_DIR, exist_ok=True)
 

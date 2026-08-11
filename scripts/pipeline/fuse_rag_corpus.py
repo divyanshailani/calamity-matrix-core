@@ -5,9 +5,9 @@ import re
 
 # Configuration
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-SHADOW_FILE = os.path.join(SCRIPT_DIR, "..", "data", "raw", "reliefweb_shadow", "reliefweb_reports_checkpoint_1.json")
-HDX_FILE = os.path.join(SCRIPT_DIR, "..", "data", "processed", "rag_texts", "hdx_baseline_corpus.csv")
-MASTER_OUT = os.path.join(SCRIPT_DIR, "..", "data", "processed", "rag_texts", "master_rag_corpus.csv")
+SHADOW_FILE = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "raw", "reliefweb_shadow", "reliefweb_reports_checkpoint_1.json")
+HDX_FILE = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "processed", "rag_texts", "hdx_baseline_corpus.csv")
+MASTER_OUT = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "processed", "rag_texts", "master_rag_corpus.csv")
 
 def clean_text(text):
     if not isinstance(text, str):

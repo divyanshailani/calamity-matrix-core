@@ -4,8 +4,8 @@ import pandas as pd
 
 # Configuration
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-RAW_DIR = os.path.join(SCRIPT_DIR, "..", "data", "raw", "usgs_earthquakes")
-PROCESSED_FILE = os.path.join(SCRIPT_DIR, "..", "data", "processed", "global_seismic_master.csv")
+RAW_DIR = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "raw", "usgs_earthquakes")
+PROCESSED_FILE = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "processed", "global_seismic_master.csv")
 COLUMNS_TO_KEEP = ['time', 'latitude', 'longitude', 'depth', 'mag', 'place', 'id']
 
 def process_seismic_data():

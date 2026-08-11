@@ -1,5 +1,5 @@
 import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from src.config import DB_CONFIG
 
 import os
@@ -10,7 +10,7 @@ from sentence_transformers import SentenceTransformer
 
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MASTER_CORPUS = os.path.join(SCRIPT_DIR, "..", "data", "processed", "rag_texts", "master_rag_corpus.csv")
+MASTER_CORPUS = os.path.join(SCRIPT_DIR, "..", "..", "data", "processed", "rag_texts", "master_rag_corpus.csv")
 
 DB_PARAMS = DB_CONFIG
 

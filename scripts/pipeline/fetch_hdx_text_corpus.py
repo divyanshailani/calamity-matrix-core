@@ -4,8 +4,8 @@ import pandas as pd
 
 # Configuration
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-RAW_DIR = os.path.join(SCRIPT_DIR, "..", "data", "raw", "hdx_corpus")
-PROCESSED_DIR = os.path.join(SCRIPT_DIR, "..", "data", "processed", "rag_texts")
+RAW_DIR = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "raw", "hdx_corpus")
+PROCESSED_DIR = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "processed", "rag_texts")
 PROCESSED_FILE = os.path.join(PROCESSED_DIR, "hdx_baseline_corpus.csv")
 
 os.makedirs(RAW_DIR, exist_ok=True)

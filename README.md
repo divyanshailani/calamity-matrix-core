@@ -91,36 +91,26 @@ In Phase 16, the system migrated from a single universal regression model to a M
 ```
 .
 ├── scripts/
-│   ├── fetch_usgs_earthquakes.py      # USGS seismic, monthly chunked, exponential backoff
-│   ├── fetch_nasa_eonet.py            # NASA EONET fires/floods/storms
-│   ├── fetch_smithsonian_gvp.py       # Smithsonian volcanism catalog
-│   ├── fetch_hdx_text_corpus.py       # HDX narrative corpus download
-│   ├── fetch_reliefweb_reports.py     # ReliefWeb API reports (appname required)
-│   ├── process_emdat_data.py          # EM-DAT cleaning + normalization
-│   ├── process_seismic_data.py        # USGS CSV fusion + feature engineering
-│   ├── process_nasa_data.py           # NASA spatial data processing
-│   ├── build_domain_matrices.py       # Fuse all sources into unified matrices
-│   ├── fuse_rag_corpus.py             # Merge HDX + ReliefWeb into master RAG CSV
-│   ├── build_vector_db.py             # Embed corpus → pgvector ingestion (BGE-Large)
-│   ├── fix_temporal_keys.py           # Patch event_year via EM-DAT fuzzy join + regex
-│   ├── resolve_hdx_metadata.py        # Resolve raw ReliefWeb URLs/IDs to human-readable strings
-│   ├── api_orchestrator.py            # FastAPI serving layer (Math Engine + RAG + CORS)
-│   ├── test_semantic_search.py        # RAG retrieval validation
-│   └── verify_data_integrity.py       # Data quality checks across all sources
-├── src/
-│   └── config.py                      # DB config + paths loaded from .env
-├── calamity-ui/                       # Next.js frontend (MapLibre GL, CartoDB Positron)
+│   ├── production/                    # Runtime entrypoints
+│   │   ├── api_orchestrator.py        # FastAPI serving layer
+│   │   ├── live_ingestion.py          # Scheduled live event ingestion
+│   │   └── modal_compute.py           # Serverless math engine
+│   ├── pipeline/                      # Offline fetch, transform, and load steps
+│   ├── training/                      # Maintained model training workflows
+│   └── validation/                    # Read-only data and retrieval checks
+├── archive/                           # Superseded experiments and retired ops scripts
+├── src/                               # Shared configuration and application modules
+├── calamity-ui/                       # Next.js frontend
 ├── models/                            # Trained model artifacts (gitignored)
-├── data/
-│   ├── raw/                           # Source data downloads (gitignored)
-│   └── processed/                     # Fused matrices + RAG corpus (gitignored)
-├── notebooks/
-│   └── 01_Calamity_EDA.ipynb          # Exploratory analysis
-├── docker-compose.yml                 # pgvector container (reads .env)
+├── data/                              # Raw and processed datasets (gitignored)
+├── notebooks/                         # Exploratory analysis
+├── docker-compose.yml                 # Local pgvector database
 ├── .env.example                       # Environment variable template
 ├── requirements.txt                   # Pinned Python dependencies
 └── ISSUES.md                          # Engineering log
 ```
+
+The active study path is `scripts/production/` first, followed by `scripts/pipeline/` and `src/`. Historical experiments and retired infrastructure automation remain available under `archive/` without competing with the runtime code.
 
 ---
 
@@ -143,26 +133,26 @@ cp .env.example .env
 docker-compose up -d
 
 # 4. Fetch data (takes time — USGS alone is 300 monthly chunks)
-python3 scripts/fetch_usgs_earthquakes.py
-python3 scripts/fetch_nasa_eonet.py
-python3 scripts/process_emdat_data.py
-python3 scripts/build_domain_matrices.py
+python3 scripts/pipeline/fetch_usgs_earthquakes.py
+python3 scripts/pipeline/fetch_nasa_eonet.py
+python3 scripts/pipeline/process_emdat_data.py
+python3 scripts/pipeline/build_domain_matrices.py
 
 # 5. Build RAG corpus and vector DB
-python3 scripts/fuse_rag_corpus.py
-python3 scripts/build_vector_db.py
-python3 scripts/fix_temporal_keys.py
+python3 scripts/pipeline/fuse_rag_corpus.py
+python3 scripts/pipeline/build_vector_db.py
+python3 scripts/pipeline/fix_temporal_keys.py
 
 # 6. Resolve HDX metadata (requires RELIEFWEB_APPNAME in .env)
-python3 scripts/resolve_hdx_metadata.py          # dry-run preview
-python3 scripts/resolve_hdx_metadata.py --execute # commit to DB
+python3 scripts/pipeline/resolve_hdx_metadata.py          # dry-run preview
+python3 scripts/pipeline/resolve_hdx_metadata.py --execute # commit to DB
 
 # 7. Verify
-python3 scripts/test_semantic_search.py
-python3 scripts/verify_data_integrity.py
+python3 scripts/validation/test_semantic_search.py
+python3 scripts/validation/verify_data_integrity.py
 
 # 8. Start the API
-python3 scripts/api_orchestrator.py
+python3 scripts/production/api_orchestrator.py
 
 # 9. Start the frontend
 cd calamity-ui && npm run dev
@@ -225,7 +215,7 @@ To ensure the AI synthesis layer remains strictly objective and authoritative, t
 - **Definitive Tone:** We enforce absolute certainty in the prompt, forbidding the model from using hesitant language like "estimated" or "expected" when reporting casualty and economic damage metrics.
 - **Contextual Anchoring:** The orchestrator forces the LLM to write a comprehensive 2-paragraph military-style impact assessment, combining hard XGBoost metrics in the first paragraph with a physical, ground-reality explanation based on pgvector historical analogies in the second.
 
-*For full infrastructure setup scripts, SSL automation, and CI/CD deployment instructions, see the [`deploy/README.md`](./deploy/README.md).*
+*For full infrastructure setup scripts, SSL automation, and CI/CD deployment instructions, see the [`archive/deploy/`](./archive/deploy/).*
 
 ---
 

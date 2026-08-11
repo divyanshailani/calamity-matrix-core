@@ -9,7 +9,7 @@ from psycopg2.extras import execute_values
 
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..')))
 from src.config import DATABASE_URL, DB_CONFIG, HF_TOKEN
 
 def get_db_connection():

@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
 from src.config import DB_CONFIG
 
 def load_csv_mappings():
-    csv_path = os.path.join(SCRIPT_DIR, "..", "data", "raw", "hdx_corpus", "reliefweb-disasters-list.csv")
+    csv_path = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "raw", "hdx_corpus", "reliefweb-disasters-list.csv")
     if not os.path.exists(csv_path):
         print(f"[-] CSV file not found at {csv_path}")
         return {}, {}

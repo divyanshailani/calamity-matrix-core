@@ -5,7 +5,7 @@ import json
 
 # Configuration
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_DIR = os.path.join(SCRIPT_DIR, "..", "data", "raw", "nasa_eonet")
+OUTPUT_DIR = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "raw", "nasa_eonet")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 BASE_URL = "https://eonet.gsfc.nasa.gov/api/v3/events"

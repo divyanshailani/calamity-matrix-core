@@ -12,11 +12,11 @@ BASE_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
 # Output Directory Setup
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_DIR = os.path.join(SCRIPT_DIR, "..", "data", "raw", "usgs_earthquakes")
+OUTPUT_DIR = os.path.join(SCRIPT_DIR, "..", "..", "data", "raw", "usgs_earthquakes")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs(os.path.join(SCRIPT_DIR, "..", "data", "processed"), exist_ok=True)
-os.makedirs(os.path.join(SCRIPT_DIR, "..", "models"), exist_ok=True)
-os.makedirs(os.path.join(SCRIPT_DIR, "..", "notebooks"), exist_ok=True)
+os.makedirs(os.path.join(SCRIPT_DIR, "..", "..", "data", "processed"), exist_ok=True)
+os.makedirs(os.path.join(SCRIPT_DIR, "..", "..", "models"), exist_ok=True)
+os.makedirs(os.path.join(SCRIPT_DIR, "..", "..", "notebooks"), exist_ok=True)
 
 
 def fetch_month_chunk(year, month):

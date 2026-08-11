@@ -6,7 +6,7 @@ import glob
 
 # Configuration
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_DIR = os.path.join(SCRIPT_DIR, "..", "data", "raw", "reliefweb_reports")
+OUTPUT_DIR = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "raw", "reliefweb_reports")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ReliefWeb v1 is decommissioned; v2 must be used with a pre-approved appname

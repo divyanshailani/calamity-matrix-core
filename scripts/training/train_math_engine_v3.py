@@ -11,8 +11,8 @@ from sklearn.metrics import root_mean_squared_error, mean_absolute_error
 
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(SCRIPT_DIR, "..", "data", "processed", "atmospheric_impact_matrix.csv")
-MODEL_DIR = os.path.join(SCRIPT_DIR, "..", "models")
+DATA_PATH = os.path.join(SCRIPT_DIR, "..", "..", "data", "processed", "atmospheric_impact_matrix.csv")
+MODEL_DIR = os.path.join(SCRIPT_DIR, "..", "..", "models")
 
 os.makedirs(MODEL_DIR, exist_ok=True)
 

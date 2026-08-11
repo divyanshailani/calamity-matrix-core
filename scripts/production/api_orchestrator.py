@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import requests
+import psycopg2
 from psycopg2 import pool
 from contextlib import asynccontextmanager
 from fastapi import BackgroundTasks, Header, Request
@@ -15,7 +16,6 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import logging
-import pycountry
 import contextvars
 import uuid
 import hmac
@@ -43,9 +43,9 @@ logger.addHandler(handler)
 
 # Config
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..')))
 from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT, INGESTION_SECRET_KEY, CLOUD_LLM_API_KEY, MIN_EVENT_YEAR, TIME_DECAY_PENALTY, CLOUD_LLM_MODEL, MATH_ENGINE_URL
-import scripts.live_ingestion as live_ingestion
+import scripts.production.live_ingestion as live_ingestion
 # Global state container
 models = {}
 
@@ -171,6 +171,58 @@ COUNTRY_ALIASES = {
 def resolve_country(name: str):
     return COUNTRY_ALIASES.get(name, name)
 
+def _rag_search(conn, query_embedding, rw_types, country, event_year, decay_factor):
+    """Run the multi-pass pgvector RAG lookup on one connection.
+
+    Kept separate so the caller can retry on a fresh connection when Azure
+    silently reaps an idle pooled connection mid-query.
+    """
+    cur = conn.cursor()
+    try:
+        # Pass 1: Strict match (Year, Country, Disaster Type) + Quarantine
+        sql_query_pass1 = """
+            SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
+                   (1 - (embedding <=> %s::vector)) - (%s * ABS(event_year - %s)) AS hybrid_similarity
+            FROM disaster_narratives
+            WHERE event_year = %s AND disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= %s
+            ORDER BY hybrid_similarity DESC
+            LIMIT 3;
+        """
+        cur.execute(sql_query_pass1, (query_embedding, decay_factor, event_year, event_year, rw_types, country, MIN_EVENT_YEAR))
+        results = cur.fetchall()
+
+        # Pass 2: Relax Year completely, strictly enforce Country and Disaster Type + Time-Decay + Quarantine
+        if len(results) < 3:
+            sql_query_pass2 = """
+                SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
+                       (1 - (embedding <=> %s::vector)) - (%s * ABS(event_year - %s)) AS hybrid_similarity
+                FROM disaster_narratives
+                WHERE disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= %s
+                ORDER BY hybrid_similarity DESC
+                LIMIT 3;
+            """
+            cur.execute(sql_query_pass2, (query_embedding, decay_factor, event_year, rw_types, country, MIN_EVENT_YEAR))
+            results = cur.fetchall()
+
+        # Pass 3: Recommendation Engine (If Pass 2 yields 0 results)
+        suggested_alternatives = None
+        if len(results) == 0:
+            # Option A: Same Country, Alternate Hazards
+            cur.execute("SELECT DISTINCT disaster_type FROM disaster_narratives WHERE country ILIKE %s AND disaster_type IS NOT NULL LIMIT 5", (country,))
+            same_country_disasters = [row[0] for row in cur.fetchall()]
+
+            # Option B: Same Country, Closest Chronological Matches
+            cur.execute("SELECT event_year FROM disaster_narratives WHERE country ILIKE %s AND event_year IS NOT NULL GROUP BY event_year ORDER BY ABS(event_year - %s) ASC LIMIT 5", (country, event_year))
+            closest_historical_years = [row[0] for row in cur.fetchall()]
+
+            suggested_alternatives = {
+                "same_country_disasters": same_country_disasters,
+                "closest_historical_years": closest_historical_years
+            }
+    finally:
+        cur.close()
+    return results, suggested_alternatives
+
 @app.post("/api/v1/simulate_calamity")
 @limiter.limit("5/minute")
 def simulate_calamity(request: Request, payload: SimulationRequest):
@@ -278,55 +330,26 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             rw_types = ["Drought"]
             
         db_pool = models['db_pool']
+        rag_args = (query_embedding, rw_types, payload.country, payload.event_year, decay_factor)
         conn = db_pool.getconn()
-        
+        stale = False
         try:
-            cur = conn.cursor()
-            
-            # Pass 1: Strict match (Year, Country, Disaster Type) + Quarantine
-            sql_query_pass1 = """
-                SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                       (1 - (embedding <=> %s::vector)) - (%s * ABS(event_year - %s)) AS hybrid_similarity
-                FROM disaster_narratives
-                WHERE event_year = %s AND disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= %s
-                ORDER BY hybrid_similarity DESC
-                LIMIT 3;
-            """
-            cur.execute(sql_query_pass1, (query_embedding, decay_factor, payload.event_year, payload.event_year, rw_types, payload.country, MIN_EVENT_YEAR))
-            results = cur.fetchall()
-            
-            # Pass 2: Relax Year completely, strictly enforce Country and Disaster Type + Time-Decay + Quarantine
-            if len(results) < 3:
-                sql_query_pass2 = """
-                    SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                           (1 - (embedding <=> %s::vector)) - (%s * ABS(event_year - %s)) AS hybrid_similarity
-                    FROM disaster_narratives
-                    WHERE disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= %s
-                    ORDER BY hybrid_similarity DESC
-                    LIMIT 3;
-                """
-                cur.execute(sql_query_pass2, (query_embedding, decay_factor, payload.event_year, rw_types, payload.country, MIN_EVENT_YEAR))
-                results = cur.fetchall()
-                
-            # Pass 3: Recommendation Engine (If Pass 2 yields 0 results)
-            suggested_alternatives = None
-            if len(results) == 0:
-                # Option A: Same Country, Alternate Hazards
-                cur.execute("SELECT DISTINCT disaster_type FROM disaster_narratives WHERE country ILIKE %s AND disaster_type IS NOT NULL LIMIT 5", (payload.country,))
-                same_country_disasters = [row[0] for row in cur.fetchall()]
-                
-                # Option B: Same Country, Closest Chronological Matches
-                cur.execute("SELECT event_year FROM disaster_narratives WHERE country ILIKE %s AND event_year IS NOT NULL GROUP BY event_year ORDER BY ABS(event_year - %s) ASC LIMIT 5", (payload.country, payload.event_year))
-                closest_historical_years = [row[0] for row in cur.fetchall()]
-                
-                suggested_alternatives = {
-                    "same_country_disasters": same_country_disasters,
-                    "closest_historical_years": closest_historical_years
-                }
-                
-            cur.close()
+            results, suggested_alternatives = _rag_search(conn, *rag_args)
+        except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+            # Azure silently reaps idle TCP/SSL flows, so a pooled connection
+            # can come back already dead and the first query on it blows up.
+            # Discard it and retry once on a fresh connection.
+            stale = True
+            db_pool.putconn(conn, close=True)
+            logger.warning(f"[!] Stale pooled DB connection discarded ({e}); retrying once.")
+            conn = db_pool.getconn()
+            try:
+                results, suggested_alternatives = _rag_search(conn, *rag_args)
+            finally:
+                db_pool.putconn(conn)
         finally:
-            db_pool.putconn(conn)
+            if not stale:
+                db_pool.putconn(conn)
             
         # Format Context
         historical_context = []

@@ -5,8 +5,8 @@ import pandas as pd
 
 # Configuration
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-RAW_DIR = os.path.join(SCRIPT_DIR, "..", "data", "raw", "nasa_eonet")
-PROCESSED_FILE = os.path.join(SCRIPT_DIR, "..", "data", "processed", "global_nasa_master.csv")
+RAW_DIR = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "raw", "nasa_eonet")
+PROCESSED_FILE = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "processed", "global_nasa_master.csv")
 
 def get_coords(geometry_entry):
     """Safely extracts longitude and latitude from Point or Polygon geometries."""

@@ -37,6 +37,9 @@ pgdata/
 # Logs
 *.log
 logs/
+!backend.log
+__pycache__/
+*.py[cod]
 
 # Cloud Scripts (Hidden from GitHub)
 scripts/modal_inference.py

@@ -4,7 +4,7 @@ import numpy as np
 
 # Configuration
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROCESSED_DIR = os.path.join(SCRIPT_DIR, "..", "data", "processed")
+PROCESSED_DIR = os.path.join(SCRIPT_DIR, "..", "..", "..", "data", "processed")
 
 def build_tectonic_matrix():
     print("[*] Building Tectonic Matrix (USGS + Smithsonian)...")

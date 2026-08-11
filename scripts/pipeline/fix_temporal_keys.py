@@ -1,5 +1,5 @@
 import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from src.config import DB_CONFIG
 
 import psycopg2
@@ -12,7 +12,7 @@ from psycopg2.extras import execute_batch
 DB_PARAMS = DB_CONFIG
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-ATMOSPHERIC_CSV = os.path.join(SCRIPT_DIR, "..", "data", "processed", "atmospheric_impact_matrix.csv")
+ATMOSPHERIC_CSV = os.path.join(SCRIPT_DIR, "..", "..", "data", "processed", "atmospheric_impact_matrix.csv")
 
 def extract_year_regex(text):
     if not isinstance(text, str) or not text:
