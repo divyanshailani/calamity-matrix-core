@@ -179,6 +179,23 @@ def _rag_search(conn, query_embedding, rw_types, country, event_year, decay_fact
     """
     cur = conn.cursor()
     try:
+        if query_embedding is None:
+            # Lexical fallback (embedding bridge unavailable): same country and
+            # disaster type, chronologically closest first. Keeps the RAG panel
+            # useful with no semantic ranking instead of failing the request.
+            sql_query_lexical = """
+                SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
+                       0.0 AS hybrid_similarity
+                FROM disaster_narratives
+                WHERE disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= %s
+                ORDER BY ABS(event_year - %s) ASC, date DESC
+                LIMIT 3;
+            """
+            cur.execute(sql_query_lexical, (rw_types, country, MIN_EVENT_YEAR, event_year))
+            results = cur.fetchall()
+            suggested_alternatives = None
+            return results, suggested_alternatives
+
         # Pass 1: Strict match (Year, Country, Disaster Type) + Quarantine
         sql_query_pass1 = """
             SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
@@ -256,25 +273,18 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         # ---------------------------------------------------------
         def fetch_math_engine():
             logger.info("[DEBUG] Hitting Math Engine Microservice...")
-            resp = requests.post(math_engine_url, json=compute_payload, timeout=30)
+            resp = requests.post(math_engine_url, json=compute_payload, timeout=24)
             resp.raise_for_status()
             return resp.json()
 
         def fetch_hf():
-            from requests.adapters import HTTPAdapter
-            from urllib3.util.retry import Retry
-            session = requests.Session()
-            retries = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
-            session.mount('https://', HTTPAdapter(max_retries=retries))
-            try:
-                logger.info("[DEBUG] Hitting HF API with urllib3.Retry...")
-                resp = session.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=120)
-                resp.raise_for_status()
-                return resp.json()
-            except requests.exceptions.Timeout:
-                raise HTTPException(status_code=503, detail="Hugging Face API timed out after 120s. Model may be fully cold.")
-            except requests.exceptions.RequestException as e:
-                raise HTTPException(status_code=500, detail=f"Hugging Face API Request failed: {e}")
+            # 24s cap: Heroku's router kills the whole request at 30s (H12), so
+            # waiting longer only guarantees a timeout. If the model cannot load
+            # in time, the caller degrades to lexical RAG instead of erroring.
+            logger.info("[DEBUG] Hitting HF API (24s budget, wait_for_model)...")
+            resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=24)
+            resp.raise_for_status()
+            return resp.json()
 
         # ---------------------------------------------------------
         # 3. Execute in Parallel
@@ -289,22 +299,25 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                 logger.error(f"[!] Math Engine Microservice Error: {e}")
                 raise HTTPException(status_code=500, detail="Math Engine Microservice Failed.")
             
-            embed_result = future_hf.result()
-            
+            query_embedding = None
+            try:
+                embed_result = future_hf.result()
+                # Ensure we have a flat list of floats
+                if isinstance(embed_result, list) and len(embed_result) > 0 and isinstance(embed_result[0], list):
+                    embed_result = embed_result[0] # handle batch outer list
+                # Normalize embeddings (equivalent to normalize_embeddings=True)
+                norm = sum(x**2 for x in embed_result)**0.5
+                if norm > 0:
+                    query_embedding = [x / norm for x in embed_result]
+                else:
+                    logger.warning("[!] HF returned an invalid zero-vector; falling back to lexical RAG.")
+            except Exception as e:
+                logger.warning(f"[!] Embedding bridge unavailable ({e}); falling back to lexical RAG.")
+
         est_affected = math_data["est_affected"]
         est_damage = math_data["est_damage"]
         meta_affected = math_data.get("meta_affected", {})
         meta_damage = math_data.get("meta_damage", {})
-        # Ensure we have a flat list of floats
-        if isinstance(embed_result, list) and len(embed_result) > 0 and isinstance(embed_result[0], list):
-            embed_result = embed_result[0] # handle batch outer list
-            
-        # Normalize embeddings (equivalent to normalize_embeddings=True)
-        norm = sum(x**2 for x in embed_result)**0.5
-        if norm > 0:
-            query_embedding = [x / norm for x in embed_result]
-        else:
-            raise HTTPException(status_code=500, detail="Hugging Face API returned an invalid zero-vector.")
 
         # Map EM-DAT taxonomy to ReliefWeb taxonomy for RAG matching
         rw_types = [payload.disaster_type]
@@ -411,7 +424,8 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                     }
                 },
                 "rag_engine": {
-                    "average_cosine_similarity": avg_cosine_sim
+                    "average_cosine_similarity": avg_cosine_sim,
+                    "embedding_source": "semantic" if query_embedding is not None else "lexical_fallback"
                 }
             }
         }
