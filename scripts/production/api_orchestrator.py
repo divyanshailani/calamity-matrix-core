@@ -5,7 +5,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 import requests
 import psycopg2
 from psycopg2 import pool
@@ -123,7 +123,17 @@ async def lifespan(app: FastAPI):
     if 'db_pool' in models and models['db_pool']:
         models['db_pool'].closeall()
 
-limiter = Limiter(key_func=get_remote_address)
+def heroku_client_key(request: Request):
+    # Heroku's router forwards all traffic, so request.client.host is the router
+    # IP for everyone — a single global rate-limit bucket any one client could
+    # exhaust (DoS) and no real per-client limiting. The router appends the
+    # connecting client's IP to X-Forwarded-For, so the last entry is the client.
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[-1].strip()
+    return get_remote_address(request)
+
+limiter = Limiter(key_func=heroku_client_key)
 app = FastAPI(title="Calamity AI: Neuro-Symbolic Orchestrator", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -155,10 +165,19 @@ class ChatRequest(BaseModel):
 
 class AskAIRequest(BaseModel):
     query_text: str = Field(..., min_length=1, max_length=4000)
-    historical_context: list
-    simulation_parameters: dict
-    math_predictions: dict
+    historical_context: list = Field(default_factory=list, max_length=10)
+    simulation_parameters: dict = Field(default_factory=dict)
+    math_predictions: dict = Field(default_factory=dict)
     stream: bool = True
+
+    # These fields are concatenated into the LLM prompt; without a size cap a
+    # client can inflate the Groq token bill with a single huge payload.
+    @field_validator("simulation_parameters", "math_predictions")
+    @classmethod
+    def _cap_serialized_size(cls, v):
+        if len(json.dumps(v)) > 8000:
+            raise ValueError("payload field too large")
+        return v
 
 COUNTRY_ALIASES = {
     "Turkey": "Türkiye",
@@ -434,7 +453,8 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         raise
     except Exception as e:
         logger.error(f"[!] Unhandled Exception in simulate_calamity: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        # Internal error text can embed DSN/SQL/upstream details — never ship it to clients.
+        raise HTTPException(status_code=500, detail="Internal server error.")
 
 # ---------------------------------------------------------
 # LLM Integration (OpenAI Compatible via Serverless GPU)
@@ -473,7 +493,8 @@ async def chat_endpoint(request: Request, payload: ChatRequest):
         ]
         return await _stream_llm_response(messages, payload.stream)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"[!] Chat endpoint failure: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Chat synthesis failed.")
 
 @app.post("/api/v1/ask_ai")
 @limiter.limit("10/minute")
@@ -495,12 +516,18 @@ async def ask_ai_endpoint(request: Request, payload: AskAIRequest):
         ]
         return await _stream_llm_response(messages, payload.stream)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"[!] ask_ai endpoint failure: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="AI synthesis failed.")
 
 @app.post("/api/v1/trigger_ingestion")
-async def trigger_ingestion(background_tasks: BackgroundTasks, x_ingestion_secret: str = Header(None)):
+@limiter.limit("5/minute")
+async def trigger_ingestion(request: Request, background_tasks: BackgroundTasks, x_ingestion_secret: str = Header(None)):
     request_id_ctx.set(str(uuid.uuid4()))
-    if not x_ingestion_secret or not hmac.compare_digest(x_ingestion_secret, INGESTION_SECRET_KEY):
+    # compare_digest only accepts ASCII str; a non-ASCII header value would raise
+    # TypeError and 500. Compare bytes instead so any junk input gets a clean 401.
+    supplied = (x_ingestion_secret or "").encode("utf-8", "surrogatepass")
+    expected = INGESTION_SECRET_KEY.encode("utf-8")
+    if not supplied or not hmac.compare_digest(supplied, expected):
         raise HTTPException(status_code=401, detail="Unauthorized Ingestion Trigger")
         
     def run_crawler():

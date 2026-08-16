@@ -37,7 +37,6 @@ pgdata/
 # Logs
 *.log
 logs/
-!backend.log
 __pycache__/
 *.py[cod]
 
@@ -51,3 +50,7 @@ scripts/modal_train.py
 
 # Infrastructure reference — contains live credentials, keep local only
 INFRASTRUCTURE.md
+
+# Local AI tooling artifacts (security-scan results, repo wikis)
+.mimosa/
+.qoder/
