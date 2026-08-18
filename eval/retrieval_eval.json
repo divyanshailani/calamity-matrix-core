@@ -1,0 +1,360 @@
+[
+  {
+    "id": "q_beyond500_1",
+    "query_text": "hat million people are exposed to",
+    "disaster_type": "Tropical Cyclone",
+    "country": "Mozambique",
+    "event_year": 2025,
+    "relevant_unique_ids": [
+      "d68c179797fc5188e30f6332d41549c7"
+    ],
+    "note": "answer text lies beyond the [:500] embedding window"
+  },
+  {
+    "id": "q_beyond500_2",
+    "query_text": "mily Links RFL requests homes",
+    "disaster_type": "Mud Slide",
+    "country": "Colombia",
+    "event_year": 2017,
+    "relevant_unique_ids": [
+      "0cdf462911575ae8f9a4e4150ea775ce"
+    ],
+    "note": "answer text lies beyond the [:500] embedding window"
+  },
+  {
+    "id": "q_beyond500_3",
+    "query_text": "current Cholera outbreak at",
+    "disaster_type": "Epidemic",
+    "country": "Zambia",
+    "event_year": 2016,
+    "relevant_unique_ids": [
+      "a77863b3517e4dbf74ef25ae636ec319"
+    ],
+    "note": "answer text lies beyond the [:500] embedding window"
+  },
+  {
+    "id": "q_beyond500_4",
+    "query_text": "essing vital health nutrition education and",
+    "disaster_type": "Cold Wave",
+    "country": "Mongolia",
+    "event_year": 2024,
+    "relevant_unique_ids": [
+      "0f9af5d70057f54669ecb8f107394e2c"
+    ],
+    "note": "answer text lies beyond the [:500] embedding window"
+  },
+  {
+    "id": "q_beyond500_5",
+    "query_text": "remote areas Access to",
+    "disaster_type": "Earthquake",
+    "country": "Vanuatu",
+    "event_year": 2025,
+    "relevant_unique_ids": [
+      "b58baa5afe183433e8bd6a26c806e40f"
+    ],
+    "note": "answer text lies beyond the [:500] embedding window"
+  },
+  {
+    "id": "q_beyond500_6",
+    "query_text": "nd UN OCHA In",
+    "disaster_type": "Flood",
+    "country": "Yemen",
+    "event_year": 2021,
+    "relevant_unique_ids": [
+      "45e7d580700ebe7ac7a84976605e20e4"
+    ],
+    "note": "answer text lies beyond the [:500] embedding window"
+  },
+  {
+    "id": "q_beyond500_7",
+    "query_text": "all provinces has continued to increase sharply",
+    "disaster_type": "Epidemic",
+    "country": "Afghanistan",
+    "event_year": 2022,
+    "relevant_unique_ids": [
+      "edb07399dc7bde0559232b6ff5016e77"
+    ],
+    "note": "answer text lies beyond the [:500] embedding window"
+  },
+  {
+    "id": "q_beyond500_8",
+    "query_text": "TC Amphan in are on",
+    "disaster_type": "Tropical Cyclone",
+    "country": "India",
+    "event_year": 2021,
+    "relevant_unique_ids": [
+      "a12176c1a53523e0db531b33b6ab852d"
+    ],
+    "note": "answer text lies beyond the [:500] embedding window"
+  },
+  {
+    "id": "q_beyond500_9",
+    "query_text": "January heavy rains and",
+    "disaster_type": "Flood",
+    "country": "Mozambique",
+    "event_year": 2025,
+    "relevant_unique_ids": [
+      "3e6d66a1d7598ab0b06498b138ba35da"
+    ],
+    "note": "answer text lies beyond the [:500] embedding window"
+  },
+  {
+    "id": "q_beyond500_10",
+    "query_text": "February polio workers and",
+    "disaster_type": "Epidemic",
+    "country": "Pakistan",
+    "event_year": 2016,
+    "relevant_unique_ids": [
+      "3f0b32e8ff0e8dfe2e3fac3b32f0fb87"
+    ],
+    "note": "answer text lies beyond the [:500] embedding window"
+  },
+  {
+    "id": "q_exact_11",
+    "query_text": "hurricane katrina new orleans",
+    "disaster_type": "Hurricane",
+    "country": "USA",
+    "event_year": 2005,
+    "relevant_unique_ids": [
+      "5ace3236ef93515e3ee599a399e992e9"
+    ],
+    "note": "exact-token fingerprint: hurricane katrina new orleans"
+  },
+  {
+    "id": "q_exact_12",
+    "query_text": "sichuan earthquake 2008",
+    "disaster_type": "Earthquake",
+    "country": "China",
+    "event_year": 2010,
+    "relevant_unique_ids": [
+      "e78627f361d5934b4b3a4399a5c2bc30"
+    ],
+    "note": "exact-token fingerprint: sichuan earthquake 2008"
+  },
+  {
+    "id": "q_exact_13",
+    "query_text": "cyclone idai mozambique",
+    "disaster_type": "Tropical Cyclone",
+    "country": "Mozambique",
+    "event_year": 2019,
+    "relevant_unique_ids": [
+      "1330a80238e57304a9127cf6af1e4a62"
+    ],
+    "note": "exact-token fingerprint: cyclone idai mozambique"
+  },
+  {
+    "id": "q_exact_14",
+    "query_text": "cyclone in bangladesh 2007",
+    "disaster_type": "Tropical Cyclone",
+    "country": "Bangladesh",
+    "event_year": 2009,
+    "relevant_unique_ids": [
+      "d2642aeadb97789831f5daf8ad65ad95"
+    ],
+    "note": "exact-token fingerprint: cyclone in bangladesh 2007"
+  },
+  {
+    "id": "q_exact_15",
+    "query_text": "kashmir floods 2010",
+    "disaster_type": "Flood",
+    "country": "Pakistan",
+    "event_year": 2010,
+    "relevant_unique_ids": [
+      "f374645f47cb48fc1456348b1cc48f57"
+    ],
+    "note": "exact-token fingerprint: kashmir floods 2010"
+  },
+  {
+    "id": "q_exact_16",
+    "query_text": "christchurch earthquake 2011",
+    "disaster_type": "Earthquake",
+    "country": "New Zealand",
+    "event_year": 2011,
+    "relevant_unique_ids": [
+      "f6414d69021a4037fa7861a953afcb66"
+    ],
+    "note": "exact-token fingerprint: christchurch earthquake 2011"
+  },
+  {
+    "id": "q_exact_17",
+    "query_text": "japan earthquake tsunami 2011",
+    "disaster_type": "Earthquake",
+    "country": "Japan",
+    "event_year": 2011,
+    "relevant_unique_ids": [
+      "f93bca15538d65ef145b41af2a27efc9"
+    ],
+    "note": "exact-token fingerprint: japan earthquake tsunami 2011"
+  },
+  {
+    "id": "q_exact_18",
+    "query_text": "bangladesh cyclone bhola 2009",
+    "disaster_type": "Tropical Cyclone",
+    "country": "Bangladesh",
+    "event_year": 2024,
+    "relevant_unique_ids": [
+      "820d4d39cbcdd155e6035f7386c0fcf4"
+    ],
+    "note": "exact-token fingerprint: bangladesh cyclone bhola 2009"
+  },
+  {
+    "id": "q_smallpool_19",
+    "query_text": "Drought in Moldova",
+    "disaster_type": "Drought",
+    "country": "Moldova",
+    "event_year": 2019,
+    "relevant_unique_ids": [
+      "731cd746b3e7801143a1b4b87ab71a25"
+    ],
+    "note": "small pool: Moldova has 2 in-scope rows"
+  },
+  {
+    "id": "q_smallpool_20",
+    "query_text": "Flash Flood in Saint Lucia",
+    "disaster_type": "Flash Flood",
+    "country": "Saint Lucia",
+    "event_year": 2022,
+    "relevant_unique_ids": [
+      "58abd6e904d09ee52f77c68b207d763e",
+      "14a50e63932952979e51876d2fe88789"
+    ],
+    "note": "small pool: Saint Lucia has 3 in-scope rows"
+  },
+  {
+    "id": "q_smallpool_21",
+    "query_text": "Earthquake in Australia",
+    "disaster_type": "Earthquake",
+    "country": "Australia",
+    "event_year": 2017,
+    "relevant_unique_ids": [
+      "ab5b2a9f45802661a56a9a20c404dda6"
+    ],
+    "note": "small pool: Australia has 4 in-scope rows"
+  },
+  {
+    "id": "q_smallpool_22",
+    "query_text": "Earthquake in New Zealand",
+    "disaster_type": "Earthquake",
+    "country": "New Zealand",
+    "event_year": 2026,
+    "relevant_unique_ids": [
+      "usgs_us6000t8t3",
+      "usgs_us6000thl3",
+      "f6414d69021a4037fa7861a953afcb66"
+    ],
+    "note": "small pool: New Zealand has 3 in-scope rows"
+  },
+  {
+    "id": "q_smallpool_23",
+    "query_text": "Tropical Cyclone in Micronesia (Federated States of)",
+    "disaster_type": "Tropical Cyclone",
+    "country": "Micronesia (Federated States of)",
+    "event_year": 2026,
+    "relevant_unique_ids": [
+      "6c3af12bf73e3cb3f9c2d91355550922",
+      "44f423cf698a1748933a09142bad8c7c",
+      "5776ce4d8b94ad075a44002c66dd853f"
+    ],
+    "note": "small pool: Micronesia (Federated States of) has 4 in-scope rows"
+  },
+  {
+    "id": "q_smallpool_24",
+    "query_text": "Drought in Uzbekistan",
+    "disaster_type": "Drought",
+    "country": "Uzbekistan",
+    "event_year": 2001,
+    "relevant_unique_ids": [
+      "a34795f8e3c1658687d941c4d25db8c2",
+      "21539c60b7735b81663912b1d4fe02ab"
+    ],
+    "note": "small pool: Uzbekistan has 2 in-scope rows"
+  },
+  {
+    "id": "q_mismatch_25",
+    "query_text": "typhoon winds hitting the coast",
+    "disaster_type": "Tropical Cyclone",
+    "country": "China",
+    "event_year": 2007,
+    "relevant_unique_ids": [
+      "e47faae3dec385cd6fe62634081e3e5e"
+    ],
+    "note": "stored type is 'Tropical Cyclone', query uses colloquial wording"
+  },
+  {
+    "id": "q_mismatch_26",
+    "query_text": "bushfire smoke and evacuations",
+    "disaster_type": "Wild Fire",
+    "country": "Russian Federation",
+    "event_year": 2015,
+    "relevant_unique_ids": [
+      "fa0031511a43ef97db222441b3538695"
+    ],
+    "note": "stored type is 'Wild Fire', query uses colloquial wording"
+  },
+  {
+    "id": "q_mismatch_27",
+    "query_text": "wildfire smoke blanketing the city",
+    "disaster_type": "Wildfires",
+    "country": "Unknown",
+    "event_year": 2026,
+    "relevant_unique_ids": [
+      "nasa_EONET_22610"
+    ],
+    "note": "stored type is 'Wildfires', query uses colloquial wording"
+  },
+  {
+    "id": "q_mismatch_28",
+    "query_text": "sudden flash flooding of the valley",
+    "disaster_type": "Flash Flood",
+    "country": "Sri Lanka",
+    "event_year": 2009,
+    "relevant_unique_ids": [
+      "4ab4321d2b06eb4970a2457000cb77af"
+    ],
+    "note": "stored type is 'Flash Flood', query uses colloquial wording"
+  },
+  {
+    "id": "q_mismatch_29",
+    "query_text": "record heatwave temperatures",
+    "disaster_type": "Heat Wave",
+    "country": "Democratic People's Republic of Korea",
+    "event_year": 2018,
+    "relevant_unique_ids": [
+      "2e9bd40148de5a93fd7d487c60476df8"
+    ],
+    "note": "stored type is 'Heat Wave', query uses colloquial wording"
+  },
+  {
+    "id": "q_mismatch_30",
+    "query_text": "mudslide burying houses",
+    "disaster_type": "Land Slide",
+    "country": "Philippines",
+    "event_year": 2006,
+    "relevant_unique_ids": [
+      "decfbf69fd62131e40a36ed1007346f7"
+    ],
+    "note": "stored type is 'Land Slide', query uses colloquial wording"
+  },
+  {
+    "id": "q_mismatch_31",
+    "query_text": "coastal storm surge flooding",
+    "disaster_type": "Storm Surge",
+    "country": "Marshall Islands",
+    "event_year": 2014,
+    "relevant_unique_ids": [
+      "abdec75387bab5894d5d6cca26700739"
+    ],
+    "note": "stored type is 'Storm Surge', query uses colloquial wording"
+  },
+  {
+    "id": "q_mismatch_32",
+    "query_text": "mudslide after heavy rain",
+    "disaster_type": "Mud Slide",
+    "country": "Sierra Leone",
+    "event_year": 2017,
+    "relevant_unique_ids": [
+      "10d93e70a35879dd9bcef8097fcb506d"
+    ],
+    "note": "stored type is 'Mud Slide', query uses colloquial wording"
+  }
+]

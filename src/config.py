@@ -34,6 +34,11 @@ INGESTION_SECRET_KEY = _require("INGESTION_SECRET_KEY")
 
 MIN_EVENT_YEAR = int(os.getenv("MIN_EVENT_YEAR", "2000"))
 
+# Production RAG upgrade flags (implementation_plan.md). Safe defaults keep the
+# current pipeline byte-for-byte identical until each flag is flipped.
+EMBEDDING_COLUMN = os.getenv("EMBEDDING_COLUMN", "embedding")  # 'embedding' | 'embedding_v2'
+USE_HYBRID_RAG = os.getenv("USE_HYBRID_RAG", "").lower() in ("1", "true", "yes")
+
 TIME_DECAY_PENALTY = {
     "earthquake": float(os.getenv("DECAY_EARTHQUAKE", "0.002")),
     "flood": float(os.getenv("DECAY_FLOOD", "0.008")),

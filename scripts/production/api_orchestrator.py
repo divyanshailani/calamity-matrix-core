@@ -19,6 +19,7 @@ import logging
 import contextvars
 import uuid
 import hmac
+import time
 
 request_id_ctx = contextvars.ContextVar("request_id", default=None)
 
@@ -46,6 +47,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..')))
 from src.config import DB_CONFIG, DATABASE_URL, HF_TOKEN, CLOUD_LLM_ENDPOINT, INGESTION_SECRET_KEY, CLOUD_LLM_API_KEY, MIN_EVENT_YEAR, TIME_DECAY_PENALTY, CLOUD_LLM_MODEL, MATH_ENGINE_URL
 import scripts.production.live_ingestion as live_ingestion
+import scripts.production.retrieval as retrieval
 # Global state container
 models = {}
 
@@ -179,91 +181,16 @@ class AskAIRequest(BaseModel):
             raise ValueError("payload field too large")
         return v
 
-COUNTRY_ALIASES = {
-    "Turkey": "Türkiye",
-    "Russia": "Russian Federation",
-    "US": "United States of America",
-    "USA": "United States of America",
-    "Vietnam": "Viet Nam"
-}
-
-def resolve_country(name: str):
-    return COUNTRY_ALIASES.get(name, name)
-
-def _rag_search(conn, query_embedding, rw_types, country, event_year, decay_factor):
-    """Run the multi-pass pgvector RAG lookup on one connection.
-
-    Kept separate so the caller can retry on a fresh connection when Azure
-    silently reaps an idle pooled connection mid-query.
-    """
-    cur = conn.cursor()
-    try:
-        if query_embedding is None:
-            # Lexical fallback (embedding bridge unavailable): same country and
-            # disaster type, chronologically closest first. Keeps the RAG panel
-            # useful with no semantic ranking instead of failing the request.
-            sql_query_lexical = """
-                SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                       0.0 AS hybrid_similarity
-                FROM disaster_narratives
-                WHERE disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= %s
-                ORDER BY ABS(event_year - %s) ASC, date DESC
-                LIMIT 3;
-            """
-            cur.execute(sql_query_lexical, (rw_types, country, MIN_EVENT_YEAR, event_year))
-            results = cur.fetchall()
-            suggested_alternatives = None
-            return results, suggested_alternatives
-
-        # Pass 1: Strict match (Year, Country, Disaster Type) + Quarantine
-        sql_query_pass1 = """
-            SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                   (1 - (embedding <=> %s::vector)) - (%s * ABS(event_year - %s)) AS hybrid_similarity
-            FROM disaster_narratives
-            WHERE event_year = %s AND disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= %s
-            ORDER BY hybrid_similarity DESC
-            LIMIT 3;
-        """
-        cur.execute(sql_query_pass1, (query_embedding, decay_factor, event_year, event_year, rw_types, country, MIN_EVENT_YEAR))
-        results = cur.fetchall()
-
-        # Pass 2: Relax Year completely, strictly enforce Country and Disaster Type + Time-Decay + Quarantine
-        if len(results) < 3:
-            sql_query_pass2 = """
-                SELECT date, country, disaster_type, narrative_text, event_year, lat, lng,
-                       (1 - (embedding <=> %s::vector)) - (%s * ABS(event_year - %s)) AS hybrid_similarity
-                FROM disaster_narratives
-                WHERE disaster_type = ANY(%s) AND country ILIKE %s AND event_year >= %s
-                ORDER BY hybrid_similarity DESC
-                LIMIT 3;
-            """
-            cur.execute(sql_query_pass2, (query_embedding, decay_factor, event_year, rw_types, country, MIN_EVENT_YEAR))
-            results = cur.fetchall()
-
-        # Pass 3: Recommendation Engine (If Pass 2 yields 0 results)
-        suggested_alternatives = None
-        if len(results) == 0:
-            # Option A: Same Country, Alternate Hazards
-            cur.execute("SELECT DISTINCT disaster_type FROM disaster_narratives WHERE country ILIKE %s AND disaster_type IS NOT NULL LIMIT 5", (country,))
-            same_country_disasters = [row[0] for row in cur.fetchall()]
-
-            # Option B: Same Country, Closest Chronological Matches
-            cur.execute("SELECT event_year FROM disaster_narratives WHERE country ILIKE %s AND event_year IS NOT NULL GROUP BY event_year ORDER BY ABS(event_year - %s) ASC LIMIT 5", (country, event_year))
-            closest_historical_years = [row[0] for row in cur.fetchall()]
-
-            suggested_alternatives = {
-                "same_country_disasters": same_country_disasters,
-                "closest_historical_years": closest_historical_years
-            }
-    finally:
-        cur.close()
-    return results, suggested_alternatives
+# Country aliases and the EM-DAT -> ReliefWeb taxonomy map plus the multi-pass
+# retrieval itself now live in scripts/production/retrieval.py (the shared
+# single source of truth used by the eval harness). USE_HYBRID_RAG selects
+# the three-list RRF pipeline there; the legacy path is byte-identical.
 
 @app.post("/api/v1/simulate_calamity")
 @limiter.limit("5/minute")
 def simulate_calamity(request: Request, payload: SimulationRequest):
     request_id_ctx.set(str(uuid.uuid4()))
-    payload.country = resolve_country(payload.country)
+    payload.country = retrieval.resolve_country(payload.country)
     payload.country = payload.country.replace('%', '').replace('_', '')
     try:
         from concurrent.futures import ThreadPoolExecutor
@@ -280,12 +207,9 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             "severity": payload.severity
         }
         
-        instruction = "Represent this sentence for searching relevant passages: "
-        master_semantic_query = f"{payload.disaster_type} in {payload.country} (Year: {payload.event_year}). Additional Context: {payload.query_text}"
-        full_query = instruction + master_semantic_query
-        
-        hf_api_url = "https://router.huggingface.co/hf-inference/models/BAAI/bge-large-en-v1.5"
-        headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
+        master_semantic_query = retrieval.build_semantic_query(
+            payload.disaster_type, payload.country, payload.event_year, payload.query_text
+        )
 
         # ---------------------------------------------------------
         # 2. Define Network Workers
@@ -301,9 +225,9 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             # waiting longer only guarantees a timeout. If the model cannot load
             # in time, the caller degrades to lexical RAG instead of erroring.
             logger.info("[DEBUG] Hitting HF API (24s budget, wait_for_model)...")
-            resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}}, timeout=24)
-            resp.raise_for_status()
-            return resp.json()
+            t0 = time.monotonic()
+            emb = retrieval.embed_query(master_semantic_query)
+            return emb, (time.monotonic() - t0) * 1000
 
         # ---------------------------------------------------------
         # 3. Execute in Parallel
@@ -319,19 +243,15 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                 raise HTTPException(status_code=500, detail="Math Engine Microservice Failed.")
             
             query_embedding = None
+            embedding_ms = 0.0
+            t_emb0 = time.monotonic()
             try:
-                embed_result = future_hf.result()
-                # Ensure we have a flat list of floats
-                if isinstance(embed_result, list) and len(embed_result) > 0 and isinstance(embed_result[0], list):
-                    embed_result = embed_result[0] # handle batch outer list
-                # Normalize embeddings (equivalent to normalize_embeddings=True)
-                norm = sum(x**2 for x in embed_result)**0.5
-                if norm > 0:
-                    query_embedding = [x / norm for x in embed_result]
-                else:
-                    logger.warning("[!] HF returned an invalid zero-vector; falling back to lexical RAG.")
+                query_embedding, embedding_ms = future_hf.result()  # (vector, wall_ms)
+                if not query_embedding:
+                    logger.warning("[!] Embedding bridge unavailable; falling back to lexical RAG.")
             except Exception as e:
-                logger.warning(f"[!] Embedding bridge unavailable ({e}); falling back to lexical RAG.")
+                embedding_ms = (time.monotonic() - t_emb0) * 1000
+                logger.warning(f"[!] Embedding bridge failed ({e}); falling back to lexical RAG.")
 
         est_affected = math_data["est_affected"]
         est_damage = math_data["est_damage"]
@@ -339,34 +259,23 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
         meta_damage = math_data.get("meta_damage", {})
 
         # Map EM-DAT taxonomy to ReliefWeb taxonomy for RAG matching
-        rw_types = [payload.disaster_type]
-        dt_lower = payload.disaster_type.lower()
-        decay_factor = TIME_DECAY_PENALTY.get(dt_lower, TIME_DECAY_PENALTY["default"])
-        if dt_lower == "earthquake":
-            rw_types = ["Earthquake"]
-        elif dt_lower == "flood":
-            rw_types = ["Flood", "Flash Flood"]
-        elif dt_lower == "extreme temperature":
-            rw_types = ["Heat Wave", "Cold Wave", "Extreme temperature"]
-        elif dt_lower == "storm":
-            rw_types = ["Storm", "Storm Surge", "Tropical Cyclone", "Extratropical Cyclone", "Severe Local Storm"]
-        elif dt_lower == "mass movement (wet)":
-            rw_types = ["Mud Slide", "Land Slide", "Mass movement (wet)"]
-        elif dt_lower == "mass movement (dry)":
-            rw_types = ["Land Slide", "Mass movement (dry)"]
-        elif dt_lower == "volcanic activity":
-            rw_types = ["Volcano", "Volcanic activity"]
-        elif dt_lower == "wildfire":
-            rw_types = ["Wild Fire", "Fire", "Wildfire"]
-        elif dt_lower == "drought":
-            rw_types = ["Drought"]
-            
+        rw_types = retrieval.build_rw_types(payload.disaster_type)
+        decay_factor = TIME_DECAY_PENALTY.get(payload.disaster_type.lower(), TIME_DECAY_PENALTY["default"])
+        # Sparse-arm query text (taxonomy synonyms + country + user query).
+        # build_fts_text lives beside the retrieval logic; see scripts/production/retrieval.py.
+        fts_text = retrieval.build_fts_text(payload.disaster_type, payload.country, payload.query_text)
+
         db_pool = models['db_pool']
-        rag_args = (query_embedding, rw_types, payload.country, payload.event_year, decay_factor)
         conn = db_pool.getconn()
         stale = False
+        t_db0 = time.monotonic()
         try:
-            results, suggested_alternatives = _rag_search(conn, *rag_args)
+            results, suggested_alternatives, rag_meta = retrieval.dispatch(
+                conn, query_embedding, fts_text, rw_types, payload.country, payload.event_year,
+                region_list=retrieval.region_members(payload.country),
+                recency_weight=0.5, top_k=5,
+                decay_factor=decay_factor,
+            )
         except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
             # Azure silently reaps idle TCP/SSL flows, so a pooled connection
             # can come back already dead and the first query on it blows up.
@@ -376,12 +285,18 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             logger.warning(f"[!] Stale pooled DB connection discarded ({e}); retrying once.")
             conn = db_pool.getconn()
             try:
-                results, suggested_alternatives = _rag_search(conn, *rag_args)
+                results, suggested_alternatives, rag_meta = retrieval.dispatch(
+                    conn, query_embedding, fts_text, rw_types, payload.country, payload.event_year,
+                    region_list=retrieval.region_members(payload.country),
+                    recency_weight=0.5, top_k=5,
+                    decay_factor=decay_factor,
+                )
             finally:
                 db_pool.putconn(conn)
         finally:
             if not stale:
                 db_pool.putconn(conn)
+        db_ms = (time.monotonic() - t_db0) * 1000
             
         # Format Context
         historical_context = []
@@ -444,7 +359,16 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                 },
                 "rag_engine": {
                     "average_cosine_similarity": avg_cosine_sim,
-                    "embedding_source": "semantic" if query_embedding is not None else "lexical_fallback"
+                    "embedding_source": "semantic" if query_embedding is not None else "lexical_fallback",
+                    "retrieval_method": "hybrid_rrf" if retrieval.USE_HYBRID_RAG else "legacy",
+                    "embedding_ms": round(embedding_ms, 1),
+                    "db_ms": round(db_ms, 1),
+                    "filter_tier_reached": rag_meta.get("filter_tier"),
+                    "filter_tiers": rag_meta.get("filter_tiers"),
+                    "candidate_pool_size": rag_meta.get("candidate_pool_size"),
+                    "sparse_arm_used": rag_meta.get("sparse_arm_used"),
+                    "dense_arm_used": rag_meta.get("dense_arm_used"),
+                    "padded": rag_meta.get("padded"),
                 }
             }
         }

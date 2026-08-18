@@ -116,7 +116,7 @@ def fetch_reliefweb():
             "country": country,
             "disaster_type": disaster,
             "narrative_text": narrative_text,
-            "semantic_query": f"{disaster} in {country} (Year: {event_year}). Additional Context: {narrative_text[:500]}",
+            "semantic_query": f"{disaster} in {country} (Year: {event_year}). Additional Context: {narrative_text[:2000]}",
             "event_year": event_year,
             "lat": None,
             "lng": None
@@ -289,6 +289,7 @@ def main():
                 rec["lat"],
                 rec["lng"],
                 embedding,
+                embedding,  # embedding_v2: same vector, so new rows stay visible
                 rec["unique_id"]
             ))
             print(f"  [+] Embedded NEW report: {rec['unique_id']}")
@@ -304,7 +305,7 @@ def main():
         cur = conn.cursor()
         
         insert_query = """
-            INSERT INTO disaster_narratives (date, country, disaster_type, narrative_text, event_year, lat, lng, embedding, unique_id)
+            INSERT INTO disaster_narratives (date, country, disaster_type, narrative_text, event_year, lat, lng, embedding, embedding_v2, unique_id)
             VALUES %s
             ON CONFLICT (unique_id) DO NOTHING
         """

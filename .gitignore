@@ -57,3 +57,8 @@ archive/*.sql
 # Local AI tooling artifacts (security-scan results, repo wikis)
 .mimosa/
 .qoder/
+
+# Eval harness transients (caches / checkpoints / logs — derived, not source)
+eval/.embedding_cache.json
+eval/.reembed_checkpoint.json
+eval/reembed.log

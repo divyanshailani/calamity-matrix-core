@@ -1,0 +1,786 @@
+{
+  "legacy": {
+    "aggregate": {
+      "mode": "legacy",
+      "n": 32,
+      "recall@5": 0.8125,
+      "recall@3": 0.8125,
+      "mrr": 0.7447916666666666,
+      "ndcg@5": 0.765625,
+      "latency_ms_p50": 127.6,
+      "latency_ms_p95": 180.2
+    },
+    "per_query": [
+      {
+        "id": "q_beyond500_1",
+        "category": "beyond500",
+        "query_text": "hat million people are exposed to",
+        "relevant": [
+          "d68c179797fc5188e30f6332d41549c7"
+        ],
+        "retrieved": [
+          "d68c179797fc5188e30f6332d41549c7",
+          "13f165165fc907b680dc5abbfba322c5",
+          "daf7867a0e9a3406d6e80420639f9c4e"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 180.2,
+        "meta": {
+          "result_unique_ids": [
+            "d68c179797fc5188e30f6332d41549c7",
+            "13f165165fc907b680dc5abbfba322c5",
+            "daf7867a0e9a3406d6e80420639f9c4e"
+          ]
+        }
+      },
+      {
+        "id": "q_beyond500_2",
+        "category": "beyond500",
+        "query_text": "mily Links RFL requests homes",
+        "relevant": [
+          "0cdf462911575ae8f9a4e4150ea775ce"
+        ],
+        "retrieved": [
+          "0cdf462911575ae8f9a4e4150ea775ce"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 121.3,
+        "meta": {
+          "result_unique_ids": [
+            "0cdf462911575ae8f9a4e4150ea775ce"
+          ]
+        }
+      },
+      {
+        "id": "q_beyond500_3",
+        "category": "beyond500",
+        "query_text": "current Cholera outbreak at",
+        "relevant": [
+          "a77863b3517e4dbf74ef25ae636ec319"
+        ],
+        "retrieved": [
+          "afbc68dfc35411dcd6d6849b838d9b49",
+          "a77863b3517e4dbf74ef25ae636ec319",
+          "d93f9b6fa21ba1d10c997d9c37c115df"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6666666666666666,
+        "db_ms": 127.6,
+        "meta": {
+          "result_unique_ids": [
+            "afbc68dfc35411dcd6d6849b838d9b49",
+            "a77863b3517e4dbf74ef25ae636ec319",
+            "d93f9b6fa21ba1d10c997d9c37c115df"
+          ]
+        }
+      },
+      {
+        "id": "q_beyond500_4",
+        "category": "beyond500",
+        "query_text": "essing vital health nutrition education and",
+        "relevant": [
+          "0f9af5d70057f54669ecb8f107394e2c"
+        ],
+        "retrieved": [
+          "e29871bed3ec68b395874bedd974ed02",
+          "40dbf083da37c50a69e2921146ab1c9d",
+          "2b11338854a1b17cb966b7e51e7099dd"
+        ],
+        "recall@5": 0.0,
+        "recall@3": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0,
+        "db_ms": 140.9,
+        "meta": {
+          "result_unique_ids": [
+            "e29871bed3ec68b395874bedd974ed02",
+            "40dbf083da37c50a69e2921146ab1c9d",
+            "2b11338854a1b17cb966b7e51e7099dd"
+          ]
+        }
+      },
+      {
+        "id": "q_beyond500_5",
+        "category": "beyond500",
+        "query_text": "remote areas Access to",
+        "relevant": [
+          "b58baa5afe183433e8bd6a26c806e40f"
+        ],
+        "retrieved": [
+          "usgs_us6000t7lb",
+          "usgs_us6000t8sl",
+          "usgs_us6000tl4w"
+        ],
+        "recall@5": 0.0,
+        "recall@3": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0,
+        "db_ms": 137.0,
+        "meta": {
+          "result_unique_ids": [
+            "usgs_us6000t7lb",
+            "usgs_us6000t8sl",
+            "usgs_us6000tl4w"
+          ]
+        }
+      },
+      {
+        "id": "q_beyond500_6",
+        "category": "beyond500",
+        "query_text": "nd UN OCHA In",
+        "relevant": [
+          "45e7d580700ebe7ac7a84976605e20e4"
+        ],
+        "retrieved": [
+          "45e7d580700ebe7ac7a84976605e20e4",
+          "d57dab769f76c681ba226e1f40e0a119",
+          "331b06f8f1a4ba4807b6862415519e6b"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 136.6,
+        "meta": {
+          "result_unique_ids": [
+            "45e7d580700ebe7ac7a84976605e20e4",
+            "d57dab769f76c681ba226e1f40e0a119",
+            "331b06f8f1a4ba4807b6862415519e6b"
+          ]
+        }
+      },
+      {
+        "id": "q_beyond500_7",
+        "category": "beyond500",
+        "query_text": "all provinces has continued to increase sharply",
+        "relevant": [
+          "edb07399dc7bde0559232b6ff5016e77"
+        ],
+        "retrieved": [
+          "edb07399dc7bde0559232b6ff5016e77",
+          "cd6edfe3aba62a55748cb5db15207b99",
+          "97cbd58d75a782bba3dabd38d369a923"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 123.6,
+        "meta": {
+          "result_unique_ids": [
+            "edb07399dc7bde0559232b6ff5016e77",
+            "cd6edfe3aba62a55748cb5db15207b99",
+            "97cbd58d75a782bba3dabd38d369a923"
+          ]
+        }
+      },
+      {
+        "id": "q_beyond500_8",
+        "category": "beyond500",
+        "query_text": "TC Amphan in are on",
+        "relevant": [
+          "a12176c1a53523e0db531b33b6ab852d"
+        ],
+        "retrieved": [
+          "ff4878b589a9ff67b2ac6eae0a5a42d7",
+          "a12176c1a53523e0db531b33b6ab852d",
+          "c5c121bf77e14634b8c77a34b2557e38"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6666666666666666,
+        "db_ms": 133.7,
+        "meta": {
+          "result_unique_ids": [
+            "ff4878b589a9ff67b2ac6eae0a5a42d7",
+            "a12176c1a53523e0db531b33b6ab852d",
+            "c5c121bf77e14634b8c77a34b2557e38"
+          ]
+        }
+      },
+      {
+        "id": "q_beyond500_9",
+        "category": "beyond500",
+        "query_text": "January heavy rains and",
+        "relevant": [
+          "3e6d66a1d7598ab0b06498b138ba35da"
+        ],
+        "retrieved": [
+          "3e6d66a1d7598ab0b06498b138ba35da",
+          "5a12061472e6439cec554c4b84d19f92",
+          "b25522896bd305c09369964a0fbb1a5c"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 127.5,
+        "meta": {
+          "result_unique_ids": [
+            "3e6d66a1d7598ab0b06498b138ba35da",
+            "5a12061472e6439cec554c4b84d19f92",
+            "b25522896bd305c09369964a0fbb1a5c"
+          ]
+        }
+      },
+      {
+        "id": "q_beyond500_10",
+        "category": "beyond500",
+        "query_text": "February polio workers and",
+        "relevant": [
+          "3f0b32e8ff0e8dfe2e3fac3b32f0fb87"
+        ],
+        "retrieved": [
+          "3f0b32e8ff0e8dfe2e3fac3b32f0fb87",
+          "683781cc9ead606d0c86ed7cc91be235",
+          "9952110a5e4b659cd0f00da83e484572"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 144.9,
+        "meta": {
+          "result_unique_ids": [
+            "3f0b32e8ff0e8dfe2e3fac3b32f0fb87",
+            "683781cc9ead606d0c86ed7cc91be235",
+            "9952110a5e4b659cd0f00da83e484572"
+          ]
+        }
+      },
+      {
+        "id": "q_exact_11",
+        "category": "exact",
+        "query_text": "hurricane katrina new orleans",
+        "relevant": [
+          "5ace3236ef93515e3ee599a399e992e9"
+        ],
+        "retrieved": [],
+        "recall@5": 0.0,
+        "recall@3": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0,
+        "db_ms": 240.3,
+        "meta": {
+          "result_unique_ids": []
+        }
+      },
+      {
+        "id": "q_exact_12",
+        "category": "exact",
+        "query_text": "sichuan earthquake 2008",
+        "relevant": [
+          "e78627f361d5934b4b3a4399a5c2bc30"
+        ],
+        "retrieved": [
+          "93cc44cac77386f539e96a4a7825186d",
+          "0d9595385bf75c0fad68251f9ddf58ba",
+          "e78627f361d5934b4b3a4399a5c2bc30"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg@5": 0.5,
+        "db_ms": 126.1,
+        "meta": {
+          "result_unique_ids": [
+            "93cc44cac77386f539e96a4a7825186d",
+            "0d9595385bf75c0fad68251f9ddf58ba",
+            "e78627f361d5934b4b3a4399a5c2bc30"
+          ]
+        }
+      },
+      {
+        "id": "q_exact_13",
+        "category": "exact",
+        "query_text": "cyclone idai mozambique",
+        "relevant": [
+          "1330a80238e57304a9127cf6af1e4a62"
+        ],
+        "retrieved": [
+          "2b528fae2c31cc836e0611302a1ad8aa",
+          "391c0f5ffab0687262ce14dc220911dc",
+          "06505a7adc61a9a35eb5ff5de3a6ef50"
+        ],
+        "recall@5": 0.0,
+        "recall@3": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0,
+        "db_ms": 131.9,
+        "meta": {
+          "result_unique_ids": [
+            "2b528fae2c31cc836e0611302a1ad8aa",
+            "391c0f5ffab0687262ce14dc220911dc",
+            "06505a7adc61a9a35eb5ff5de3a6ef50"
+          ]
+        }
+      },
+      {
+        "id": "q_exact_14",
+        "category": "exact",
+        "query_text": "cyclone in bangladesh 2007",
+        "relevant": [
+          "d2642aeadb97789831f5daf8ad65ad95"
+        ],
+        "retrieved": [
+          "1aaf1bc1840f040cf94f94ef7461c97c",
+          "d2642aeadb97789831f5daf8ad65ad95",
+          "9c8403a11d2d3a5d2cc80b80d55953df"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6666666666666666,
+        "db_ms": 129.3,
+        "meta": {
+          "result_unique_ids": [
+            "1aaf1bc1840f040cf94f94ef7461c97c",
+            "d2642aeadb97789831f5daf8ad65ad95",
+            "9c8403a11d2d3a5d2cc80b80d55953df"
+          ]
+        }
+      },
+      {
+        "id": "q_exact_15",
+        "category": "exact",
+        "query_text": "kashmir floods 2010",
+        "relevant": [
+          "f374645f47cb48fc1456348b1cc48f57"
+        ],
+        "retrieved": [
+          "f374645f47cb48fc1456348b1cc48f57",
+          "7815cf6cf1a79aa3aa855f0c44d8399a",
+          "551dfc670ecd584e2c5f951de4948f6c"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 132.4,
+        "meta": {
+          "result_unique_ids": [
+            "f374645f47cb48fc1456348b1cc48f57",
+            "7815cf6cf1a79aa3aa855f0c44d8399a",
+            "551dfc670ecd584e2c5f951de4948f6c"
+          ]
+        }
+      },
+      {
+        "id": "q_exact_16",
+        "category": "exact",
+        "query_text": "christchurch earthquake 2011",
+        "relevant": [
+          "f6414d69021a4037fa7861a953afcb66"
+        ],
+        "retrieved": [
+          "f6414d69021a4037fa7861a953afcb66",
+          "usgs_us6000thl3",
+          "usgs_us6000t8t3"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 129.9,
+        "meta": {
+          "result_unique_ids": [
+            "f6414d69021a4037fa7861a953afcb66",
+            "usgs_us6000thl3",
+            "usgs_us6000t8t3"
+          ]
+        }
+      },
+      {
+        "id": "q_exact_17",
+        "category": "exact",
+        "query_text": "japan earthquake tsunami 2011",
+        "relevant": [
+          "f93bca15538d65ef145b41af2a27efc9"
+        ],
+        "retrieved": [
+          "f93bca15538d65ef145b41af2a27efc9",
+          "usgs_us6000t8fe",
+          "usgs_us6000timf"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 122.6,
+        "meta": {
+          "result_unique_ids": [
+            "f93bca15538d65ef145b41af2a27efc9",
+            "usgs_us6000t8fe",
+            "usgs_us6000timf"
+          ]
+        }
+      },
+      {
+        "id": "q_exact_18",
+        "category": "exact",
+        "query_text": "bangladesh cyclone bhola 2009",
+        "relevant": [
+          "820d4d39cbcdd155e6035f7386c0fcf4"
+        ],
+        "retrieved": [
+          "820d4d39cbcdd155e6035f7386c0fcf4",
+          "b30a4ee887434cb967647d4c8dd47895",
+          "acf43b00a1a2cd6f9b67ea24cdf9bf6e"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 136.6,
+        "meta": {
+          "result_unique_ids": [
+            "820d4d39cbcdd155e6035f7386c0fcf4",
+            "b30a4ee887434cb967647d4c8dd47895",
+            "acf43b00a1a2cd6f9b67ea24cdf9bf6e"
+          ]
+        }
+      },
+      {
+        "id": "q_smallpool_19",
+        "category": "smallpool",
+        "query_text": "Drought in Moldova",
+        "relevant": [
+          "731cd746b3e7801143a1b4b87ab71a25"
+        ],
+        "retrieved": [
+          "731cd746b3e7801143a1b4b87ab71a25"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 119.0,
+        "meta": {
+          "result_unique_ids": [
+            "731cd746b3e7801143a1b4b87ab71a25"
+          ]
+        }
+      },
+      {
+        "id": "q_smallpool_20",
+        "category": "smallpool",
+        "query_text": "Flash Flood in Saint Lucia",
+        "relevant": [
+          "14a50e63932952979e51876d2fe88789",
+          "58abd6e904d09ee52f77c68b207d763e"
+        ],
+        "retrieved": [
+          "14a50e63932952979e51876d2fe88789",
+          "58abd6e904d09ee52f77c68b207d763e"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 129.5,
+        "meta": {
+          "result_unique_ids": [
+            "14a50e63932952979e51876d2fe88789",
+            "58abd6e904d09ee52f77c68b207d763e"
+          ]
+        }
+      },
+      {
+        "id": "q_smallpool_21",
+        "category": "smallpool",
+        "query_text": "Earthquake in Australia",
+        "relevant": [
+          "ab5b2a9f45802661a56a9a20c404dda6"
+        ],
+        "retrieved": [
+          "ab5b2a9f45802661a56a9a20c404dda6"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 130.2,
+        "meta": {
+          "result_unique_ids": [
+            "ab5b2a9f45802661a56a9a20c404dda6"
+          ]
+        }
+      },
+      {
+        "id": "q_smallpool_22",
+        "category": "smallpool",
+        "query_text": "Earthquake in New Zealand",
+        "relevant": [
+          "f6414d69021a4037fa7861a953afcb66",
+          "usgs_us6000t8t3",
+          "usgs_us6000thl3"
+        ],
+        "retrieved": [
+          "usgs_us6000thl3",
+          "usgs_us6000t8t3",
+          "f6414d69021a4037fa7861a953afcb66"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 115.2,
+        "meta": {
+          "result_unique_ids": [
+            "usgs_us6000thl3",
+            "usgs_us6000t8t3",
+            "f6414d69021a4037fa7861a953afcb66"
+          ]
+        }
+      },
+      {
+        "id": "q_smallpool_23",
+        "category": "smallpool",
+        "query_text": "Tropical Cyclone in Micronesia (Federated States of)",
+        "relevant": [
+          "44f423cf698a1748933a09142bad8c7c",
+          "5776ce4d8b94ad075a44002c66dd853f",
+          "6c3af12bf73e3cb3f9c2d91355550922"
+        ],
+        "retrieved": [
+          "6c3af12bf73e3cb3f9c2d91355550922",
+          "44f423cf698a1748933a09142bad8c7c",
+          "5776ce4d8b94ad075a44002c66dd853f"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 121.0,
+        "meta": {
+          "result_unique_ids": [
+            "6c3af12bf73e3cb3f9c2d91355550922",
+            "44f423cf698a1748933a09142bad8c7c",
+            "5776ce4d8b94ad075a44002c66dd853f"
+          ]
+        }
+      },
+      {
+        "id": "q_smallpool_24",
+        "category": "smallpool",
+        "query_text": "Drought in Uzbekistan",
+        "relevant": [
+          "21539c60b7735b81663912b1d4fe02ab",
+          "a34795f8e3c1658687d941c4d25db8c2"
+        ],
+        "retrieved": [
+          "21539c60b7735b81663912b1d4fe02ab",
+          "a34795f8e3c1658687d941c4d25db8c2"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 123.7,
+        "meta": {
+          "result_unique_ids": [
+            "21539c60b7735b81663912b1d4fe02ab",
+            "a34795f8e3c1658687d941c4d25db8c2"
+          ]
+        }
+      },
+      {
+        "id": "q_mismatch_25",
+        "category": "mismatch",
+        "query_text": "typhoon winds hitting the coast",
+        "relevant": [
+          "e47faae3dec385cd6fe62634081e3e5e"
+        ],
+        "retrieved": [
+          "e47faae3dec385cd6fe62634081e3e5e",
+          "85bcd82fc77da91a88369862050a7bda",
+          "23baa5f06a08c268c2cfeff1ecc0935a"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 59.9,
+        "meta": {
+          "result_unique_ids": [
+            "e47faae3dec385cd6fe62634081e3e5e",
+            "85bcd82fc77da91a88369862050a7bda",
+            "23baa5f06a08c268c2cfeff1ecc0935a"
+          ]
+        }
+      },
+      {
+        "id": "q_mismatch_26",
+        "category": "mismatch",
+        "query_text": "bushfire smoke and evacuations",
+        "relevant": [
+          "fa0031511a43ef97db222441b3538695"
+        ],
+        "retrieved": [
+          "fa0031511a43ef97db222441b3538695",
+          "f20c8ed6b586702b6cecf214f6cf0f3d"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 123.5,
+        "meta": {
+          "result_unique_ids": [
+            "fa0031511a43ef97db222441b3538695",
+            "f20c8ed6b586702b6cecf214f6cf0f3d"
+          ]
+        }
+      },
+      {
+        "id": "q_mismatch_27",
+        "category": "mismatch",
+        "query_text": "wildfire smoke blanketing the city",
+        "relevant": [
+          "nasa_EONET_22610"
+        ],
+        "retrieved": [
+          "nasa_EONET_20766",
+          "nasa_EONET_20743",
+          "nasa_EONET_20714"
+        ],
+        "recall@5": 0.0,
+        "recall@3": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0,
+        "db_ms": 63.3,
+        "meta": {
+          "result_unique_ids": [
+            "nasa_EONET_20766",
+            "nasa_EONET_20743",
+            "nasa_EONET_20714"
+          ]
+        }
+      },
+      {
+        "id": "q_mismatch_28",
+        "category": "mismatch",
+        "query_text": "sudden flash flooding of the valley",
+        "relevant": [
+          "4ab4321d2b06eb4970a2457000cb77af"
+        ],
+        "retrieved": [
+          "e877f2656dd6364f7bb188e1b1112cb0",
+          "2cd5a378f91a9892ec206d0559e0cf7c",
+          "8801e265282dbebddb636ac96a4c9364"
+        ],
+        "recall@5": 0.0,
+        "recall@3": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0,
+        "db_ms": 123.1,
+        "meta": {
+          "result_unique_ids": [
+            "e877f2656dd6364f7bb188e1b1112cb0",
+            "2cd5a378f91a9892ec206d0559e0cf7c",
+            "8801e265282dbebddb636ac96a4c9364"
+          ]
+        }
+      },
+      {
+        "id": "q_mismatch_29",
+        "category": "mismatch",
+        "query_text": "record heatwave temperatures",
+        "relevant": [
+          "2e9bd40148de5a93fd7d487c60476df8"
+        ],
+        "retrieved": [
+          "2e9bd40148de5a93fd7d487c60476df8"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 125.6,
+        "meta": {
+          "result_unique_ids": [
+            "2e9bd40148de5a93fd7d487c60476df8"
+          ]
+        }
+      },
+      {
+        "id": "q_mismatch_30",
+        "category": "mismatch",
+        "query_text": "mudslide burying houses",
+        "relevant": [
+          "decfbf69fd62131e40a36ed1007346f7"
+        ],
+        "retrieved": [
+          "decfbf69fd62131e40a36ed1007346f7",
+          "5aa56093eccd6a1ee89941334c24ce6e",
+          "dbfe1e6f0f97ac08cbbf1cea7873c790"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 123.9,
+        "meta": {
+          "result_unique_ids": [
+            "decfbf69fd62131e40a36ed1007346f7",
+            "5aa56093eccd6a1ee89941334c24ce6e",
+            "dbfe1e6f0f97ac08cbbf1cea7873c790"
+          ]
+        }
+      },
+      {
+        "id": "q_mismatch_31",
+        "category": "mismatch",
+        "query_text": "coastal storm surge flooding",
+        "relevant": [
+          "abdec75387bab5894d5d6cca26700739"
+        ],
+        "retrieved": [
+          "abdec75387bab5894d5d6cca26700739",
+          "42fe4f49376ebad9111be2051a980d08"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 117.4,
+        "meta": {
+          "result_unique_ids": [
+            "abdec75387bab5894d5d6cca26700739",
+            "42fe4f49376ebad9111be2051a980d08"
+          ]
+        }
+      },
+      {
+        "id": "q_mismatch_32",
+        "category": "mismatch",
+        "query_text": "mudslide after heavy rain",
+        "relevant": [
+          "10d93e70a35879dd9bcef8097fcb506d"
+        ],
+        "retrieved": [
+          "10d93e70a35879dd9bcef8097fcb506d"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 139.9,
+        "meta": {
+          "result_unique_ids": [
+            "10d93e70a35879dd9bcef8097fcb506d"
+          ]
+        }
+      }
+    ]
+  }
+}
