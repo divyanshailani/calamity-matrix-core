@@ -524,6 +524,18 @@ guard passed: no metric below 95% of baseline. **Decision (eval-driven):**
 `USE_HYBRID_RAG=true` in production; `EMBEDDING_COLUMN=embedding_v2` once the
 backfill + v2 eval confirm the coverage fix.
 
+**Shipped state (deploy v56, `db338da`, 2026-08-18):** `embedding_v2` backfill
+completed — all 2,615 rows re-embedded from the full 2,048-char window
+(verified `count(*) FILTER (WHERE embedding_v2 IS NULL) = 0`). V2 eval
+(`eval/results/1787079934_hybrid.json`): recall@5 0.969, MRR 0.875, nDCG@5
+0.906, guard passed — statistically indistinguishable from v1 on this 32-query
+set (the sparse FTS arm already captured the beyond-500 recall), so the switch
+rests on the mechanical coverage fix, not on the eval delta. Both flags are ON
+in production (`USE_HYBRID_RAG=1`, `EMBEDDING_COLUMN=embedding_v2`); rollback
+is `heroku config:unset` on either flag. Live probes verified: Tohoku 2011
+query → `hybrid_rrf`, strict tier reached, padded, 5 rows, cold-start embedding
+14.5s inside the 24s budget, DB 1.9s over WAN.
+
 **Schema changes applied to production** (verified):
 
 ```
