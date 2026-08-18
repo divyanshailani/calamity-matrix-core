@@ -53,17 +53,23 @@ export default function GeospatialMap({ viewState, setViewState, results, error,
     }
   }, [results, country]);
 
+  // Rows with coordinates only; n drives the fan-out angle so every marker
+  // gets its own slot (the old fixed 120° step wrapped after 3 results and
+  // stacked markers 2 and 5 on top of each other).
+  const placedRows = (results?.historical_context ?? []).filter((c: any) => c.lat != null && c.lng != null);
+  const n = placedRows.length || 1;
+
   const arcData = useMemo(() => {
     if (!results?.historical_context || !countryCoords[country]) return null;
     const target = countryCoords[country];
     return {
       type: "FeatureCollection" as const,
-      features: results.historical_context.filter((c: any) => c.lat != null).map((c: any, i: number) => {
-        const a = i * (Math.PI * 2 / 3), r = i === 0 ? 0 : 0.8;
+      features: placedRows.map((c: any, i: number) => {
+        const a = i * (Math.PI * 2 / n), r = n === 1 ? 0 : 0.8;
         return { type: "Feature", geometry: { type: "LineString", coordinates: generateArc({ lat: c.lat + Math.sin(a) * r, lng: c.lng + Math.cos(a) * r }, target) } };
       }) as any
     };
-  }, [results, country]);
+  }, [results, country, placedRows, n]);
 
   return (
     <div style={{ flex: 1, position: "relative", border: "1px solid var(--border)", borderRadius: "8px", overflow: "hidden", minHeight: "400px", background: "var(--surface)" }}>
@@ -95,9 +101,8 @@ export default function GeospatialMap({ viewState, setViewState, results, error,
         )}
 
         {/* Historical markers */}
-        {results?.historical_context?.map((ctx: any, i: number) => {
-          if (ctx.lat == null || ctx.lng == null) return null;
-          const a = i * (Math.PI * 2 / 3), r = i === 0 ? 0 : 0.8;
+        {placedRows.map((ctx: any, i: number) => {
+          const a = i * (Math.PI * 2 / n), r = n === 1 ? 0 : 0.8;
           return (
             <Marker key={i} longitude={ctx.lng + Math.cos(a) * r} latitude={ctx.lat + Math.sin(a) * r} anchor="center">
               <div style={{ position: "relative" }} className="group">

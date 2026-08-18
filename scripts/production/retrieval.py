@@ -383,7 +383,25 @@ def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, even
                 break
 
         rows = merged[:top_k]
-        results = [r[:8] for r in rows]
+
+        # Replace the RRF fused score (max ~0.041, meaningless to users) with
+        # each row's true cosine similarity to the query embedding. RRF still
+        # decides ordering above; this only fixes what the UI displays
+        # (average_cosine_similarity + per-row similarity_score). The eval
+        # harness only reads meta["result_unique_ids"], so it is unaffected.
+        # When the dense bridge is down (query_embedding is None) there is no
+        # cosine value to compute, and rows keep the RRF score in r[7].
+        if query_embedding is not None and rows:
+            ids = [r[8] for r in rows]
+            cur.execute(
+                f"SELECT id, 1 - ({col} <=> %s::vector) AS cosine_sim "
+                f"FROM disaster_narratives WHERE id = ANY(%s)",
+                (query_embedding, ids),
+            )
+            cos_by_id = {r[0]: r[1] for r in cur.fetchall()}
+            results = [tuple(list(r[:7]) + [cos_by_id.get(r[8], 0.0)]) for r in rows]
+        else:
+            results = [r[:8] for r in rows]
 
         suggested_alternatives = None
         if len(results) == 0:
