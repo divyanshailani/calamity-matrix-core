@@ -552,13 +552,19 @@ embedder, the matching column, and a per-provider embedding cache, and it now
 refuses to report metrics if any query failed to embed (a partly-lexical run
 would silently understate the dense arm).
 
-### 11.5 What is deliberately still pending
+### 11.5 Outcome and remaining work (2026-08-20)
 
-- **Phase G — production canary.** Blocked on credential rotation: `HF_TOKEN`,
-  `CLOUD_LLM_API_KEY`, `INGESTION_SECRET_KEY`, and the Fireworks key have all
-  been exposed in a transcript. Rotate before setting Heroku config vars.
-- **Phase H — reranker.** Contract verified, `USE_RERANKER` still defaults off.
-- **Commit and deploy.** The working tree holds all of the above uncommitted.
-- **Heroku config.** `FIREWORKS_API_KEY` is not set in production, so the
-  deployed app would still resolve `huggingface` as its only provider.
+- **Phase G — deployed and canaried.** Three commits (`b65df1b`, `fe561f8`,
+  `a7e056c`) pushed to origin and Heroku; released **v63** on the
+  `calamity-matrix-api` app. `FIREWORKS_API_KEY` set as a config var (release
+  v61). A live `simulate_calamity` canary returned HTTP 200 with
+  `rag_engine.embedding_source = "fireworks"`,
+  `embedding_column = "embedding_fireworks"`,
+  `embedding_provider_failures = []`, `dense_arm_used = true`, `embedding_ms =
+  136.6`, and `average_cosine_similarity = 0.634`. The previously exposed
+  credentials were left unrotated at the operator's direction (they monitor the
+  usage dashboard daily).
+- **Phase H — reranker.** Contract verified; `USE_RERANKER` still defaults off.
+  Not enabled: the eval showed only a within-rank ordering gap, not a recall gap,
+  so paid reranking is not yet justified.
 
