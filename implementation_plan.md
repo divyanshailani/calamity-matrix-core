@@ -557,3 +557,226 @@ Re-run: smallpool 1.000, all categories at or above baseline.
 tier counts + up to 3 arms per tier, each with a 30-candidate LIMIT — that is
 still ~20x inside the pool's `statement_timeout=10000` and ~50x inside the 24s
 upstream budget where the embedding call alone costs ~4s.
+
+---
+
+## 12. Embedding-bridge incident plan — 2026-08-20
+
+**Status:** PLAN ONLY. The investigation was read-only. No HF token change, Heroku config mutation, deployment, database write, recovery action, or rollback was performed.
+
+**Incident:** Hermes job `7bb503232e6c` reported six consecutive production probes with `embedding_source="lexical_fallback"`:
+
+```text
+Calamity AI watchdog: problem detected
+  - embedding bridge has been down 6 consecutive probes (lexical RAG only; HF quota may be exhausted)
+```
+
+**Safety constraint:** Do not roll back to the retired acc1 database. It is a stale copy. All remediation must target the active production path only after provider/account diagnosis.
+
+### 12.1 Executive diagnosis
+
+The active production database is healthy. The embedding provider is rejecting requests.
+
+| Check | Evidence | Conclusion |
+|---|---|---|
+| Hermes streak | `~/.hermes/state/calamity_embed_source.json` = `{"consecutive_fallback": 6}`; hourly outputs at 19:01, 20:03, 21:08, 22:04 | Six consecutive semantic failures are real |
+| Heroku application | `calamity-matrix-api`, current release v60, deployed commit `1448f70`; `/health` returned HTTP 200 | API process is alive |
+| Heroku logs | Repeated `[retrieval] embedding bridge unavailable (HTTP 402); lexical fallback` | Provider returned Payment Required |
+| Independent HF probe | Direct POST to the configured BGE endpoint returned HTTP 402 | Failure reproduces outside Heroku |
+| API behavior | Watchdog's other checks passed; simulations returned non-empty historical context and numeric predictions | Graceful lexical degradation is functioning |
+| Active database | Azure Account 2 PostgreSQL 18.4 / pgvector on port 5432; 2,615 rows; `embedding_v2` nulls = 0; `fts_vector` nulls = 0; `vector` extension present | Active DB is not the incident cause |
+
+**Root-cause confidence:**
+
+- **Confirmed:** Hugging Face embedding requests are persistently rejected with HTTP 402 by both production and an independent probe.
+- **Not yet distinguished:** exhausted quota versus billing restriction versus account/token entitlement. The current bridge discards provider response bodies and exposes no failure reason in telemetry.
+- **Ruled out for this alert:** retired acc1 database, active Azure row loss, missing v2 embeddings, missing FTS column, API process death, and general DNS failure.
+
+### 12.2 Current failure path
+
+```text
+Hermes hourly watchdog
+  -> POST /api/v1/simulate_calamity
+  -> api_orchestrator.fetch_hf()
+  -> retrieval.embed_query()
+  -> Hugging Face BGE endpoint
+  -> HTTP 402
+  -> None
+  -> hybrid retrieval without dense arm
+  -> sparse/recency lexical fallback
+  -> HTTP 200 + embedding_source=lexical_fallback
+```
+
+Relevant locations:
+
+- `~/.hermes/scripts/calamity_watchdog.py:76-121`: end-to-end probe and fallback streak.
+- `scripts/production/retrieval.py:97-132`: provider call, retries, normalization, generic fallback.
+- `scripts/production/api_orchestrator.py:223-254`: parallel upstream calls and lexical degradation.
+- `scripts/production/api_orchestrator.py:360-371`: current telemetry, which lacks provider status/reason/attempt fields.
+
+### 12.3 Full-scan findings, ranked
+
+#### P0 — provider outage confirmed; recovery decision still required
+
+The HF account/token path is in a payment/quota failure class. Do not repeatedly retry or rotate arbitrary values. First check the HF account billing/quota/token entitlement through the provider dashboard or authorized status API, recording only model, timestamp, status class, and sanitized reason. Then explicitly choose one of:
+
+1. Restore the existing HF entitlement/quota.
+2. Approve a replacement embedding provider.
+3. Operate lexical-only temporarily with an explicit degraded-service policy.
+
+No database rollback is relevant to these choices.
+
+#### P0 — retry budget contradicts the documented 24-second budget
+
+`_hf_embed(timeout=24, retries=2)` can wait roughly 48 seconds before returning `None`, excluding overhead. Permanent 401/402/403 responses should not be retried. Transient retries must share one wall-clock deadline below Heroku's 30-second router ceiling.
+
+#### P0 — provider failure reason is not observable
+
+`retrieval.py` reduces non-200 responses to `HTTP <status>` and prints an unstructured line. API telemetry only says `semantic` or `lexical_fallback`; it cannot distinguish quota, invalid token, rate limit, timeout, provider outage, malformed payload, zero vector, or wrong dimension. Add safe internal fields such as `embedding_failure_reason`, `embedding_http_status`, `embedding_attempts`, and `embedding_deadline_ms`, never provider bodies or secrets.
+
+#### P1 — vector contract validation is incomplete
+
+The bridge accepts any numeric vector length, does not reject non-finite values, and can return fewer vectors than requested in a batch. Enforce exactly 1,024 finite, non-zero values and batch cardinality before vectors reach pgvector or the database.
+
+#### P1 — health is liveness-only
+
+`/health` returns unconditional alive. Docker/proxy health checks therefore remain green during HF outage, all-lexical retrieval, DB loss after startup, missing schema, or empty active vectors. Add separate bounded readiness/dependency health; keep liveness cheap.
+
+#### P1 — watchdog and app do not prove the same DB identity
+
+Hermes checks `~/.calamity_rollback/DATABASE_URL.new.rotated`, while Heroku uses its own `DATABASE_URL`. Both currently reach the intended active DB, but the check is not proof of app identity. Prefer app readiness or a safe fingerprint of host/database/user/schema, never a password or full DSN.
+
+#### P1 — ingestion has weaker embedding safeguards
+
+`live_ingestion.py:32-61` has no explicit HF timeout, retry policy, vector-shape validation, or failure counters; failed embeddings are skipped and the job can appear successful. New records copy the same vector into both columns, which can hide future v1/v2 input or model drift. Ingestion also lacks bounded timeouts on several source and DB calls.
+
+#### P1 — outage-mode tests are absent
+
+There is no active pytest suite or CI job for missing token, HTTP 402/429/5xx, timeout, malformed/zero/wrong-dimension vectors, fallback telemetry, watchdog streak, API contract, stale DB retry, or end-to-end degraded mode. The retrieval eval tests ranking quality with precomputed embeddings, not provider outages.
+
+#### P2 — observability is not aggregated
+
+Telemetry is returned to clients but not emitted as one structured RAG event or aggregated metric. Add fallback ratio by reason, provider status counts, embedding/total latency, zero-result rate, DB retry count, ingestion failures, and recovery transitions.
+
+#### P2 — documentation and dependency drift
+
+`INFRASTRUCTURE.md` and historical `ISSUES.md`/`CHANGELOG.md` still describe the removed HF keep-warm behavior and older deployment paths. `npm audit --omit=dev` reports four high-severity advisories (`nanoid`, `next`, `postcss`, `sharp`); no automatic fix was applied. These are separate maintenance work, not emergency recovery.
+
+#### P2 — credential hygiene before next deployment
+
+One audit config-print command failed to redact Heroku's padded `config` output. No secret is included in this plan, but the transcript must be treated as locally exposed. Before the next deploy, rotate affected provider/application credentials through the normal secret-management path and use field-aware redaction thereafter. Do not put values in logs, plans, graph memory, or commits.
+
+### 12.4 Implementation phases
+
+#### Phase A — freeze and provider decision
+
+1. Keep `USE_HYBRID_RAG=1` and `EMBEDDING_COLUMN=embedding_v2`; do not alter the DB.
+2. Preserve redacted watchdog, Heroku, and HF status evidence outside source-controlled secrets.
+3. Classify the HF 402 through the provider account/billing/token status surface.
+4. Choose restore, replacement provider, or approved lexical-only operation.
+5. Rotate any credentials exposed by failed redaction before a new deployment.
+
+**Exit criteria:** provider decision recorded; no active DB mutation; lexical fallback returns 200 with non-empty context; credential plan approved.
+
+#### Phase B — harden the embedding client
+
+1. Centralize query-time and ingestion embedding calls.
+2. Enforce one absolute deadline at or below 24 seconds.
+3. Do not retry permanent 4xx classes; retry only selected transient timeout, connection, 429, and 5xx classes with bounded backoff.
+4. Return sanitized internal reason, status class, attempts, elapsed time, and model ID.
+5. Validate exactly 1,024 finite numeric values, reject zero vectors, normalize once, and require batch cardinality.
+6. Keep lexical fallback non-fatal and explicit.
+7. Reconcile configured `EMBEDDING_MODEL` with the actual endpoint using an allowlist; avoid arbitrary URL injection.
+
+**Exit criteria:** tests prove deadline, 402 no-retry, transient retry bounds, vector validation, and correct semantic/lexical telemetry.
+
+#### Phase C — readiness, telemetry, watchdog
+
+1. Add `/ready` or equivalent bounded DB-pool/schema dependency check; retain `/health` as liveness.
+2. Emit structured RAG fields: request ID, source, failure reason/status, attempts, embedding/db/total latency, result count, active column, flags, and retry indicator.
+3. Aggregate provider status, fallback, latency, zero-result, DB retry, and recovery metrics.
+4. Extend watchdog state with timestamp, source, reason/status, streak start, and recovery timestamp.
+5. Make watchdog consume app readiness plus a safe production identity fingerprint, or use a protected diagnostic endpoint; retain off-box DB/backup checks as separate checks.
+6. Keep hysteresis and send an explicit recovery notification.
+
+**Exit criteria:** a simulated provider outage generates bounded lexical response, configured alert, useful reason context, and a visible recovery transition.
+
+#### Phase D — ingestion and data safeguards
+
+1. Add HTTP/connect/database/statement timeouts to ingestion.
+2. Reuse the validated canonical embedding client/input.
+3. Count fetched, duplicate, embedded, failed, skipped, inserted, and conflict records.
+4. Persist or surface failed IDs; do not report full success after embedding failures.
+5. Define and document how new rows populate `embedding_v2`; do not blindly mirror columns.
+6. Run post-ingestion checks for count, nulls, dimensions, finite values, norms, and indexes.
+
+**Exit criteria:** forced provider failure leaves failed records uninserted, reports partial/failure status, and successful ingestion proves vector invariants.
+
+#### Phase E — tests and eval gates
+
+1. Mock missing token, 401, 402, 403, 429, 5xx, timeout, connection error, malformed JSON, empty/zero/non-finite/wrong-dimension vectors, and short batch response.
+2. Assert API HTTP 200 degraded mode, non-empty context, explicit reason, and no false semantic source.
+3. Add stale-pool, statement-timeout, missing-schema, and v2-null DB tests.
+4. Add watchdog threshold, persistence, single-failure tolerance, and recovery tests.
+5. Keep the 32-query hybrid/legacy eval and 95% guard; add absolute/category floors, both columns, dense/sparse/neither arms, tier/padding/no-result cases, and pinned fixtures.
+6. Add a read-only production smoke probe asserting semantic and degraded-mode telemetry plus end-to-end latency.
+
+**Exit criteria:** CI covers provider outage modes and retrieval quality; semantic cannot be claimed when the dense bridge failed.
+
+#### Phase F — controlled restoration and canary
+
+1. Deploy only after Phases B–E pass in test/staging.
+2. Validate liveness, readiness, semantic simulation, deliberate fallback, latency, DB timing, result count, and structured logs.
+3. Restore or replace provider entitlement through approved secret/config management.
+4. Canary and monitor fallback ratio, provider status, latency, and DB health.
+5. Limit rollback to release/config rollback; never point to acc1 or alter schema for provider recovery.
+6. Close only after three consecutive semantic probes, a recovery alert, and a fresh hybrid smoke/eval result.
+
+**Exit criteria:** canary is semantic, 402s are explained/resolved, active DB identity unchanged, and no H12/H10/pool regression exists.
+
+#### Phase G — runbook and maintenance cleanup
+
+1. Link this section from the Hermes monitoring memory/runbook.
+2. Reconcile README, infrastructure, changelog, and historical issue language with current Heroku/v57, disabled keep-warm, hybrid/v2 flags, and lexical fallback behavior.
+3. Document safe redaction, provider diagnosis, readiness, vector checks, and no-acc1 rollback rules.
+4. Track frontend dependency advisories separately with Next.js compatibility/build checks.
+5. Track Azure wildcard 5432/22 exposure and old git-history credential purge as separately approved security work.
+
+### 12.5 Acceptance matrix
+
+| Area | Must be true before incident closure |
+|---|---|
+| Provider | HF quota/token/billing cause classified; semantic request succeeds or approved replacement is active |
+| Budget | Embedding attempts respect the 24-second total ceiling; 402 is not repeatedly retried |
+| Fallback | Lexical mode returns 200 with non-empty context and explicit degraded telemetry |
+| Vector safety | Query/ingestion vectors are exactly 1,024 finite, non-zero, normalized values; batch counts match |
+| Database | Active Account 2 DB remains target; row/v2/FTS invariants healthy; no acc1 access |
+| Health | Liveness and dependency readiness are separate and accurate |
+| Watchdog | Alert has timestamp/reason/status, hysteresis, and recovery notification |
+| Tests | Provider outage, fallback, DB retry, watchdog state, and retrieval quality tests pass |
+| Security | Credentials exposed by failed redaction are rotated before next deploy; no secrets enter repo/memory/logs |
+| Deployment | Canary semantic probes pass; no blind recovery or rollback occurs |
+
+### 12.6 Explicit non-goals
+
+- Do not roll back to acc1.
+- Do not alter active PostgreSQL schema or delete/rebuild embeddings for this provider incident.
+- Do not repeatedly call HF hoping a 402 clears.
+- Do not add a keep-warm daemon; the previous one exhausted provider allowance and was intentionally removed.
+- Do not install a new reranker or BM25 extension as emergency response.
+- Do not treat HTTP 200 from `/health` as semantic health.
+- Do not expose provider bodies, API keys, DSNs, or passwords in diagnostics.
+
+### 12.7 Audit artifacts and reproducibility
+
+Read-only evidence used:
+
+- Hermes watchdog script, state, and job output under `~/.hermes/cron/output/7bb503232e6/`.
+- Heroku app/release/log inspection for `calamity-matrix-api`, v60 / commit `1448f70`.
+- Independent HF endpoint probe: HTTP 402 classification only; body not persisted in repository or plan.
+- Active DB read-only checks: PostgreSQL 18.4, `postgres`, 2,615 rows, `embedding_v2` null count 0, `fts_vector` null count 0, `vector` extension present.
+- Static checks: Python `compileall` passed; frontend `npm audit --omit=dev` reported four high-severity advisories (`nanoid`, `next`, `postcss`, `sharp`); no automatic fix applied.
+- Repository was clean at audit start except pre-existing untracked local artifacts.
+
+**Plan conclusion:** keep production running in lexical-degraded mode while the HF account/payment cause is resolved. The database is healthy and must remain untouched. First code work should harden status classification and deadlines, then readiness/telemetry/tests, before provider restoration or deployment.
+
