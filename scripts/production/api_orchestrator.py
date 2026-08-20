@@ -3,7 +3,7 @@ import sys
 import json
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 import requests
@@ -152,6 +152,33 @@ app.add_middleware(
 def health_check():
     return {"status": "alive", "service": "calamity-orchestrator"}
 
+
+@app.get("/ready")
+def readiness_check():
+    """Dependency-aware readiness, distinct from the liveness-only /health.
+
+    Acquires the application's own pooled connection and runs a bounded
+    SELECT 1 so a queued/starved or dead database cannot hide behind a green
+    liveness probe. Returns 503 when the dependency is unavailable; never leaks
+    secrets (the exception is only logged internally).
+    """
+    db_pool = models.get('db_pool')
+    if db_pool is None:
+        return JSONResponse(status_code=503, content={"status": "not_ready", "database": "unavailable"})
+    conn = None
+    try:
+        conn = db_pool.getconn()
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        cur.close()
+        return {"status": "ready", "database": "ok"}
+    except Exception as e:
+        logger.warning(f"[!] readiness check failed: {type(e).__name__}: {e}")
+        return JSONResponse(status_code=503, content={"status": "not_ready", "database": "error"})
+    finally:
+        if conn is not None:
+            db_pool.putconn(conn)
+
 # Pydantic Payload
 class SimulationRequest(BaseModel):
     query_text: str = Field(..., min_length=1, max_length=4000)
@@ -226,8 +253,8 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             # in time, the caller degrades to lexical RAG instead of erroring.
             logger.info("[DEBUG] Hitting HF API (24s budget, wait_for_model)...")
             t0 = time.monotonic()
-            emb = retrieval.embed_query(master_semantic_query)
-            return emb, (time.monotonic() - t0) * 1000
+            emb, emb_meta = retrieval.embed_query_meta(master_semantic_query)
+            return emb, (time.monotonic() - t0) * 1000, emb_meta
 
         # ---------------------------------------------------------
         # 3. Execute in Parallel
@@ -244,14 +271,20 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
             
             query_embedding = None
             embedding_ms = 0.0
+            embed_meta = None
             t_emb0 = time.monotonic()
             try:
-                query_embedding, embedding_ms = future_hf.result()  # (vector, wall_ms)
+                query_embedding, embedding_ms, embed_meta = future_hf.result()  # (vector, wall_ms, meta)
                 if not query_embedding:
-                    logger.warning("[!] Embedding bridge unavailable; falling back to lexical RAG.")
+                    logger.warning(f"[!] Embedding bridge unavailable ({embed_meta}); falling back to lexical RAG.")
             except Exception as e:
                 embedding_ms = (time.monotonic() - t_emb0) * 1000
                 logger.warning(f"[!] Embedding bridge failed ({e}); falling back to lexical RAG.")
+
+        # A Qwen3 vector may only be compared against the Qwen3 column and a BGE
+        # vector against the BGE column, so the column is chosen by whichever
+        # provider actually produced this query's embedding.
+        embed_column = (embed_meta or {}).get("column") if query_embedding else None
 
         est_affected = math_data["est_affected"]
         est_damage = math_data["est_damage"]
@@ -275,6 +308,7 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                 region_list=retrieval.region_members(payload.country),
                 recency_weight=0.5, top_k=5,
                 decay_factor=decay_factor,
+                embed_column=embed_column,
             )
         except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
             # Azure silently reaps idle TCP/SSL flows, so a pooled connection
@@ -290,6 +324,7 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                     region_list=retrieval.region_members(payload.country),
                     recency_weight=0.5, top_k=5,
                     decay_factor=decay_factor,
+                    embed_column=embed_column,
                 )
             finally:
                 db_pool.putconn(conn)
@@ -359,7 +394,14 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                 },
                 "rag_engine": {
                     "average_cosine_similarity": avg_cosine_sim,
-                    "embedding_source": "semantic" if query_embedding is not None else "lexical_fallback",
+                    "embedding_source": ((embed_meta or {}).get("provider") or "lexical_fallback") if query_embedding else "lexical_fallback",
+                    "embedding_model": (embed_meta or {}).get("model"),
+                    "embedding_column": embed_column,
+                    "embedding_provider_failures": [
+                        {"provider": f.get("provider"), "reason": f.get("reason"),
+                         "http_status": f.get("http_status"), "attempts": f.get("attempts")}
+                        for f in ((embed_meta or {}).get("failures") or []) if isinstance(f, dict)
+                    ],
                     "retrieval_method": "hybrid_rrf" if retrieval.USE_HYBRID_RAG else "legacy",
                     "embedding_ms": round(embedding_ms, 1),
                     "db_ms": round(db_ms, 1),

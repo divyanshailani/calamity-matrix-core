@@ -5,12 +5,21 @@ both import their retrieval logic from here, so the evaluation harness cannot
 drift from what production actually runs.
 
 Env knobs (read directly so the eval tools work without a full Heroku env):
-  EMBEDDING_COLUMN  'embedding' (default, current behaviour) | 'embedding_v2'
+  EMBEDDING_COLUMN  'embedding' (default) | 'embedding_v2' | 'embedding_fireworks'
   USE_HYBRID_RAG    1/true/yes  -> hybrid three-list RRF pipeline
+  EMBEDDING_PRIMARY_PROVIDER  'fireworks' (default when keyed) | 'huggingface'
+  FIREWORKS_API_KEY, FIREWORKS_EMBEDDING_MODEL, FIREWORKS_EMBEDDING_DIMENSIONS
+  USE_RERANKER, FIREWORKS_RERANKER_MODEL, RERANK_CANDIDATES, RERANK_DOC_CHARS
   HF_TOKEN, MIN_EVENT_YEAR, DECAY_*  (mirror src/config.py defaults)
+
+Provider isolation rule: Qwen3 and BGE are different vector spaces. A query
+vector may only be compared against the column produced by the SAME provider
+(see PROVIDERS below). Never write one provider's vector into another's column.
 """
+import math
 import os
 import re
+import time
 
 import requests
 
@@ -19,10 +28,24 @@ import psycopg2
 HF_EMBED_URL = "https://router.huggingface.co/hf-inference/models/BAAI/bge-large-en-v1.5"
 INSTRUCTION_PREFIX = "Represent this sentence for searching relevant passages: "
 
+FIREWORKS_BASE_URL = os.getenv("FIREWORKS_BASE_URL", "https://api.fireworks.ai/inference/v1")
+FIREWORKS_API_KEY = os.getenv("FIREWORKS_API_KEY", "")
+FIREWORKS_EMBEDDING_MODEL = os.getenv(
+    "FIREWORKS_EMBEDDING_MODEL", "accounts/fireworks/models/qwen3-embedding-8b")
+FIREWORKS_EMBEDDING_DIMENSIONS = int(os.getenv("FIREWORKS_EMBEDDING_DIMENSIONS", "1024"))
+FIREWORKS_RERANKER_MODEL = os.getenv(
+    "FIREWORKS_RERANKER_MODEL", "accounts/fireworks/models/qwen3-reranker-8b")
+
 MIN_EVENT_YEAR = int(os.getenv("MIN_EVENT_YEAR", "2000"))
 EMBEDDING_COLUMN = os.getenv("EMBEDDING_COLUMN", "embedding")
 USE_HYBRID_RAG = os.getenv("USE_HYBRID_RAG", "").lower() in ("1", "true", "yes")
 HF_TOKEN = os.getenv("HF_TOKEN", "")
+
+# Reranking is opt-in: Qwen3 Reranker 8B bills per candidate token, so it must
+# never be switched on implicitly by a provider change.
+USE_RERANKER = os.getenv("USE_RERANKER", "").lower() in ("1", "true", "yes")
+RERANK_CANDIDATES = int(os.getenv("RERANK_CANDIDATES", "20"))
+RERANK_DOC_CHARS = int(os.getenv("RERANK_DOC_CHARS", "1200"))
 
 # Mirrors src/config.py TIME_DECAY_PENALTY defaults.
 DECAY_DEFAULTS = {
@@ -32,15 +55,42 @@ DECAY_DEFAULTS = {
 }
 
 # Only these column names may be interpolated into SQL.
-_VALID_EMBED_COLUMNS = ("embedding", "embedding_v2")
+_VALID_EMBED_COLUMNS = ("embedding", "embedding_v2", "embedding_fireworks")
+
+# Provider -> vector space mapping. Qwen3 and BGE vectors are NOT comparable, so
+# each provider owns its own column and a query vector is only ever compared
+# against the column of the provider that produced it.
+PROVIDERS = {
+    "fireworks": {"column": "embedding_fireworks", "model": FIREWORKS_EMBEDDING_MODEL},
+    "huggingface": {"column": os.getenv("HF_EMBEDDING_COLUMN", "embedding_v2"),
+                    "model": "BAAI/bge-large-en-v1.5"},
+}
+
+# Order in which providers are attempted. Fireworks is primary when keyed
+# because the HF free tier is the dependency this migration removes; HF stays
+# configured as a secondary so an expired Fireworks balance still degrades to
+# semantic retrieval rather than straight to lexical.
+def _default_provider_order():
+    configured = os.getenv("EMBEDDING_PROVIDER_ORDER", "").strip()
+    if configured:
+        return [p.strip() for p in configured.split(",") if p.strip() in PROVIDERS]
+    primary = os.getenv("EMBEDDING_PRIMARY_PROVIDER", "").strip().lower()
+    if primary not in PROVIDERS:
+        primary = "fireworks" if FIREWORKS_API_KEY else "huggingface"
+    order = [primary] + [p for p in ("fireworks", "huggingface") if p != primary]
+    return order
+
+
+PROVIDER_ORDER = _default_provider_order()
 
 _COLUMNS = "date, country, disaster_type, narrative_text, event_year, lat, lng"
 
 
-def _embed_col():
-    if EMBEDDING_COLUMN not in _VALID_EMBED_COLUMNS:
-        raise ValueError(f"unsafe EMBEDDING_COLUMN: {EMBEDDING_COLUMN!r}")
-    return EMBEDDING_COLUMN
+def _embed_col(column=None):
+    col = column or EMBEDDING_COLUMN
+    if col not in _VALID_EMBED_COLUMNS:
+        raise ValueError(f"unsafe EMBEDDING_COLUMN: {col!r}")
+    return col
 
 
 # ---------------------------------------------------------------------------
@@ -94,52 +144,415 @@ def build_semantic_query(disaster_type: str, country: str, event_year: int, quer
 # Embeddings (Hugging Face router, BAAI/bge-large-en-v1.5)
 # ---------------------------------------------------------------------------
 
+VECTOR_DIM = 1024
+
+# Safe, non-secret failure reasons surfaced in telemetry and logs. The watchdog
+# and any future alerting key off these strings, so keep them stable.
+EMBED_MISSING_TOKEN = "missing_token"
+EMBED_HTTP = "http_error"
+EMBED_TIMEOUT = "timeout"
+EMBED_NETWORK = "network_error"
+EMBED_MALFORMED = "malformed_response"
+EMBED_ZERO_VECTOR = "zero_vector"
+EMBED_WRONG_DIMENSION = "wrong_dimension"
+EMBED_NONFINITE = "nonfinite_vector"
+EMBED_BATCH_MISMATCH = "batch_cardinality_mismatch"
+
+# Only these statuses are worth a retry. 408/429 are throttling/timeouts that
+# clear on their own; 502/503/504 are provider/gateway blips. Everything else
+# (401/402/403 auth/billing, 400/404/405 contract errors) is permanent and must
+# fail fast rather than burn quota or stall the request.
+_HTTP_RETRYABLE = {408, 429, 502, 503, 504}
+
+
+def _validate_vector(vec):
+    """Return (normalized_vector, None) or (None, reason) for a raw embedding.
+
+    Enforces the vector(1024) contract: exactly VECTOR_DIM finite values with a
+    non-zero norm. A zero or wrong-dimension vector silently poisons pgvector
+    similarity, so it is rejected here instead of being written or queried.
+    """
+    if not isinstance(vec, (list, tuple)) or len(vec) != VECTOR_DIM:
+        return None, EMBED_WRONG_DIMENSION
+    try:
+        floats = [float(x) for x in vec]
+    except (TypeError, ValueError):
+        return None, EMBED_NONFINITE
+    if not all(math.isfinite(x) for x in floats):
+        return None, EMBED_NONFINITE
+    norm = math.sqrt(sum(x * x for x in floats))
+    if not math.isfinite(norm) or norm <= 0.0:
+        return None, EMBED_ZERO_VECTOR
+    return [x / norm for x in floats], None
+
+
 def _hf_embed(texts, timeout=24, retries=2):
-    """Return normalized 1024-dim vectors for a list of texts, or None on failure."""
+    """Return (vectors_or_None, failure_info_or_None) for text(s).
+
+    `timeout` is a TOTAL wall-clock budget shared across every attempt (not a
+    per-attempt timeout), so a cold provider can never consume ~2x the
+    orchestrator's 24s ceiling. Permanent 4xx responses are not retried.
+    """
     if not HF_TOKEN:
-        return None
-    body = {"inputs": texts if isinstance(texts, list) else [texts],
+        return None, {"reason": EMBED_MISSING_TOKEN, "http_status": None, "attempts": 0, "elapsed_ms": 0.0}
+
+    is_batch = isinstance(texts, list)
+    body = {"inputs": texts if is_batch else [texts],
             "options": {"wait_for_model": True}}
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+
+    deadline = time.monotonic() + timeout
+    started = time.monotonic()
+    attempts = 0
     last_err = None
-    for attempt in range(retries):
+    last_status = None
+
+    while attempts < retries:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0.05:
+            last_err = EMBED_TIMEOUT
+            break
+        attempts += 1
         try:
-            resp = requests.post(HF_EMBED_URL, headers=headers, json=body, timeout=timeout)
+            resp = requests.post(HF_EMBED_URL, headers=headers, json=body, timeout=remaining)
             if resp.status_code != 200:
-                last_err = f"HTTP {resp.status_code}"
+                last_status = resp.status_code
+                last_err = EMBED_HTTP
+                if resp.status_code not in _HTTP_RETRYABLE:
+                    break
                 continue
-            data = resp.json()
+            try:
+                data = resp.json()
+            except ValueError:
+                last_status = resp.status_code
+                last_err = EMBED_MALFORMED
+                break
             if not isinstance(data, list) or not data:
-                last_err = "malformed response"
+                last_err = EMBED_MALFORMED
                 continue
             out = []
-            for item in (data if isinstance(texts, list) else [data]):
+            bad_reason = None
+            for item in (data if is_batch else [data]):
                 if isinstance(item, list) and item and isinstance(item[0], (int, float)):
                     vec = item
                 elif isinstance(item, list) and item and isinstance(item[0], list):
                     vec = item[0]  # batch outer list
                 else:
                     continue
-                norm = sum(x * x for x in vec) ** 0.5
-                if norm > 0:
-                    out.append([x / norm for x in vec])
-            if out:
-                return out if isinstance(texts, list) else out[0]
-            last_err = "zero vectors produced"
-        except requests.RequestException as e:
-            last_err = f"{type(e).__name__}: {e}"
-    print(f"[retrieval] embedding bridge unavailable ({last_err}); lexical fallback")
-    return None
+                normalized, reason = _validate_vector(vec)
+                if reason:
+                    bad_reason = reason
+                    break
+                out.append(normalized)
+            if bad_reason:
+                last_err = bad_reason
+                break
+            if not out:
+                last_err = EMBED_ZERO_VECTOR
+                continue
+            if is_batch and len(out) != len(texts):
+                last_err = EMBED_BATCH_MISMATCH
+                break
+            return (out if is_batch else out[0]), None
+        except requests.Timeout:
+            last_err = EMBED_TIMEOUT
+        except requests.RequestException:
+            last_err = EMBED_NETWORK
+
+    info = {
+        "reason": last_err or EMBED_NETWORK,
+        "http_status": last_status,
+        "attempts": attempts,
+        "elapsed_ms": round((time.monotonic() - started) * 1000, 1),
+    }
+    print(f"[retrieval] embedding bridge unavailable ({info}); lexical fallback")
+    return None, info
 
 
 def embed_query(text, timeout=24):
-    """Single-text embedding with the BGE instruction prefix."""
-    return _hf_embed(INSTRUCTION_PREFIX + text, timeout=timeout)
+    """Single-text embedding with the BGE instruction prefix, or None on failure.
+
+    Kept for the legacy BGE callers (eval harness / reembed script) that assume
+    the Hugging Face vector space explicitly.
+    """
+    vectors, _ = _hf_embed(INSTRUCTION_PREFIX + text, timeout=timeout)
+    return vectors
 
 
 def embed_many(texts, timeout=60):
-    """Batch embedding; each text gets the BGE instruction prefix."""
-    return _hf_embed([INSTRUCTION_PREFIX + t for t in texts], timeout=timeout)
+    """Batch embedding; each text gets the BGE instruction prefix, or None on failure."""
+    vectors, _ = _hf_embed([INSTRUCTION_PREFIX + t for t in texts], timeout=timeout)
+    return vectors
+
+
+# ---------------------------------------------------------------------------
+# Fireworks AI (Qwen3 Embedding 8B) — OpenAI-compatible /embeddings
+# ---------------------------------------------------------------------------
+
+# Verified against the live API 2026-08-20: response is
+# {"data":[{"index":i,"embedding":[...]}], "usage":{"prompt_tokens":n}, ...}
+# with UNNORMALIZED vectors (observed norm ~68.9), so normalisation happens here.
+FW_QUERY_INSTRUCTION = (
+    "Instruct: Given a disaster scenario, retrieve historical disaster "
+    "narratives describing comparable events and their humanitarian impact\nQuery: "
+)
+
+
+def _fireworks_embed(texts, timeout=24, retries=2, is_query=True):
+    """Return (vectors_or_None, failure_info_or_None) from Fireworks Qwen3.
+
+    Same contract as _hf_embed: one shared wall-clock deadline across attempts,
+    transient statuses only are retried, and every vector must satisfy the
+    vector(1024) contract before it can reach pgvector.
+    """
+    if not FIREWORKS_API_KEY:
+        return None, {"reason": EMBED_MISSING_TOKEN, "http_status": None, "attempts": 0,
+                      "elapsed_ms": 0.0, "provider": "fireworks"}
+
+    is_batch = isinstance(texts, list)
+    items = list(texts) if is_batch else [texts]
+    if is_query:
+        items = [FW_QUERY_INSTRUCTION + t for t in items]
+    body = {
+        "model": FIREWORKS_EMBEDDING_MODEL,
+        "input": items,
+        "dimensions": FIREWORKS_EMBEDDING_DIMENSIONS,
+    }
+    headers = {"Authorization": f"Bearer {FIREWORKS_API_KEY}",
+               "Content-Type": "application/json"}
+
+    deadline = time.monotonic() + timeout
+    started = time.monotonic()
+    attempts = 0
+    last_err = None
+    last_status = None
+    prompt_tokens = None
+
+    while attempts < retries:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0.05:
+            last_err = EMBED_TIMEOUT
+            break
+        attempts += 1
+        try:
+            resp = requests.post(f"{FIREWORKS_BASE_URL}/embeddings", headers=headers,
+                                 json=body, timeout=remaining)
+            if resp.status_code != 200:
+                last_status = resp.status_code
+                last_err = EMBED_HTTP
+                if resp.status_code not in _HTTP_RETRYABLE:
+                    break
+                continue
+            try:
+                payload = resp.json()
+            except ValueError:
+                last_status = resp.status_code
+                last_err = EMBED_MALFORMED
+                break
+            data = payload.get("data") if isinstance(payload, dict) else None
+            if not isinstance(data, list) or not data:
+                last_err = EMBED_MALFORMED
+                break
+            prompt_tokens = (payload.get("usage") or {}).get("prompt_tokens")
+
+            # Fireworks documents an `index` per item; do not trust arrival order.
+            slots = [None] * len(items)
+            bad_reason = None
+            for item in data:
+                if not isinstance(item, dict):
+                    bad_reason = EMBED_MALFORMED
+                    break
+                idx = item.get("index")
+                if not isinstance(idx, int) or not 0 <= idx < len(items) or slots[idx] is not None:
+                    bad_reason = EMBED_BATCH_MISMATCH
+                    break
+                normalized, reason = _validate_vector(item.get("embedding"))
+                if reason:
+                    bad_reason = reason
+                    break
+                slots[idx] = normalized
+            if bad_reason:
+                last_err = bad_reason
+                break
+            if any(v is None for v in slots):
+                last_err = EMBED_BATCH_MISMATCH
+                break
+            # Success still carries usage so the backfill can bill from the
+            # provider's own token count instead of estimating from characters.
+            ok = {"reason": None, "http_status": 200, "attempts": attempts,
+                  "elapsed_ms": round((time.monotonic() - started) * 1000, 1),
+                  "provider": "fireworks", "prompt_tokens": prompt_tokens}
+            return (slots if is_batch else slots[0]), ok
+        except requests.Timeout:
+            last_err = EMBED_TIMEOUT
+        except requests.RequestException:
+            last_err = EMBED_NETWORK
+
+    info = {
+        "reason": last_err or EMBED_NETWORK,
+        "http_status": last_status,
+        "attempts": attempts,
+        "elapsed_ms": round((time.monotonic() - started) * 1000, 1),
+        "provider": "fireworks",
+        "prompt_tokens": prompt_tokens,
+    }
+    print(f"[retrieval] fireworks embedding unavailable ({info})")
+    return None, info
+
+
+# ---------------------------------------------------------------------------
+# Provider-neutral entry point
+# ---------------------------------------------------------------------------
+
+def embed_query_meta(text, timeout=24, provider_order=None):
+    """Embed one query, walking PROVIDER_ORDER until a provider succeeds.
+
+    Returns (vector, meta) where meta always names the provider and the vector
+    column that vector may legally be compared against. On total failure the
+    vector is None and meta carries every provider's sanitized failure reason so
+    the caller can degrade to lexical retrieval and still say why.
+    """
+    order = provider_order or PROVIDER_ORDER
+    deadline = time.monotonic() + timeout
+    failures = []
+
+    for provider in order:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0.2:
+            failures.append({"provider": provider, "reason": EMBED_TIMEOUT,
+                             "http_status": None, "attempts": 0})
+            break
+        if provider == "fireworks":
+            vec, info = _fireworks_embed(text, timeout=remaining)
+        elif provider == "huggingface":
+            vec, info = _hf_embed(INSTRUCTION_PREFIX + text, timeout=remaining)
+            if info is not None:
+                info = dict(info, provider="huggingface")
+        else:
+            continue
+        if vec is not None:
+            return vec, {
+                "provider": provider,
+                "model": PROVIDERS[provider]["model"],
+                "column": PROVIDERS[provider]["column"],
+                "dimensions": len(vec),
+                "prompt_tokens": (info or {}).get("prompt_tokens"),
+                "failures": failures,
+            }
+        failures.append(info)
+
+    return None, {"provider": None, "model": None, "column": None,
+                  "dimensions": None, "failures": failures}
+
+
+def embed_documents_fireworks(texts, timeout=60, retries=3):
+    """Batch document embedding for the Fireworks backfill / ingestion path.
+
+    Documents are embedded WITHOUT the query instruction — Qwen3 is
+    instruction-aware, and the corpus side must stay in the plain-document form
+    the query instruction was designed to retrieve.
+    """
+    return _fireworks_embed(texts, timeout=timeout, retries=retries, is_query=False)
+
+
+# ---------------------------------------------------------------------------
+# Optional second-stage reranking (Fireworks Qwen3 Reranker 8B)
+# ---------------------------------------------------------------------------
+
+# Verified against the live API 2026-08-20: POST /rerank returns
+# {"data":[{"index":i,"relevance_score":f}], "usage":{"prompt_tokens":n}}.
+def rerank(query, documents, top_n=None, timeout=12, retries=2):
+    """Return (ordering, meta): `ordering` is a list of original indices sorted
+    by descending relevance, or None when reranking is unavailable.
+
+    Callers MUST treat None as "keep the existing RRF order" — a reranker outage
+    is never allowed to drop or reorder results arbitrarily.
+    """
+    if not FIREWORKS_API_KEY:
+        return None, {"reason": EMBED_MISSING_TOKEN, "http_status": None, "attempts": 0}
+    if not documents:
+        return [], {"reason": None, "http_status": None, "attempts": 0, "prompt_tokens": 0}
+
+    docs = [(d or "")[:RERANK_DOC_CHARS] for d in documents]
+    body = {
+        "model": FIREWORKS_RERANKER_MODEL,
+        "query": query,
+        "documents": docs,
+        "top_n": top_n or len(docs),
+        "return_documents": False,
+    }
+    headers = {"Authorization": f"Bearer {FIREWORKS_API_KEY}",
+               "Content-Type": "application/json"}
+
+    deadline = time.monotonic() + timeout
+    started = time.monotonic()
+    attempts = 0
+    last_err = None
+    last_status = None
+
+    while attempts < retries:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0.05:
+            last_err = EMBED_TIMEOUT
+            break
+        attempts += 1
+        try:
+            resp = requests.post(f"{FIREWORKS_BASE_URL}/rerank", headers=headers,
+                                 json=body, timeout=remaining)
+            if resp.status_code != 200:
+                last_status = resp.status_code
+                last_err = EMBED_HTTP
+                if resp.status_code not in _HTTP_RETRYABLE:
+                    break
+                continue
+            try:
+                payload = resp.json()
+            except ValueError:
+                last_status = resp.status_code
+                last_err = EMBED_MALFORMED
+                break
+            data = payload.get("data") if isinstance(payload, dict) else None
+            if not isinstance(data, list) or not data:
+                last_err = EMBED_MALFORMED
+                break
+            scored = []
+            for item in data:
+                idx = item.get("index") if isinstance(item, dict) else None
+                score = item.get("relevance_score") if isinstance(item, dict) else None
+                if not isinstance(idx, int) or not 0 <= idx < len(docs):
+                    last_err = EMBED_BATCH_MISMATCH
+                    scored = []
+                    break
+                if not isinstance(score, (int, float)) or not math.isfinite(score):
+                    last_err = EMBED_NONFINITE
+                    scored = []
+                    break
+                scored.append((idx, float(score)))
+            if not scored:
+                break
+            scored.sort(key=lambda p: p[1], reverse=True)
+            return [i for i, _ in scored], {
+                "reason": None,
+                "http_status": 200,
+                "attempts": attempts,
+                "elapsed_ms": round((time.monotonic() - started) * 1000, 1),
+                "prompt_tokens": (payload.get("usage") or {}).get("prompt_tokens"),
+                "candidates": len(docs),
+            }
+        except requests.Timeout:
+            last_err = EMBED_TIMEOUT
+        except requests.RequestException:
+            last_err = EMBED_NETWORK
+
+    info = {
+        "reason": last_err or EMBED_NETWORK,
+        "http_status": last_status,
+        "attempts": attempts,
+        "elapsed_ms": round((time.monotonic() - started) * 1000, 1),
+        "candidates": len(docs),
+    }
+    print(f"[retrieval] reranker unavailable ({info}); keeping RRF order")
+    return None, info
 
 
 # ---------------------------------------------------------------------------
@@ -215,13 +628,13 @@ TIER_ORDER = ["strict", "no_year", "country", "region", "type"]
 # ---------------------------------------------------------------------------
 
 def retrieve_legacy(conn, query_embedding, rw_types, country, event_year, decay_factor,
-                    suggested_alternatives=None):
+                    suggested_alternatives=None, embed_column=None):
     """The pre-upgrade pipeline, ported verbatim from api_orchestrator.py:193-260
     _rag_search(). Multi-pass pgvector cosine + time-decay, lexical fallback.
     Returns (results, suggested_alternatives, meta). Results keep the exact
     historical row shape (8 columns, score at index 7); ids travel in meta.
     """
-    col = _embed_col()
+    col = _embed_col(embed_column)
     cur = conn.cursor()
     try:
         if query_embedding is None:
@@ -283,7 +696,7 @@ def retrieve_legacy(conn, query_embedding, rw_types, country, event_year, decay_
 
 
 def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, event_year,
-                    region_list=(), recency_weight=0.5, top_k=5):
+                    region_list=(), recency_weight=0.5, top_k=5, embed_column=None):
     """Phase 2+3 pipeline: progressive filter relaxation with tier padding,
     then dense + sparse + recency fused with Reciprocal Rank Fusion.
 
@@ -296,12 +709,13 @@ def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, even
     - neither       -> the legacy structured fallback
     Returns (results, suggested_alternatives, meta) with the same row shape.
     """
-    col = _embed_col()
+    col = _embed_col(embed_column)
     valid_ts = _has_terms(tsquery_text)
     cur = conn.cursor()
     try:
         if query_embedding is None and not valid_ts:
-            return retrieve_legacy(conn, None, rw_types, country, event_year, 0.0)
+            return retrieve_legacy(conn, None, rw_types, country, event_year, 0.0,
+                                   embed_column=embed_column)
 
         # 1. Count every tier; base = strictest tier with any rows; pad upward.
         tier_counts = []
@@ -432,14 +846,20 @@ def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, even
 
 def dispatch(conn, query_embedding, tsquery_text, rw_types, country, event_year,
              region_list=(), recency_weight=0.5, top_k=5,
-             decay_factor=None):
-    """USE_HYBRID_RAG-aware entry point used by both the API and eval runner."""
+             decay_factor=None, embed_column=None):
+    """USE_HYBRID_RAG-aware entry point used by both the API and eval runner.
+
+    `embed_column` pins the vector space to the provider that produced
+    `query_embedding`; omitting it falls back to the EMBEDDING_COLUMN default.
+    """
     if USE_HYBRID_RAG:
         return retrieve_hybrid(
             conn, query_embedding, tsquery_text, rw_types, country, event_year,
             region_list=region_list, recency_weight=recency_weight, top_k=top_k,
+            embed_column=embed_column,
         )
-    return retrieve_legacy(conn, query_embedding, rw_types, country, event_year, decay_factor)
+    return retrieve_legacy(conn, query_embedding, rw_types, country, event_year, decay_factor,
+                           embed_column=embed_column)
 
 
 # ---------------------------------------------------------------------------

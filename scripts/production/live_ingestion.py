@@ -11,6 +11,7 @@ from psycopg2.extras import execute_values
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..')))
 from src.config import DATABASE_URL, DB_CONFIG, HF_TOKEN
+import scripts.production.retrieval as retrieval
 
 def get_db_connection():
     if DATABASE_URL:
@@ -29,36 +30,32 @@ def fetch_existing_ids(conn):
     print(f"  [+] Shield loaded {len(existing_ids)} existing recent unique IDs.")
     return existing_ids
 
-def embed_text(text):
-    if not HF_TOKEN:
-        print("[!] Missing HF_TOKEN, cannot embed.")
-        return None
-        
-    hf_api_url = "https://router.huggingface.co/hf-inference/models/BAAI/bge-large-en-v1.5"
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    
-    instruction = "Represent this sentence for searching relevant passages: "
-    full_query = instruction + text
-    
-    try:
-        resp = requests.post(hf_api_url, headers=headers, json={"inputs": full_query, "options": {"wait_for_model": True}})
-        if resp.status_code == 200:
-            embed_result = resp.json()
-            if isinstance(embed_result, list) and len(embed_result) > 0 and isinstance(embed_result[0], list):
-                embed_result = embed_result[0]
-            
-            # Normalize
-            import numpy as np
-            vec = np.array(embed_result, dtype=float)
-            norm = np.linalg.norm(vec)
-            if norm > 0:
-                vec = vec / norm
-            return vec.tolist()
+def embed_document(text):
+    """Embed one narrative for every configured provider.
+
+    Returns {"fireworks": vec|None, "huggingface": vec|None}. Each provider's
+    vector goes to its own column — Qwen3 and BGE are different vector spaces,
+    so one is never substituted for the other. Both use the canonical client in
+    retrieval.py (bounded deadline, no retry on permanent 4xx, strict vector
+    validation) instead of the old bespoke request in this file.
+    """
+    vectors = {"fireworks": None, "huggingface": None}
+
+    if retrieval.FIREWORKS_API_KEY:
+        vec, info = retrieval.embed_documents_fireworks([text], timeout=60)
+        if vec:
+            vectors["fireworks"] = vec[0]
         else:
-            print(f"[-] HF API Error: {resp.text}")
-    except Exception as e:
-        print(f"[-] Request failed: {e}")
-    return None
+            print(f"[-] Fireworks embedding failed: {info}")
+
+    if HF_TOKEN:
+        vec, info = retrieval._hf_embed(retrieval.INSTRUCTION_PREFIX + text, timeout=30)
+        if vec:
+            vectors["huggingface"] = vec
+        else:
+            print(f"[-] HF embedding failed: {info}")
+
+    return vectors
 
 def generate_hash(text):
     return hashlib.md5(text.encode('utf-8')).hexdigest()
@@ -271,29 +268,44 @@ def main():
     all_raw_records.extend(fetch_nasa_eonet())
     
     records_to_insert = []
+    skipped_no_vector = 0
     
     print(f"[*] Fetched {len(all_raw_records)} total records from APIs.")
     
     for rec in all_raw_records:
         if rec["unique_id"] in existing_ids:
             continue
-            
-        embedding = embed_text(rec["semantic_query"])
-        if embedding:
-            records_to_insert.append((
-                rec["date"],
-                rec["country"],
-                rec["disaster_type"],
-                rec["narrative_text"],
-                rec["event_year"],
-                rec["lat"],
-                rec["lng"],
-                embedding,
-                embedding,  # embedding_v2: same vector, so new rows stay visible
-                rec["unique_id"]
-            ))
-            print(f"  [+] Embedded NEW report: {rec['unique_id']}")
-            
+
+        vectors = embed_document(rec["semantic_query"])
+        fw_vec = vectors["fireworks"]
+        hf_vec = vectors["huggingface"]
+
+        # A row is worth keeping if at least one provider produced a vector; the
+        # other column stays NULL until a backfill fills it. FTS/lexical
+        # retrieval still works for rows with a missing vector.
+        if fw_vec is None and hf_vec is None:
+            skipped_no_vector += 1
+            continue
+
+        records_to_insert.append((
+            rec["date"],
+            rec["country"],
+            rec["disaster_type"],
+            rec["narrative_text"],
+            rec["event_year"],
+            rec["lat"],
+            rec["lng"],
+            hf_vec,      # embedding      (BGE space)
+            hf_vec,      # embedding_v2   (BGE space)
+            fw_vec,      # embedding_fireworks (Qwen3 space)
+            rec["unique_id"]
+        ))
+        providers = ",".join(p for p, v in (("fw", fw_vec), ("hf", hf_vec)) if v)
+        print(f"  [+] Embedded NEW report: {rec['unique_id']} [{providers}]")
+
+    if skipped_no_vector:
+        print(f"[!] {skipped_no_vector} record(s) skipped: no provider produced a vector.")
+
     if not records_to_insert:
         print("[!] No new records to insert. Entropy stabilized.")
         conn.close()
@@ -305,7 +317,7 @@ def main():
         cur = conn.cursor()
         
         insert_query = """
-            INSERT INTO disaster_narratives (date, country, disaster_type, narrative_text, event_year, lat, lng, embedding, embedding_v2, unique_id)
+            INSERT INTO disaster_narratives (date, country, disaster_type, narrative_text, event_year, lat, lng, embedding, embedding_v2, embedding_fireworks, unique_id)
             VALUES %s
             ON CONFLICT (unique_id) DO NOTHING
         """
