@@ -62,3 +62,9 @@ archive/*.sql
 eval/.embedding_cache.json
 eval/.reembed_checkpoint.json
 eval/reembed.log
+
+# Fireworks migration transients (provider query cache / backfill checkpoint /
+# cost ledger — derived operational state; authoritative billing is the dashboard)
+eval/.embedding_cache_fireworks.json
+eval/.fireworks_backfill.json
+eval/fireworks_cost_ledger.jsonl

@@ -1,0 +1,1292 @@
+{
+  "hybrid": {
+    "aggregate": {
+      "mode": "hybrid",
+      "n": 32,
+      "recall@5": 0.96875,
+      "recall@3": 0.96875,
+      "mrr": 0.8854166666666666,
+      "ndcg@5": 0.9114583333333334,
+      "latency_ms_p50": 525.5,
+      "latency_ms_p95": 860.0,
+      "provider": "fireworks",
+      "column": "embedding_fireworks"
+    },
+    "per_query": [
+      {
+        "id": "q_beyond500_1",
+        "category": "beyond500",
+        "query_text": "hat million people are exposed to",
+        "relevant": [
+          "d68c179797fc5188e30f6332d41549c7"
+        ],
+        "retrieved": [
+          "daf7867a0e9a3406d6e80420639f9c4e",
+          "13f165165fc907b680dc5abbfba322c5",
+          "d68c179797fc5188e30f6332d41549c7",
+          "2b528fae2c31cc836e0611302a1ad8aa",
+          "a3d90b0cd25462e539f03b7efff2acb8"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg@5": 0.5,
+        "db_ms": 644.3,
+        "meta": {
+          "result_unique_ids": [
+            "daf7867a0e9a3406d6e80420639f9c4e",
+            "13f165165fc907b680dc5abbfba322c5",
+            "d68c179797fc5188e30f6332d41549c7",
+            "2b528fae2c31cc836e0611302a1ad8aa",
+            "a3d90b0cd25462e539f03b7efff2acb8"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 12,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_beyond500_2",
+        "category": "beyond500",
+        "query_text": "mily Links RFL requests homes",
+        "relevant": [
+          "0cdf462911575ae8f9a4e4150ea775ce"
+        ],
+        "retrieved": [
+          "0cdf462911575ae8f9a4e4150ea775ce",
+          "8f8da21c61a837c0b6301166cf9b40f7",
+          "29d1b685664ee2d0da9666890eee51c3",
+          "70762f4191a38230311a14873492a2e2",
+          "c8e710a1f42eb2e83d7cdc0e77de17fc"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 525.5,
+        "meta": {
+          "result_unique_ids": [
+            "0cdf462911575ae8f9a4e4150ea775ce",
+            "8f8da21c61a837c0b6301166cf9b40f7",
+            "29d1b685664ee2d0da9666890eee51c3",
+            "70762f4191a38230311a14873492a2e2",
+            "c8e710a1f42eb2e83d7cdc0e77de17fc"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 29,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_beyond500_3",
+        "category": "beyond500",
+        "query_text": "current Cholera outbreak at",
+        "relevant": [
+          "a77863b3517e4dbf74ef25ae636ec319"
+        ],
+        "retrieved": [
+          "a77863b3517e4dbf74ef25ae636ec319",
+          "afbc68dfc35411dcd6d6849b838d9b49",
+          "d93f9b6fa21ba1d10c997d9c37c115df",
+          "857fc3186133e06cc5d262219d41a7e8",
+          "bf843bc23d25ea5c390ced0932c14524"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 485.3,
+        "meta": {
+          "result_unique_ids": [
+            "a77863b3517e4dbf74ef25ae636ec319",
+            "afbc68dfc35411dcd6d6849b838d9b49",
+            "d93f9b6fa21ba1d10c997d9c37c115df",
+            "857fc3186133e06cc5d262219d41a7e8",
+            "bf843bc23d25ea5c390ced0932c14524"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 8,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_beyond500_4",
+        "category": "beyond500",
+        "query_text": "essing vital health nutrition education and",
+        "relevant": [
+          "0f9af5d70057f54669ecb8f107394e2c"
+        ],
+        "retrieved": [
+          "0f9af5d70057f54669ecb8f107394e2c",
+          "06b3117b6e7f891c81157a39eaf72c35",
+          "40dbf083da37c50a69e2921146ab1c9d",
+          "d4a95e784d3a97e6741721d5215baa07",
+          "e29871bed3ec68b395874bedd974ed02"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 469.6,
+        "meta": {
+          "result_unique_ids": [
+            "0f9af5d70057f54669ecb8f107394e2c",
+            "06b3117b6e7f891c81157a39eaf72c35",
+            "40dbf083da37c50a69e2921146ab1c9d",
+            "d4a95e784d3a97e6741721d5215baa07",
+            "e29871bed3ec68b395874bedd974ed02"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 10,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_beyond500_5",
+        "category": "beyond500",
+        "query_text": "remote areas Access to",
+        "relevant": [
+          "b58baa5afe183433e8bd6a26c806e40f"
+        ],
+        "retrieved": [
+          "b58baa5afe183433e8bd6a26c806e40f",
+          "d6424c61db4ecff852a33491a09c227b",
+          "eeb4cd0e22caeafdc1ed20577fff8b62",
+          "17c4c22f3ea854deca8ccf1f0966f8d9",
+          "6214cf754577620bcd8fd8e44b337006"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 480.1,
+        "meta": {
+          "result_unique_ids": [
+            "b58baa5afe183433e8bd6a26c806e40f",
+            "d6424c61db4ecff852a33491a09c227b",
+            "eeb4cd0e22caeafdc1ed20577fff8b62",
+            "17c4c22f3ea854deca8ccf1f0966f8d9",
+            "6214cf754577620bcd8fd8e44b337006"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 10,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_beyond500_6",
+        "category": "beyond500",
+        "query_text": "nd UN OCHA In",
+        "relevant": [
+          "45e7d580700ebe7ac7a84976605e20e4"
+        ],
+        "retrieved": [
+          "45e7d580700ebe7ac7a84976605e20e4",
+          "d57dab769f76c681ba226e1f40e0a119",
+          "de51ba31cb23867cb64127c9796e853f",
+          "e343d8386628fd5be8ccfb1e73c42fe1",
+          "1f33269b15d1e7fe95ef3d3d6e82a53f"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 480.4,
+        "meta": {
+          "result_unique_ids": [
+            "45e7d580700ebe7ac7a84976605e20e4",
+            "d57dab769f76c681ba226e1f40e0a119",
+            "de51ba31cb23867cb64127c9796e853f",
+            "e343d8386628fd5be8ccfb1e73c42fe1",
+            "1f33269b15d1e7fe95ef3d3d6e82a53f"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 13,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_beyond500_7",
+        "category": "beyond500",
+        "query_text": "all provinces has continued to increase sharply",
+        "relevant": [
+          "edb07399dc7bde0559232b6ff5016e77"
+        ],
+        "retrieved": [
+          "edb07399dc7bde0559232b6ff5016e77",
+          "97cbd58d75a782bba3dabd38d369a923",
+          "cd6edfe3aba62a55748cb5db15207b99",
+          "b7cf51e52266a8e037a45c85a52c5161",
+          "8b57694f8fdb7416705cfa95bbd04cb2"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 594.5,
+        "meta": {
+          "result_unique_ids": [
+            "edb07399dc7bde0559232b6ff5016e77",
+            "97cbd58d75a782bba3dabd38d369a923",
+            "cd6edfe3aba62a55748cb5db15207b99",
+            "b7cf51e52266a8e037a45c85a52c5161",
+            "8b57694f8fdb7416705cfa95bbd04cb2"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 43,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_beyond500_8",
+        "category": "beyond500",
+        "query_text": "TC Amphan in are on",
+        "relevant": [
+          "a12176c1a53523e0db531b33b6ab852d"
+        ],
+        "retrieved": [
+          "c5c121bf77e14634b8c77a34b2557e38",
+          "a12176c1a53523e0db531b33b6ab852d",
+          "ff4878b589a9ff67b2ac6eae0a5a42d7",
+          "5f0d01f35e0bf9672b037b2ea09ccde1",
+          "a574e48b48edf3228fe88d03fb0f69cd"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6666666666666666,
+        "db_ms": 464.3,
+        "meta": {
+          "result_unique_ids": [
+            "c5c121bf77e14634b8c77a34b2557e38",
+            "a12176c1a53523e0db531b33b6ab852d",
+            "ff4878b589a9ff67b2ac6eae0a5a42d7",
+            "5f0d01f35e0bf9672b037b2ea09ccde1",
+            "a574e48b48edf3228fe88d03fb0f69cd"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 12,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_beyond500_9",
+        "category": "beyond500",
+        "query_text": "January heavy rains and",
+        "relevant": [
+          "3e6d66a1d7598ab0b06498b138ba35da"
+        ],
+        "retrieved": [
+          "3e6d66a1d7598ab0b06498b138ba35da",
+          "fbf4df42f1f557da886570cbed13d888",
+          "b25522896bd305c09369964a0fbb1a5c",
+          "5a12061472e6439cec554c4b84d19f92",
+          "9a1a493af8d7c15f29134a17d0bbfbbf"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 471.9,
+        "meta": {
+          "result_unique_ids": [
+            "3e6d66a1d7598ab0b06498b138ba35da",
+            "fbf4df42f1f557da886570cbed13d888",
+            "b25522896bd305c09369964a0fbb1a5c",
+            "5a12061472e6439cec554c4b84d19f92",
+            "9a1a493af8d7c15f29134a17d0bbfbbf"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 6,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_beyond500_10",
+        "category": "beyond500",
+        "query_text": "February polio workers and",
+        "relevant": [
+          "3f0b32e8ff0e8dfe2e3fac3b32f0fb87"
+        ],
+        "retrieved": [
+          "3f0b32e8ff0e8dfe2e3fac3b32f0fb87",
+          "683781cc9ead606d0c86ed7cc91be235",
+          "309715dd7463a8b992243427c69c6de6",
+          "bf46a24be3595241f6ef55915f0685a3",
+          "4f98979fca71eb99e8d06951d08ffb7a"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 493.6,
+        "meta": {
+          "result_unique_ids": [
+            "3f0b32e8ff0e8dfe2e3fac3b32f0fb87",
+            "683781cc9ead606d0c86ed7cc91be235",
+            "309715dd7463a8b992243427c69c6de6",
+            "bf46a24be3595241f6ef55915f0685a3",
+            "4f98979fca71eb99e8d06951d08ffb7a"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 8,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_exact_11",
+        "category": "exact",
+        "query_text": "hurricane katrina new orleans",
+        "relevant": [
+          "5ace3236ef93515e3ee599a399e992e9"
+        ],
+        "retrieved": [
+          "3a4d21b673840da8facc6c5febb2549c",
+          "5ace3236ef93515e3ee599a399e992e9",
+          "29cd0752bfd2687a02c024f4b2994069"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6666666666666666,
+        "db_ms": 534.5,
+        "meta": {
+          "result_unique_ids": [
+            "3a4d21b673840da8facc6c5febb2549c",
+            "5ace3236ef93515e3ee599a399e992e9",
+            "29cd0752bfd2687a02c024f4b2994069"
+          ],
+          "filter_tiers": [
+            "country",
+            "region",
+            "type"
+          ],
+          "filter_tier": "country",
+          "candidate_pool_size": 5,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_exact_12",
+        "category": "exact",
+        "query_text": "sichuan earthquake 2008",
+        "relevant": [
+          "e78627f361d5934b4b3a4399a5c2bc30"
+        ],
+        "retrieved": [
+          "e78627f361d5934b4b3a4399a5c2bc30",
+          "eda8fccea8fa646a73efee99057b2a8b",
+          "93cc44cac77386f539e96a4a7825186d",
+          "e06c86d1253a0c5d5b1de947a78f8580",
+          "cb9cc6acba8cc8e54089d5669a4a545b"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 470.8,
+        "meta": {
+          "result_unique_ids": [
+            "e78627f361d5934b4b3a4399a5c2bc30",
+            "eda8fccea8fa646a73efee99057b2a8b",
+            "93cc44cac77386f539e96a4a7825186d",
+            "e06c86d1253a0c5d5b1de947a78f8580",
+            "cb9cc6acba8cc8e54089d5669a4a545b"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 13,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_exact_13",
+        "category": "exact",
+        "query_text": "cyclone idai mozambique",
+        "relevant": [
+          "1330a80238e57304a9127cf6af1e4a62"
+        ],
+        "retrieved": [
+          "2b528fae2c31cc836e0611302a1ad8aa",
+          "1330a80238e57304a9127cf6af1e4a62",
+          "391c0f5ffab0687262ce14dc220911dc",
+          "06505a7adc61a9a35eb5ff5de3a6ef50",
+          "13f165165fc907b680dc5abbfba322c5"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6666666666666666,
+        "db_ms": 495.7,
+        "meta": {
+          "result_unique_ids": [
+            "2b528fae2c31cc836e0611302a1ad8aa",
+            "1330a80238e57304a9127cf6af1e4a62",
+            "391c0f5ffab0687262ce14dc220911dc",
+            "06505a7adc61a9a35eb5ff5de3a6ef50",
+            "13f165165fc907b680dc5abbfba322c5"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 11,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_exact_14",
+        "category": "exact",
+        "query_text": "cyclone in bangladesh 2007",
+        "relevant": [
+          "d2642aeadb97789831f5daf8ad65ad95"
+        ],
+        "retrieved": [
+          "1aaf1bc1840f040cf94f94ef7461c97c",
+          "d2642aeadb97789831f5daf8ad65ad95",
+          "820d4d39cbcdd155e6035f7386c0fcf4",
+          "b30a4ee887434cb967647d4c8dd47895",
+          "22b3f353f5d839610482ffc301a64fb2"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 0.5,
+        "ndcg@5": 0.6666666666666666,
+        "db_ms": 470.3,
+        "meta": {
+          "result_unique_ids": [
+            "1aaf1bc1840f040cf94f94ef7461c97c",
+            "d2642aeadb97789831f5daf8ad65ad95",
+            "820d4d39cbcdd155e6035f7386c0fcf4",
+            "b30a4ee887434cb967647d4c8dd47895",
+            "22b3f353f5d839610482ffc301a64fb2"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 10,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_exact_15",
+        "category": "exact",
+        "query_text": "kashmir floods 2010",
+        "relevant": [
+          "f374645f47cb48fc1456348b1cc48f57"
+        ],
+        "retrieved": [
+          "f374645f47cb48fc1456348b1cc48f57",
+          "7815cf6cf1a79aa3aa855f0c44d8399a",
+          "83fbf1c956232bd8e8033dcf801f4f7f",
+          "0cad36402fc8bfcfa1d9e977fa8d32e0",
+          "eca03f3abd9ab15ddaa19be8e924f3bb"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 513.0,
+        "meta": {
+          "result_unique_ids": [
+            "f374645f47cb48fc1456348b1cc48f57",
+            "7815cf6cf1a79aa3aa855f0c44d8399a",
+            "83fbf1c956232bd8e8033dcf801f4f7f",
+            "0cad36402fc8bfcfa1d9e977fa8d32e0",
+            "eca03f3abd9ab15ddaa19be8e924f3bb"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 16,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_exact_16",
+        "category": "exact",
+        "query_text": "christchurch earthquake 2011",
+        "relevant": [
+          "f6414d69021a4037fa7861a953afcb66"
+        ],
+        "retrieved": [
+          "f6414d69021a4037fa7861a953afcb66",
+          "usgs_us6000thl3",
+          "usgs_us6000t8t3",
+          "eeb4cd0e22caeafdc1ed20577fff8b62",
+          "b58baa5afe183433e8bd6a26c806e40f"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 600.4,
+        "meta": {
+          "result_unique_ids": [
+            "f6414d69021a4037fa7861a953afcb66",
+            "usgs_us6000thl3",
+            "usgs_us6000t8t3",
+            "eeb4cd0e22caeafdc1ed20577fff8b62",
+            "b58baa5afe183433e8bd6a26c806e40f"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country",
+            "region"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 62,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_exact_17",
+        "category": "exact",
+        "query_text": "japan earthquake tsunami 2011",
+        "relevant": [
+          "f93bca15538d65ef145b41af2a27efc9"
+        ],
+        "retrieved": [
+          "f93bca15538d65ef145b41af2a27efc9",
+          "usgs_us6000t8qd",
+          "usgs_us6000timf",
+          "usgs_us6000tjaj",
+          "usgs_us6000t7zq"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 451.6,
+        "meta": {
+          "result_unique_ids": [
+            "f93bca15538d65ef145b41af2a27efc9",
+            "usgs_us6000t8qd",
+            "usgs_us6000timf",
+            "usgs_us6000tjaj",
+            "usgs_us6000t7zq"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 8,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_exact_18",
+        "category": "exact",
+        "query_text": "bangladesh cyclone bhola 2009",
+        "relevant": [
+          "820d4d39cbcdd155e6035f7386c0fcf4"
+        ],
+        "retrieved": [
+          "820d4d39cbcdd155e6035f7386c0fcf4",
+          "b30a4ee887434cb967647d4c8dd47895",
+          "1aaf1bc1840f040cf94f94ef7461c97c",
+          "d2642aeadb97789831f5daf8ad65ad95",
+          "22b3f353f5d839610482ffc301a64fb2"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 1178.0,
+        "meta": {
+          "result_unique_ids": [
+            "820d4d39cbcdd155e6035f7386c0fcf4",
+            "b30a4ee887434cb967647d4c8dd47895",
+            "1aaf1bc1840f040cf94f94ef7461c97c",
+            "d2642aeadb97789831f5daf8ad65ad95",
+            "22b3f353f5d839610482ffc301a64fb2"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 9,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_smallpool_19",
+        "category": "smallpool",
+        "query_text": "Drought in Moldova",
+        "relevant": [
+          "731cd746b3e7801143a1b4b87ab71a25"
+        ],
+        "retrieved": [
+          "731cd746b3e7801143a1b4b87ab71a25",
+          "6c394ee9257c29569e79ab1df9d58f6a",
+          "9ff0354b4c171330f6e206a5daa78484",
+          "081636794995ea9a63f883df2272a8df",
+          "b7cf51e52266a8e037a45c85a52c5161"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 860.0,
+        "meta": {
+          "result_unique_ids": [
+            "731cd746b3e7801143a1b4b87ab71a25",
+            "6c394ee9257c29569e79ab1df9d58f6a",
+            "9ff0354b4c171330f6e206a5daa78484",
+            "081636794995ea9a63f883df2272a8df",
+            "b7cf51e52266a8e037a45c85a52c5161"
+          ],
+          "filter_tiers": [
+            "no_year",
+            "country",
+            "region",
+            "type"
+          ],
+          "filter_tier": "no_year",
+          "candidate_pool_size": 88,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_smallpool_20",
+        "category": "smallpool",
+        "query_text": "Flash Flood in Saint Lucia",
+        "relevant": [
+          "14a50e63932952979e51876d2fe88789",
+          "58abd6e904d09ee52f77c68b207d763e"
+        ],
+        "retrieved": [
+          "14a50e63932952979e51876d2fe88789",
+          "58abd6e904d09ee52f77c68b207d763e",
+          "c2d7239d7fb1f1a1383a9492e2d8fccb",
+          "ed92f61b82b6c9ab2ece702bab6cc077",
+          "2253741191e7221d87138661c62a351d"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 810.2,
+        "meta": {
+          "result_unique_ids": [
+            "14a50e63932952979e51876d2fe88789",
+            "58abd6e904d09ee52f77c68b207d763e",
+            "c2d7239d7fb1f1a1383a9492e2d8fccb",
+            "ed92f61b82b6c9ab2ece702bab6cc077",
+            "2253741191e7221d87138661c62a351d"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country",
+            "region",
+            "type"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 102,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_smallpool_21",
+        "category": "smallpool",
+        "query_text": "Earthquake in Australia",
+        "relevant": [
+          "ab5b2a9f45802661a56a9a20c404dda6"
+        ],
+        "retrieved": [
+          "ab5b2a9f45802661a56a9a20c404dda6",
+          "0fe0edf3065d4dd6153ad4b28fda4288",
+          "4706acb6a4651d558f84a8d756f4327e",
+          "7cffda9a7e6bbcebe2e31ea3c9f897c1",
+          "7c1405f3e18a9c60e617326f853caf5b"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 739.7,
+        "meta": {
+          "result_unique_ids": [
+            "ab5b2a9f45802661a56a9a20c404dda6",
+            "0fe0edf3065d4dd6153ad4b28fda4288",
+            "4706acb6a4651d558f84a8d756f4327e",
+            "7cffda9a7e6bbcebe2e31ea3c9f897c1",
+            "7c1405f3e18a9c60e617326f853caf5b"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country",
+            "region"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 61,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_smallpool_22",
+        "category": "smallpool",
+        "query_text": "Earthquake in New Zealand",
+        "relevant": [
+          "f6414d69021a4037fa7861a953afcb66",
+          "usgs_us6000t8t3",
+          "usgs_us6000thl3"
+        ],
+        "retrieved": [
+          "usgs_us6000thl3",
+          "usgs_us6000t8t3",
+          "f6414d69021a4037fa7861a953afcb66",
+          "usgs_us6000ti85",
+          "usgs_us6000tkhm"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 799.8,
+        "meta": {
+          "result_unique_ids": [
+            "usgs_us6000thl3",
+            "usgs_us6000t8t3",
+            "f6414d69021a4037fa7861a953afcb66",
+            "usgs_us6000ti85",
+            "usgs_us6000tkhm"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country",
+            "region"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 63,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_smallpool_23",
+        "category": "smallpool",
+        "query_text": "Tropical Cyclone in Micronesia (Federated States of)",
+        "relevant": [
+          "44f423cf698a1748933a09142bad8c7c",
+          "5776ce4d8b94ad075a44002c66dd853f",
+          "6c3af12bf73e3cb3f9c2d91355550922"
+        ],
+        "retrieved": [
+          "6c3af12bf73e3cb3f9c2d91355550922",
+          "44f423cf698a1748933a09142bad8c7c",
+          "5776ce4d8b94ad075a44002c66dd853f",
+          "798f5b9e05c15aea7a852306d8fbe4f9",
+          "ce0baa5147fc71c06c429b1c923c24bf"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 800.9,
+        "meta": {
+          "result_unique_ids": [
+            "6c3af12bf73e3cb3f9c2d91355550922",
+            "44f423cf698a1748933a09142bad8c7c",
+            "5776ce4d8b94ad075a44002c66dd853f",
+            "798f5b9e05c15aea7a852306d8fbe4f9",
+            "ce0baa5147fc71c06c429b1c923c24bf"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country",
+            "region"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 47,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_smallpool_24",
+        "category": "smallpool",
+        "query_text": "Drought in Uzbekistan",
+        "relevant": [
+          "21539c60b7735b81663912b1d4fe02ab",
+          "a34795f8e3c1658687d941c4d25db8c2"
+        ],
+        "retrieved": [
+          "21539c60b7735b81663912b1d4fe02ab",
+          "a34795f8e3c1658687d941c4d25db8c2",
+          "cb72332ec061aaf58785f595a619c04d",
+          "1514baef8d574ef103411de36c5203c3",
+          "7e363579b3d8a613858e928d37d728c8"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 825.8,
+        "meta": {
+          "result_unique_ids": [
+            "21539c60b7735b81663912b1d4fe02ab",
+            "a34795f8e3c1658687d941c4d25db8c2",
+            "cb72332ec061aaf58785f595a619c04d",
+            "1514baef8d574ef103411de36c5203c3",
+            "7e363579b3d8a613858e928d37d728c8"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country",
+            "region",
+            "type"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 93,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_mismatch_25",
+        "category": "mismatch",
+        "query_text": "typhoon winds hitting the coast",
+        "relevant": [
+          "e47faae3dec385cd6fe62634081e3e5e"
+        ],
+        "retrieved": [
+          "e47faae3dec385cd6fe62634081e3e5e",
+          "85bcd82fc77da91a88369862050a7bda",
+          "4b7b9c77778e1485d9ce63af57a09e1d",
+          "23baa5f06a08c268c2cfeff1ecc0935a",
+          "5a46f808285d0415e5b92a90d8cd4f60"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 454.1,
+        "meta": {
+          "result_unique_ids": [
+            "e47faae3dec385cd6fe62634081e3e5e",
+            "85bcd82fc77da91a88369862050a7bda",
+            "4b7b9c77778e1485d9ce63af57a09e1d",
+            "23baa5f06a08c268c2cfeff1ecc0935a",
+            "5a46f808285d0415e5b92a90d8cd4f60"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 30,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_mismatch_26",
+        "category": "mismatch",
+        "query_text": "bushfire smoke and evacuations",
+        "relevant": [
+          "fa0031511a43ef97db222441b3538695"
+        ],
+        "retrieved": [
+          "fa0031511a43ef97db222441b3538695",
+          "f20c8ed6b586702b6cecf214f6cf0f3d",
+          "17f3da0e99ce0533947469f9d916b7d1",
+          "b1deb58c7a0f1f34871879515596e788",
+          "50a674518fb7932455881e695cd337be"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 526.0,
+        "meta": {
+          "result_unique_ids": [
+            "fa0031511a43ef97db222441b3538695",
+            "f20c8ed6b586702b6cecf214f6cf0f3d",
+            "17f3da0e99ce0533947469f9d916b7d1",
+            "b1deb58c7a0f1f34871879515596e788",
+            "50a674518fb7932455881e695cd337be"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 16,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_mismatch_27",
+        "category": "mismatch",
+        "query_text": "wildfire smoke blanketing the city",
+        "relevant": [
+          "nasa_EONET_22610"
+        ],
+        "retrieved": [
+          "nasa_EONET_20737",
+          "nasa_EONET_20759",
+          "nasa_EONET_22212",
+          "nasa_EONET_22209",
+          "nasa_EONET_22208"
+        ],
+        "recall@5": 0.0,
+        "recall@3": 0.0,
+        "mrr": 0.0,
+        "ndcg@5": 0.0,
+        "db_ms": 400.0,
+        "meta": {
+          "result_unique_ids": [
+            "nasa_EONET_20737",
+            "nasa_EONET_20759",
+            "nasa_EONET_22212",
+            "nasa_EONET_22209",
+            "nasa_EONET_22208"
+          ],
+          "filter_tiers": [
+            "strict"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 187,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": false
+        }
+      },
+      {
+        "id": "q_mismatch_28",
+        "category": "mismatch",
+        "query_text": "sudden flash flooding of the valley",
+        "relevant": [
+          "4ab4321d2b06eb4970a2457000cb77af"
+        ],
+        "retrieved": [
+          "4ab4321d2b06eb4970a2457000cb77af",
+          "8801e265282dbebddb636ac96a4c9364",
+          "2cd5a378f91a9892ec206d0559e0cf7c",
+          "e877f2656dd6364f7bb188e1b1112cb0",
+          "d1ed9827d570a1077a372c3d437f1d17"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 498.5,
+        "meta": {
+          "result_unique_ids": [
+            "4ab4321d2b06eb4970a2457000cb77af",
+            "8801e265282dbebddb636ac96a4c9364",
+            "2cd5a378f91a9892ec206d0559e0cf7c",
+            "e877f2656dd6364f7bb188e1b1112cb0",
+            "d1ed9827d570a1077a372c3d437f1d17"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 7,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_mismatch_29",
+        "category": "mismatch",
+        "query_text": "record heatwave temperatures",
+        "relevant": [
+          "2e9bd40148de5a93fd7d487c60476df8"
+        ],
+        "retrieved": [
+          "2e9bd40148de5a93fd7d487c60476df8",
+          "0ed2c316d22b36a363b1cf103033e8ab",
+          "a10adcc34ac7f534e9c8db2377678435",
+          "925d299fb5d4c8c879b645fcb56b9bc2",
+          "85598e1ae6c0d6d2478ca89a0305e101"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 530.8,
+        "meta": {
+          "result_unique_ids": [
+            "2e9bd40148de5a93fd7d487c60476df8",
+            "0ed2c316d22b36a363b1cf103033e8ab",
+            "a10adcc34ac7f534e9c8db2377678435",
+            "925d299fb5d4c8c879b645fcb56b9bc2",
+            "85598e1ae6c0d6d2478ca89a0305e101"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 14,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_mismatch_30",
+        "category": "mismatch",
+        "query_text": "mudslide burying houses",
+        "relevant": [
+          "decfbf69fd62131e40a36ed1007346f7"
+        ],
+        "retrieved": [
+          "decfbf69fd62131e40a36ed1007346f7",
+          "dbfe1e6f0f97ac08cbbf1cea7873c790",
+          "726381e6d97c5b5d959326c033848bdb",
+          "5aa56093eccd6a1ee89941334c24ce6e",
+          "414bb1bba9586c579c2af3fa75c285ac"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 466.0,
+        "meta": {
+          "result_unique_ids": [
+            "decfbf69fd62131e40a36ed1007346f7",
+            "dbfe1e6f0f97ac08cbbf1cea7873c790",
+            "726381e6d97c5b5d959326c033848bdb",
+            "5aa56093eccd6a1ee89941334c24ce6e",
+            "414bb1bba9586c579c2af3fa75c285ac"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 6,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_mismatch_31",
+        "category": "mismatch",
+        "query_text": "coastal storm surge flooding",
+        "relevant": [
+          "abdec75387bab5894d5d6cca26700739"
+        ],
+        "retrieved": [
+          "abdec75387bab5894d5d6cca26700739",
+          "42fe4f49376ebad9111be2051a980d08",
+          "6c13e88cc527fb4c96740aa733214849",
+          "d307140fc22fced75c6a13fb46b5f7ff",
+          "c8f1a80e02cd35f25d14c00cc9994908"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 632.9,
+        "meta": {
+          "result_unique_ids": [
+            "abdec75387bab5894d5d6cca26700739",
+            "42fe4f49376ebad9111be2051a980d08",
+            "6c13e88cc527fb4c96740aa733214849",
+            "d307140fc22fced75c6a13fb46b5f7ff",
+            "c8f1a80e02cd35f25d14c00cc9994908"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country",
+            "region",
+            "type"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 14,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      },
+      {
+        "id": "q_mismatch_32",
+        "category": "mismatch",
+        "query_text": "mudslide after heavy rain",
+        "relevant": [
+          "10d93e70a35879dd9bcef8097fcb506d"
+        ],
+        "retrieved": [
+          "10d93e70a35879dd9bcef8097fcb506d",
+          "ed92f61b82b6c9ab2ece702bab6cc077",
+          "3cf9d527bc1a4fa6ca3563c5bf948126",
+          "1b29dddda093f0dc397a0842b7c62032",
+          "031abf9db3da42958ea40ebe65d34b5b"
+        ],
+        "recall@5": 1.0,
+        "recall@3": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.0,
+        "db_ms": 527.2,
+        "meta": {
+          "result_unique_ids": [
+            "10d93e70a35879dd9bcef8097fcb506d",
+            "ed92f61b82b6c9ab2ece702bab6cc077",
+            "3cf9d527bc1a4fa6ca3563c5bf948126",
+            "1b29dddda093f0dc397a0842b7c62032",
+            "031abf9db3da42958ea40ebe65d34b5b"
+          ],
+          "filter_tiers": [
+            "strict",
+            "no_year",
+            "country"
+          ],
+          "filter_tier": "strict",
+          "candidate_pool_size": 10,
+          "sparse_arm_used": true,
+          "dense_arm_used": true,
+          "recency_weight": 0.5,
+          "padded": true
+        }
+      }
+    ]
+  }
+}

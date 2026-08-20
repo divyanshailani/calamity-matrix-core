@@ -9,6 +9,11 @@ Usage:
       --mode legacy|hybrid|both --baseline          # --baseline freezes the file
   ... --guard                                       # fail if vs baseline.json drops >5%
   ... --recency-weight 0.5 --column embedding|embedding_v2
+  ... --provider fireworks                          # Qwen3 query vectors + its own column
+
+A query vector may only be compared against the column written by the SAME
+provider, so --provider selects both the embedder and (unless --column overrides
+it) the column, and each provider gets its own embedding cache file.
 
 Outputs a markdown-compatible summary to stdout; writes full JSON to
 eval/results/<timestamp>.json.
@@ -27,7 +32,14 @@ import scripts.production.retrieval as R
 
 BASELINE = os.path.join(os.path.dirname(__file__), "..", "..", "eval", "baseline.json")
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "eval", "results")
-CACHE_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "eval", ".embedding_cache.json")
+EVAL_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "eval")
+
+
+def cache_file(provider):
+    """Per-provider cache: Qwen3 and BGE vectors are not interchangeable."""
+    if provider == "huggingface":
+        return os.path.join(EVAL_DIR, ".embedding_cache.json")
+    return os.path.join(EVAL_DIR, f".embedding_cache_{provider}.json")
 
 
 def get_dsn():
@@ -41,27 +53,38 @@ def load_queries(path):
         return json.load(f)
 
 
-def embed_with_cache(queries):
-    """Pre-embed every query's semantic text in ONE batched router call, cached."""
+def embed_with_cache(queries, provider="huggingface"):
+    """Pre-embed every query's semantic text, batched where the provider allows
+    it, cached per provider."""
+    path = cache_file(provider)
     cache = {}
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE) as f:
+    if os.path.exists(path):
+        with open(path) as f:
             cache = json.load(f)
     missing = [q for q in queries if q["id"] not in cache]
     if missing:
         texts = [R.build_semantic_query(q["disaster_type"], q["country"], q["event_year"], q["query_text"])
                  for q in missing]
-        vecs = R.embed_many(texts)
-        if not vecs or len(vecs) != len(missing):
-            print("!! batched embedding failed; falling back per-query", file=sys.stderr)
+        if provider == "fireworks":
             vecs = []
-            for t in texts:
-                v = R.embed_query(t)
-                vecs.append(v)
+            for i in range(0, len(texts), 16):
+                chunk = texts[i:i + 16]
+                got, info = R._fireworks_embed(chunk, timeout=60, retries=3, is_query=True)
+                if not got or len(got) != len(chunk):
+                    sys.exit(f"fireworks embedding failed: {info}")
+                vecs.extend(got)
+        else:
+            vecs = R.embed_many(texts)
+            if not vecs or len(vecs) != len(missing):
+                print("!! batched embedding failed; falling back per-query", file=sys.stderr)
+                vecs = []
+                for t in texts:
+                    v = R.embed_query(t)
+                    vecs.append(v)
         for q, v in zip(missing, vecs):
             if v is not None:
                 cache[q["id"]] = v
-        with open(CACHE_FILE, "w") as f:
+        with open(path, "w") as f:
             json.dump(cache, f)
     return [cache.get(q["id"]) for q in queries]
 
@@ -74,7 +97,7 @@ def dcg_at_k(rel, k):
     return tot
 
 
-def evaluate_queries(queries, embeddings, mode, recency_weight):
+def evaluate_queries(queries, embeddings, mode, recency_weight, embed_column=None):
     conn = psycopg2.connect(get_dsn())
     per_query = []
     try:
@@ -91,12 +114,14 @@ def evaluate_queries(queries, embeddings, mode, recency_weight):
                     conn, query_embedding, fts_text, rw_types, country, event_year,
                     region_list=R.region_members(country),
                     recency_weight=recency_weight, top_k=5,
+                    embed_column=embed_column,
                 )
                 db_ms = (time.monotonic() - t0) * 1000
             else:
                 results, _, meta = R.retrieve_legacy(
                     conn, query_embedding, rw_types, country, event_year,
                     R.decay_factor_for(q["disaster_type"]),
+                    embed_column=embed_column,
                 )
                 db_ms = (time.monotonic() - t0) * 1000
 
@@ -147,8 +172,15 @@ def main():
     ap.add_argument("--recency-weight", type=float, default=0.5)
     ap.add_argument("--dataset", default="eval/retrieval_eval.json")
     ap.add_argument("--column", default=None)
+    ap.add_argument("--provider", choices=["huggingface", "fireworks"], default="huggingface",
+                    help="which embedder produces the query vectors; also selects "
+                         "the matching column unless --column overrides it")
     args = ap.parse_args()
 
+    # Provider isolation: the query vector must be compared against the column
+    # its own provider wrote. --column stays available for A/B within a provider
+    # (e.g. embedding vs embedding_v2, both BGE).
+    embed_column = args.column or R.PROVIDERS[args.provider]["column"]
     if args.column:
         os.environ["EMBEDDING_COLUMN"] = args.column
         # retrieval.py freezes EMBEDDING_COLUMN at import time; the env change
@@ -156,14 +188,22 @@ def main():
         R.EMBEDDING_COLUMN = args.column
 
     queries = load_queries(args.dataset)
-    embeddings = embed_with_cache(queries)
+    embeddings = embed_with_cache(queries, provider=args.provider)
+    missing = sum(1 for e in embeddings if e is None)
+    if missing:
+        sys.exit(f"{missing}/{len(queries)} queries have no embedding; refusing to "
+                 f"report metrics from a partly-lexical run")
     print(f"evaluating {len(queries)} queries, mode={args.mode}, "
-          f"column={R.EMBEDDING_COLUMN}, recency_weight={args.recency_weight}\n")
+          f"provider={args.provider}, column={embed_column}, "
+          f"recency_weight={args.recency_weight}\n")
 
     modes = ["legacy", "hybrid"] if args.mode == "both" else [args.mode]
     results = {}
     for mode in modes:
-        agg, per_query = evaluate_queries(queries, embeddings, mode, args.recency_weight)
+        agg, per_query = evaluate_queries(queries, embeddings, mode, args.recency_weight,
+                                          embed_column=embed_column)
+        agg["provider"] = args.provider
+        agg["column"] = embed_column
         results[mode] = {"aggregate": agg, "per_query": per_query}
         print(f"--- {mode.upper()} ---")
         for m in ("recall@5", "recall@3", "mrr", "ndcg@5"):
@@ -194,7 +234,7 @@ def main():
         print("guard: all metrics within 5% of baseline")
 
     os.makedirs(RESULTS_DIR, exist_ok=True)
-    path = os.path.join(RESULTS_DIR, f"{int(time.time())}_{args.mode}.json")
+    path = os.path.join(RESULTS_DIR, f"{int(time.time())}_{args.mode}_{args.provider}.json")
     with open(path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"\nfull results -> {path}")
