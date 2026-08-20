@@ -43,10 +43,14 @@ __pycache__/
 # Cloud Scripts (Hidden from GitHub)
 scripts/modal_inference.py
 scripts/modal_train.py
+scripts/modal_compute.py
+scripts/production/modal_compute.py
 .agents/
 
 # DevOps automation scripts (contain credentials — NEVER commit)
 *.exp
+run_crawler.sh
+archive/ops/run_crawler.sh
 
 # Infrastructure reference — contains live credentials, keep local only
 INFRASTRUCTURE.md
