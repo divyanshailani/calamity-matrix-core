@@ -115,6 +115,8 @@ def evaluate_queries(queries, embeddings, mode, recency_weight, embed_column=Non
                     region_list=R.region_members(country),
                     recency_weight=recency_weight, top_k=5,
                     embed_column=embed_column,
+                    semantic_query=R.build_semantic_query(q["disaster_type"], country,
+                                                         event_year, q["query_text"]),
                 )
                 db_ms = (time.monotonic() - t0) * 1000
             else:
@@ -157,6 +159,9 @@ def evaluate_queries(queries, embeddings, mode, recency_weight, embed_column=Non
         "ndcg@5": mean("ndcg@5"),
         "latency_ms_p50": lat[len(lat) // 2],
         "latency_ms_p95": lat[int(len(lat) * 0.95)],
+        "reranked_queries": sum(1 for p in per_query if p["meta"].get("reranked")),
+        "rerank_prompt_tokens": sum(p["meta"].get("rerank_prompt_tokens") or 0
+                                   for p in per_query),
     }
     return agg, per_query
 
@@ -209,6 +214,9 @@ def main():
         for m in ("recall@5", "recall@3", "mrr", "ndcg@5"):
             print(f"  {m:<9} {agg[m]:.3f}")
         print(f"  latency  {agg['latency_ms_p50']:.1f}ms p50 / {agg['latency_ms_p95']:.1f}ms p95")
+        if agg.get("reranked_queries"):
+            print(f"  rerank   {agg['reranked_queries']}/{len(queries)} queries, "
+                  f"{agg['rerank_prompt_tokens']} prompt tokens")
         for cat in CATEGORIES:
             rows = [p for p in per_query if p["category"] == cat]
             if rows:

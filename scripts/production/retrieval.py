@@ -21,6 +21,7 @@ import os
 import re
 import time
 
+import pycountry
 import requests
 
 import psycopg2
@@ -99,28 +100,139 @@ def _embed_col(column=None):
 # ---------------------------------------------------------------------------
 
 COUNTRY_ALIASES = {
-    "Turkey": "Türkiye",
-    "Russia": "Russian Federation",
-    "US": "United States of America",
-    "USA": "United States of America",
-    "Vietnam": "Viet Nam",
+    # user input / legacy spelling -> dominant production DB spelling
+    # (verified against the 2026-09-28 country snapshot)
+    'Turkey': 'Türkiye',
+    'Russia': 'Russian Federation',
+    'US': 'United States',
+    'USA': 'United States',
+    'United States of America': 'United States',
+    'Vietnam': 'Viet Nam',
+    'Vet Nam': 'Viet Nam',
+    'Britain': 'United Kingdom',
+    'UK': 'United Kingdom',
+    'Great Britain': 'United Kingdom',
+    'Tanzania': 'United Republic of Tanzania',
+    'Bolivia': 'Bolivia (Plurinational State of)',
+    'Venezuela': 'Venezuela (Bolivarian Republic of)',
+    'Iran': 'Iran (Islamic Republic of)',
+    'North Korea': "Democratic People's Republic of Korea",
+    'South Korea': 'Republic of Korea',
+    'Syria': 'Syrian Arab Republic',
+    'Burma': 'Myanmar',
+    'Czech Republic': 'Czechia',
+    'DR Congo': 'Democratic Republic of the Congo',
+    'Zaire': 'Democratic Republic of the Congo',
+    'Ivory Coast': "Côte d'Ivoire",
+    'Timor Leste': 'Timor-Leste',
 }
+# Canonical spellings actually present in the production DB
+# (snapshot 2026-09-28: 239 distinct values from
+# disaster_narratives.country). Guards the pycountry fuzzy
+# fallback: a fuzzy answer is only accepted if it exists in the
+# DB, otherwise the user input passes through unchanged.
+_DB_COUNTRY_SNAPSHOT = frozenset({
+    'Philippines', 'Indonesia', 'United States', 'Australia',
+    'China', 'Angola', 'Unknown', 'Bangladesh',
+    'Sri Lanka', 'Afghanistan', 'India', 'Viet Nam',
+    'Pakistan', 'Madagascar', 'Papua New Guinea', 'Democratic Republic of the Congo',
+    'Vanuatu', 'Brasil', 'République démocratique du Congo', 'Tajikistan',
+    'Zambia', 'Somalia', 'Myanmar', 'Algeria',
+    'Colombia', 'Peru', 'Nigeria', 'Thailand',
+    'Haiti', 'Nepal', 'Ethiopia', 'Fiji',
+    'Sudan', 'Kenya', 'Solomon Islands', 'Bolivia (Plurinational State of)',
+    'Guatemala', 'Uganda', 'Niger', 'Yemen',
+    'Iran (Islamic Republic of)', 'Mexico', 'South Sudan', 'Ecuador',
+    'United Republic of Tanzania', 'Namibia', 'Cameroon', 'Central African Republic',
+    'Россия', 'Russian Federation', 'Tonga', 'Botswana',
+    'Japan', 'Burundi', 'Mongolia', 'Mozambique',
+    'Chile', 'Kyrgyzstan', 'Argentina', "Democratic People's Republic of Korea",
+    'Malaysia', 'South Africa', 'Benin', 'Syrian Arab Republic',
+    'Alaska', 'Guinea', 'Dominican Republic', 'New Caledonia',
+    'Georgia', 'Brazil', 'Ghana', 'Zimbabwe',
+    'Malawi', 'Moçambique', "Lao People's Democratic Republic (the)", 'Chad',
+    'Honduras', 'Paraguay', 'El Salvador', 'Iraq',
+    'Congo', 'Costa Rica', 'Panama', 'Mali',
+    'Canada', 'Republic of Korea', 'South Sandwich Islands region', 'Senegal',
+    'Rwanda', 'Cuba', 'Serbia', 'Kazakhstan',
+    'Cambodia', 'Tanzania', 'Türkiye', "Côte d'Ivoire",
+    'Burkina Faso', 'Қазақстан', 'Nicaragua', 'Mauritania',
+    'Belize', 'Sierra Leone', 'Ukraine', 'Timor-Leste',
+    'China - Taiwan Province', 'Liberia', 'Morocco', 'ⵍⵣⵣⴰⵢⴻⵔ الجزائر',
+    'the Republic of North Macedonia', 'Venezuela (Bolivarian Republic of)', 'Kermadec Islands region', 'occupied Palestinian territory',
+    'Gabon', 'Lebanon', 'Albania', 'Egypt',
+    'Bosnia and Herzegovina', 'New Zealand', 'Marshall Islands', 'Armenia',
+    'Timor Leste', 'Tunisia', 'Cabo Verde', 'United States of America',
+    'Micronesia (Federated States of)', 'Saint Vincent and the Grenadines', 'Cook Islands', 'southern East Pacific Rise',
+    'Japan region', 'Belarus', 'Lesotho', 'Gambia',
+    'Hungary', 'Guinea-Bissau', 'Samoa', 'Uruguay',
+    'southern Mid-Atlantic Ridge', 'Micronesia', 'Libya', 'Saint Lucia',
+    'Mauritius', 'south of Tonga', 'Kiribati', 'Dominica',
+    'Togo', 'Equatorial Guinea', 'Guyana', 'Eswatini',
+    'South Atlantic Ocean', 'Sao Tome and Principe', 'American Samoa', 'Guam',
+    'Uzbekistan', 'Bolivia', 'south of the Kermadec Islands', 'Bulgaria',
+    'north of Ascension Island', 'Spain', 'Pacific-Antarctic Ridge', 'Reykjanes Ridge',
+    'Venezuela', 'Moldova', 'northern Mid-Atlantic Ridge', 'España',
+    'southeast of the Loyalty Islands', 'Bahamas', 'Северна Македонија', 'Djibouti',
+    'Comoros', 'Scotia Sea', 'Bhutan', 'Trinidad and Tobago',
+    'off the coast of Central America', 'Czechia', 'Suriname', 'Maldives',
+    'Northern Mariana Islands', 'Seychelles', 'Romania', 'Slovenia',
+    'Mariana Islands region', 'Turkmenistan', 'Saudi Arabia', 'southeast Indian Ridge',
+    'Barbados', 'سوريا', 'east central Pacific Ocean', 'Grenada',
+    'Fiji region', 'Israel', 'Antigua and Barbuda', 'Iceland',
+    'British Virgin Islands', 'Jordan', 'Tuvalu', 'Montenegro',
+    'Balleny Islands region', 'България', 'Wallis and Futuna', 'Papua Niugini',
+    'south of the Fiji Islands', 'República Dominicana', 'French Polynesia (France)', 'Taiwan',
+    'central Mid-Atlantic Ridge', 'western Xizang', 'Italy', 'မြန်မာ',
+    'south of Africa', 'Southwest Indian Ridge', 'México', 'Palau',
+    'Galapagos Triple Junction region', 'Vanuatu region', 'northern East Pacific Rise', 'Anguilla',
+    'World', 'Cyprus', 'Kuril Islands', 'Iran',
+    'Dominican Rep.', 'New Zealand region', 'Madeira (Portugal)', 'Nauru',
+    '中国', 'Owen Fracture Zone region', 'Hawaii', 'CA',
+    'Azerbaijan', 'west of Macquarie Island', 'southeast of Easter Island', 'off the coast of Oregon',
+    'Austria', 'France', 'Germany', 'Ireland', 'Lithuania', 'Poland', 'Portugal',
+})
+
+_PC_BY_NAME = {c.name.casefold(): c.name for c in pycountry.countries}
+_ALIASES_CF = {k.casefold(): v for k, v in COUNTRY_ALIASES.items()}
 
 
 def resolve_country(name: str, lower: bool = False):
-    resolved = COUNTRY_ALIASES.get(name, name)
+    """Normalize a user-supplied country name to the DB spelling.
+
+    alias map -> pycountry exact -> guarded pycountry fuzzy ->
+    unchanged. The fuzzy guard only accepts an answer that exists
+    in the DB snapshot, so unknown input degrades to passthrough
+    instead of a pycountry canonical name with zero DB rows.
+    """
+    if not isinstance(name, str) or not name.strip():
+        return name
+    hit = COUNTRY_ALIASES.get(name) or _ALIASES_CF.get(name.casefold(), name)
+    exact = _PC_BY_NAME.get(hit.casefold())
+    if exact in _DB_COUNTRY_SNAPSHOT:
+        resolved = exact
+    else:
+        try:
+            top = pycountry.countries.search_fuzzy(hit)[0]
+        except Exception:  # LookupError on bad input; never crash the API
+            top = None
+        if top is not None and top.name in _DB_COUNTRY_SNAPSHOT:
+            resolved = top.name
+        else:
+            resolved = hit
     return resolved.lower() if lower else resolved
 
 
 RW_TYPE_MAP = {
-    "earthquake": ["Earthquake"],
-    "flood": ["Flood", "Flash Flood"],
+    "earthquake": ["Earthquake", "Tsunami"],
+    "flood": ["Flood", "Flash Flood", "Floods"],
     "extreme temperature": ["Heat Wave", "Cold Wave", "Extreme temperature"],
-    "storm": ["Storm", "Storm Surge", "Tropical Cyclone", "Extratropical Cyclone", "Severe Local Storm"],
+    "storm": ["Storm", "Storm Surge", "Tropical Cyclone", "Extratropical Cyclone",
+             "Severe Local Storm", "Severe Storms", "Hurricane"],
     "mass movement (wet)": ["Mud Slide", "Land Slide", "Mass movement (wet)"],
     "mass movement (dry)": ["Land Slide", "Mass movement (dry)"],
     "volcanic activity": ["Volcano", "Volcanic activity"],
-    "wildfire": ["Wild Fire", "Fire", "Wildfire"],
+    "wildfire": ["Wild Fire", "Fire", "Wildfire", "Wildfires"],
     "drought": ["Drought"],
 }
 
@@ -561,7 +673,7 @@ def rerank(query, documents, top_n=None, timeout=12, retries=2):
 
 TAXONOMY_SYNONYMS = {
     "flood": ["flood", "flooding", "inundation", "deluge", "overflow"],
-    "earthquake": ["earthquake", "seismic", "tremor", "aftershock", "quake"],
+    "earthquake": ["earthquake", "seismic", "tremor", "aftershock", "quake", "tsunami"],
     "storm": ["storm", "cyclone", "typhoon", "hurricane", "surge"],
     "wildfire": ["wildfire", "bushfire", "forest fire", "blaze"],
     "drought": ["drought", "water scarcity", "crop failure"],
@@ -696,7 +808,8 @@ def retrieve_legacy(conn, query_embedding, rw_types, country, event_year, decay_
 
 
 def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, event_year,
-                    region_list=(), recency_weight=0.5, top_k=5, embed_column=None):
+                    region_list=(), recency_weight=0.5, top_k=5, embed_column=None,
+                    semantic_query=None, decay_factor=0.0):
     """Phase 2+3 pipeline: progressive filter relaxation with tier padding,
     then dense + sparse + recency fused with Reciprocal Rank Fusion.
 
@@ -728,21 +841,28 @@ def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, even
         if start is None:
             start = len(tier_counts) - 1
 
-        def run_arms(where_sql, where_params, candidate_limit):
+        def run_arms(where_sql, where_params, candidate_limit, limit=None):
+            if limit is None:
+                limit = top_k
             # Only define (and therefore only bind placeholders for) the arms
             # that are actually usable — an unreferenced CTE still counts its %s
             # against the bind array at parse time, so dead arms would
             # desynchronise binds.
             arm_defs, union_parts, bind = {}, [], []
             if query_embedding is not None:
+                # decay_w is the time-decay multiplier for this arm's RRF score:
+                # GREATEST(0.0, 1.0 - decay*|year diff|). With decay_factor=0 it
+                # is the constant 1.0, so the default path ranks exactly as
+                # before (frozen eval comparability).
                 arm_defs["dense"] = f"""
-                    (SELECT id, ROW_NUMBER() OVER (ORDER BY {col} <=> %s::vector) AS rank
+                    (SELECT id, ROW_NUMBER() OVER (ORDER BY {col} <=> %s::vector) AS rank,
+                            GREATEST(0.0, 1.0 - %s * ABS(event_year - %s)) AS decay_w
                      FROM disaster_narratives WHERE {where_sql} LIMIT {candidate_limit})"""
                 union_parts.append("dense")
-                bind += [query_embedding] + list(where_params)
+                bind += [query_embedding, decay_factor, event_year] + list(where_params)
             if valid_ts:
                 arm_defs["sparse"] = f"""
-                    (SELECT id, ROW_NUMBER() OVER (ORDER BY ts_rank_cd(fts_vector, {TSQUERY_SQL}, 32) DESC) AS rank
+                    (SELECT id, ROW_NUMBER() OVER (ORDER BY ts_rank(fts_vector, {TSQUERY_SQL}, 1|2) DESC) AS rank
                      FROM disaster_narratives WHERE fts_vector @@ {TSQUERY_SQL} AND {where_sql} LIMIT {candidate_limit})"""
                 union_parts.append("sparse")
                 bind += [tsquery_text, tsquery_text] + list(where_params)
@@ -753,12 +873,13 @@ def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, even
             bind += [event_year] + list(where_params)
 
             rank_expr = {
-                "dense": "1.0/(60+rank)",
+                "dense": "1.0/(60+rank) * decay_w",
                 "sparse": "1.0/(60+rank)",
                 "recency": f"{recency_weight}*(1.0/(60+rank))",
             }
             union_sql = " UNION ALL ".join(
-                f"SELECT id, {rank_expr[a]} AS w FROM {a}" for a in union_parts
+                f"SELECT id, {rank_expr[a]}" + (" * decay_w" if a == "dense" else "") + " AS w FROM " + a
+                for a in union_parts
             )
 
             if len(union_parts) == 1:
@@ -767,7 +888,7 @@ def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, even
                     SELECT {_COLUMNS}, 0.0 AS rrf, id, unique_id
                     FROM disaster_narratives WHERE {where_sql}
                     ORDER BY ABS(event_year - %s)
-                    LIMIT {top_k};
+                    LIMIT {limit};
                 """
                 cur.execute(sql, list(where_params) + [event_year])
             else:
@@ -779,24 +900,43 @@ def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, even
                     JOIN disaster_narratives dn ON dn.id = f.id
                     GROUP BY dn.id, dn.{_COLUMNS.replace(', ', ', dn.')}, dn.unique_id
                     ORDER BY rrf DESC
-                    LIMIT {top_k};
+                    LIMIT {limit};
                 """
                 cur.execute(sql, bind)
             return cur.fetchall()
 
-        # 2. Pad: more-specific tiers first, dedupe by id, stop at top_k.
+        # 2. Pad: more-specific tiers first, dedupe by id. The candidate budget
+        # widens when the reranker is on: it reorders the whole pool, so more
+        # candidates can only help.
+        candidate_budget = RERANK_CANDIDATES if (USE_RERANKER and (semantic_query or tsquery_text)) else top_k
         merged, seen, used_tiers, total_pool = [], set(), [], 0
         for tier, n, where_sql, where_params in tier_counts[start:]:
             used_tiers.append(tier)
             total_pool += n
-            for row in run_arms(where_sql, where_params, candidate_limit=30):
+            for row in run_arms(where_sql, where_params, candidate_limit=30, limit=candidate_budget):
                 if row[8] not in seen:
                     seen.add(row[8])
                     merged.append(row)
-            if len(merged) >= top_k:
+            if len(merged) >= candidate_budget:
                 break
 
-        rows = merged[:top_k]
+        candidates = merged[:candidate_budget]
+
+        # Optional second-stage cross-encoder rerank over the merged RRF pool.
+        # Reorders by true query/document relevance; any failure (no key,
+        # network, timeout, malformed response) keeps the RRF order intact.
+        reranked = False
+        rerank_meta = None
+        rerank_query = semantic_query or tsquery_text
+        if USE_RERANKER and rerank_query and len(candidates) > 1:
+            docs = [c[3] for c in candidates]  # narrative_text
+            order, rmeta = rerank(rerank_query, docs, top_n=len(candidates), timeout=10, retries=2)
+            rerank_meta = rmeta
+            if order is not None and len(order) == len(candidates):
+                candidates = [candidates[i] for i in order]
+                reranked = True
+
+        rows = candidates[:top_k]
 
         # Replace the RRF fused score (max ~0.041, meaningless to users) with
         # each row's true cosine similarity to the query embedding. RRF still
@@ -838,6 +978,10 @@ def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, even
             "dense_arm_used": query_embedding is not None,
             "recency_weight": recency_weight,
             "padded": len(used_tiers) > 1,
+            "ranked": "rerank" if reranked else "rrf",
+            "reranked": reranked,
+            "rerank_candidates": len(candidates) if reranked else None,
+            "rerank_prompt_tokens": (rerank_meta or {}).get("prompt_tokens"),
         }
         return results, suggested_alternatives, meta
     finally:
@@ -846,17 +990,20 @@ def retrieve_hybrid(conn, query_embedding, tsquery_text, rw_types, country, even
 
 def dispatch(conn, query_embedding, tsquery_text, rw_types, country, event_year,
              region_list=(), recency_weight=0.5, top_k=5,
-             decay_factor=None, embed_column=None):
+             decay_factor=None, embed_column=None, semantic_query=None):
     """USE_HYBRID_RAG-aware entry point used by both the API and eval runner.
 
     `embed_column` pins the vector space to the provider that produced
     `query_embedding`; omitting it falls back to the EMBEDDING_COLUMN default.
     """
+    if decay_factor is None:
+        decay_factor = 0.0
     if USE_HYBRID_RAG:
         return retrieve_hybrid(
             conn, query_embedding, tsquery_text, rw_types, country, event_year,
             region_list=region_list, recency_weight=recency_weight, top_k=top_k,
-            embed_column=embed_column,
+            embed_column=embed_column, semantic_query=semantic_query,
+            decay_factor=decay_factor,
         )
     return retrieve_legacy(conn, query_embedding, rw_types, country, event_year, decay_factor,
                            embed_column=embed_column)

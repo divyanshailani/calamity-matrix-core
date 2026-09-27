@@ -2,8 +2,9 @@ psycopg2-binary==2.9.12
 fastapi==0.141.1
 uvicorn==0.52.4
 requests==2.34.2
-python-dotenv==1.2.3
+pycountry==26.2.16
 pydantic==2.13.4
+python-dotenv==1.2.3
 openai==1.109.1
 slowapi==0.1.10
 numpy==2.4.6

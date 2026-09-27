@@ -94,7 +94,8 @@ def fetch_reliefweb():
             continue
             
         countries = fields.get("primary_country", [])
-        country = countries[0].get("name") if countries else "Unknown"
+        raw_country = countries[0].get("name") if countries else "Unknown"
+        country = retrieval.resolve_country(raw_country) if raw_country != "Unknown" else "Unknown"
         
         disaster_types = fields.get("disaster_type", [])
         disaster = disaster_types[0].get("name") if disaster_types else "Unknown"
@@ -174,7 +175,7 @@ def fetch_usgs():
         records.append({
             "unique_id": unique_id,
             "date": date_str,
-            "country": place.split(", ")[-1] if ", " in place else place,
+            "country": retrieval.resolve_country(place.split(", ")[-1]) if ", " in place else place,
             "disaster_type": "Earthquake",
             "narrative_text": narrative_text,
             "semantic_query": f"Earthquake in {place} (Year: {event_year}). Additional Context: {narrative_text}",

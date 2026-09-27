@@ -309,6 +309,7 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                 recency_weight=0.5, top_k=5,
                 decay_factor=decay_factor,
                 embed_column=embed_column,
+                semantic_query=master_semantic_query,
             )
         except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
             # Azure silently reaps idle TCP/SSL flows, so a pooled connection
@@ -325,6 +326,7 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                     recency_weight=0.5, top_k=5,
                     decay_factor=decay_factor,
                     embed_column=embed_column,
+                    semantic_query=master_semantic_query,
                 )
             finally:
                 db_pool.putconn(conn)
@@ -411,6 +413,10 @@ def simulate_calamity(request: Request, payload: SimulationRequest):
                     "sparse_arm_used": rag_meta.get("sparse_arm_used"),
                     "dense_arm_used": rag_meta.get("dense_arm_used"),
                     "padded": rag_meta.get("padded"),
+                    "ranked": rag_meta.get("ranked"),
+                    "reranked": rag_meta.get("reranked"),
+                    "rerank_candidates": rag_meta.get("rerank_candidates"),
+                    "rerank_prompt_tokens": rag_meta.get("rerank_prompt_tokens"),
                 }
             }
         }
