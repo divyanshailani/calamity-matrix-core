@@ -733,17 +733,6 @@
   },
   {
     "id": "q_mismatch_66",
-    "query_text": "wildfire smoke blanketing the city",
-    "disaster_type": "Wildfires",
-    "country": "United States",
-    "event_year": 2026,
-    "relevant_unique_ids": [
-      "nasa_EONET_22622"
-    ],
-    "note": "stored type is 'Wildfires', query uses colloquial wording"
-  },
-  {
-    "id": "q_mismatch_67",
     "query_text": "sudden flash flooding of the valley",
     "disaster_type": "Flash Flood",
     "country": "Kazakhstan",
@@ -754,7 +743,7 @@
     "note": "stored type is 'Flash Flood', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_68",
+    "id": "q_mismatch_67",
     "query_text": "record heatwave temperatures",
     "disaster_type": "Heat Wave",
     "country": "Syrian Arab Republic",
@@ -765,7 +754,7 @@
     "note": "stored type is 'Heat Wave', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_69",
+    "id": "q_mismatch_68",
     "query_text": "mudslide burying houses",
     "disaster_type": "Land Slide",
     "country": "Papua New Guinea",
@@ -776,7 +765,7 @@
     "note": "stored type is 'Land Slide', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_70",
+    "id": "q_mismatch_69",
     "query_text": "coastal storm surge flooding",
     "disaster_type": "Storm Surge",
     "country": "Honduras",
@@ -787,7 +776,7 @@
     "note": "stored type is 'Storm Surge', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_71",
+    "id": "q_mismatch_70",
     "query_text": "mudslide after heavy rain",
     "disaster_type": "Mud Slide",
     "country": "Philippines",
@@ -798,7 +787,7 @@
     "note": "stored type is 'Mud Slide', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_72",
+    "id": "q_mismatch_71",
     "query_text": "deep freeze crippling the power grid",
     "disaster_type": "Cold Wave",
     "country": "Mongolia",
@@ -809,7 +798,7 @@
     "note": "stored type is 'Cold Wave', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_73",
+    "id": "q_mismatch_72",
     "query_text": "reservoirs drying up and crops failing",
     "disaster_type": "Drought",
     "country": "Pakistan",
@@ -820,7 +809,7 @@
     "note": "stored type is 'Drought', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_74",
+    "id": "q_mismatch_73",
     "query_text": "outbreak of a deadly disease",
     "disaster_type": "Epidemic",
     "country": "Angola",
@@ -831,7 +820,7 @@
     "note": "stored type is 'Epidemic', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_75",
+    "id": "q_mismatch_74",
     "query_text": "ash cloud forces airport closures",
     "disaster_type": "Volcano",
     "country": "Philippines",
@@ -842,7 +831,7 @@
     "note": "stored type is 'Volcano', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_76",
+    "id": "q_mismatch_75",
     "query_text": "tremor levels hit the city",
     "disaster_type": "Earthquake",
     "country": "Indonesia",
@@ -853,7 +842,7 @@
     "note": "stored type is 'Earthquake', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_77",
+    "id": "q_mismatch_76",
     "query_text": "river bursts its banks downtown",
     "disaster_type": "Flood",
     "country": "Ecuador",
@@ -864,7 +853,7 @@
     "note": "stored type is 'Flood', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_78",
+    "id": "q_mismatch_77",
     "query_text": "harbour waves flood the coastal road",
     "disaster_type": "Tsunami",
     "country": "Indonesia",
@@ -875,7 +864,7 @@
     "note": "stored type is 'Tsunami', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_79",
+    "id": "q_mismatch_78",
     "query_text": "desert locust swarms eat the harvest",
     "disaster_type": "Insect Infestation",
     "country": "Madagascar",
@@ -886,7 +875,7 @@
     "note": "stored type is 'Insect Infestation', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_80",
+    "id": "q_mismatch_79",
     "query_text": "snowslides cut off mountain villages",
     "disaster_type": "Snow Avalanche",
     "country": "Kyrgyzstan",
@@ -897,7 +886,7 @@
     "note": "stored type is 'Snow Avalanche', query uses colloquial wording"
   },
   {
-    "id": "q_mismatch_81",
+    "id": "q_mismatch_80",
     "query_text": "tornado touches down in the suburbs",
     "disaster_type": "Severe Local Storm",
     "country": "Haiti",

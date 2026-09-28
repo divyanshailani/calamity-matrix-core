@@ -714,14 +714,19 @@ def _has_terms(tsquery_text: str) -> bool:
 #  - 345 USGS auto-ingest stubs ("A Magnitude X earthquake occurred in
 #    N km of ...") — ZERO of them carry impact info; they land in top-k
 #    and displace real SITREPs (seen in the 2026-09-28 canary).
+#  - 596 EONET title-stubs ("A <Cat> event titled '...' was recorded on
+#    <date>.") — 73-115 chars, 1/596 carries impact info; the 100-char
+#    floor alone leaves 51 of them alive.
 #  - 879 rows < 100 chars, incl. country-name-only entries ("Philippines"
 #    x14); shortest genuine narrative in the corpus is ~130 chars.
-# The combined filter keeps 2318/3226 rows, all with real content.
 # Single source of truth: eval/build_eval_dataset.py imports this and
 # refuses to build ground truth from rows retrieval will never return.
-NOISE_FLOOR_SQL = ("LENGTH(narrative_text) >= 100 AND NOT "
-                   "(narrative_text LIKE 'A Magnitude %' "
-                   "AND narrative_text LIKE '%earthquake occurred in%')")
+NOISE_FLOOR_SQL = (
+    "LENGTH(narrative_text) >= 100 "
+    "AND NOT (narrative_text LIKE 'A Magnitude %' "
+    "AND narrative_text LIKE '%earthquake occurred in%') "
+    "AND NOT (narrative_text LIKE 'A % event titled % was recorded on %')"
+)
 
 
 def _tier_where(tier: str, rw_types, country, event_year, region_list):

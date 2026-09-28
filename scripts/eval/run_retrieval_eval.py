@@ -30,7 +30,14 @@ import psycopg2
 
 import scripts.production.retrieval as R
 
-BASELINE = os.path.join(os.path.dirname(__file__), "..", "..", "eval", "baseline.json")
+def baseline_path(dataset: str) -> str:
+    """v1 keeps eval/baseline.json; other datasets get baseline_<stem>.json.
+    Freezing/monitoring v2 must not clobber the frozen v1 reference."""
+    stem = os.path.splitext(os.path.basename(dataset))[0]
+    if stem == "retrieval_eval":
+        return os.path.join(os.path.dirname(__file__), "..", "..", "eval", "baseline.json")
+    return os.path.join(os.path.dirname(__file__), "..", "..", "eval", f"baseline_{stem}.json")
+
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "eval", "results")
 EVAL_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "eval")
 
@@ -234,13 +241,13 @@ def main():
     if args.baseline:
         if "legacy" not in results:
             sys.exit("--baseline requires the legacy mode to be run")
-        os.makedirs(os.path.dirname(BASELINE), exist_ok=True)
-        with open(BASELINE, "w") as f:
+        bpath = baseline_path(args.dataset)
+        with open(bpath, "w") as f:
             json.dump(results["legacy"]["aggregate"], f, indent=2, sort_keys=True)
-        print(f"\nbaseline frozen -> {BASELINE}")
+        print(f"\nbaseline frozen -> {bpath}")
 
     if args.guard:
-        with open(BASELINE) as f:
+        with open(baseline_path(args.dataset)) as f:
             base = json.load(f)
         for mode, r in results.items():
             for m in ("recall@5", "recall@3", "mrr", "ndcg@5"):

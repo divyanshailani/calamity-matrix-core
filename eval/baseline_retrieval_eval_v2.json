@@ -1,0 +1,14 @@
+{
+  "column": "embedding_fireworks",
+  "latency_ms_p50": 138.1,
+  "latency_ms_p95": 162.9,
+  "mode": "legacy",
+  "mrr": 0.8854166666666666,
+  "n": 80,
+  "ndcg@5": 0.9032243618450515,
+  "provider": "fireworks",
+  "recall@3": 0.954375,
+  "recall@5": 0.954375,
+  "rerank_prompt_tokens": 0,
+  "reranked_queries": 0
+}
