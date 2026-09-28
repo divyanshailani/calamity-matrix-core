@@ -23,6 +23,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 import psycopg2
+from scripts.production.retrieval import NOISE_FLOOR_SQL
 
 
 def get_dsn():
@@ -90,12 +91,19 @@ def main():
     rng = random.Random(20260818)
     conn = psycopg2.connect(get_dsn())
     cur = conn.cursor()
+    # Shared with retrieval._tier_where: ground truth must come from the same
+    # rows the production filter can actually return. Without this, 2026-09-28
+    # showed small-pool sets enshrining USGS stubs as relevant (q_smallpool_22
+    # expected two "A Magnitude ..." rows the noise floor rightly hides).
+    # NOTE: this execute passes NO params, so the single '%' in the floor is
+    # literal — keep this query param-free.
     cur.execute(
-        """
+        f"""
         SELECT id, unique_id, country, disaster_type, event_year,
                length(narrative_text), narrative_text
         FROM disaster_narratives
         WHERE narrative_text IS NOT NULL AND event_year >= 2000
+          AND {NOISE_FLOOR_SQL}
         """
     )
     rows = [

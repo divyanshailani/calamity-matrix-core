@@ -710,8 +710,23 @@ def _has_terms(tsquery_text: str) -> bool:
 # Filter-tier relaxation (Phase 2). Returns (where_sql, params, label).
 # ---------------------------------------------------------------------------
 
+# Noise floor (measured on prod 2026-09-28, 3226 rows):
+#  - 345 USGS auto-ingest stubs ("A Magnitude X earthquake occurred in
+#    N km of ...") — ZERO of them carry impact info; they land in top-k
+#    and displace real SITREPs (seen in the 2026-09-28 canary).
+#  - 879 rows < 100 chars, incl. country-name-only entries ("Philippines"
+#    x14); shortest genuine narrative in the corpus is ~130 chars.
+# The combined filter keeps 2318/3226 rows, all with real content.
+# Single source of truth: eval/build_eval_dataset.py imports this and
+# refuses to build ground truth from rows retrieval will never return.
+NOISE_FLOOR_SQL = ("LENGTH(narrative_text) >= 100 AND NOT "
+                   "(narrative_text LIKE 'A Magnitude %' "
+                   "AND narrative_text LIKE '%earthquake occurred in%')")
+
+
 def _tier_where(tier: str, rw_types, country, event_year, region_list):
-    base = f"event_year >= {MIN_EVENT_YEAR}"
+    # %% escape: this SQL is always passed to psycopg2 WITH parameters.
+    base = f"event_year >= {MIN_EVENT_YEAR} AND {NOISE_FLOOR_SQL.replace('%', '%%')}"
     if tier == "strict":
         return (f"{base} AND disaster_type = ANY(%s) AND lower(country) = lower(%s) AND event_year = %s",
                 [rw_types, country, event_year])
