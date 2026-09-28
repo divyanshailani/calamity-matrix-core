@@ -1,0 +1,104 @@
+name: Daily API Canary
+
+# Why this exists: /ask_ai was silently 500 for ~6 weeks (Groq retired
+# llama-3.3-70b-versatile on 2026-08-16; nobody probed it until the
+# 2026-09-28 canary). This probes the two user-facing endpoints daily so
+# provider/model/config drift fails loudly on day one. Owner gets GitHub's
+# default failure email; check Actions tab for the step summary.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'  # daily 06:17 UTC (clears the 05:30 Sun ingestion)
+  workflow_dispatch:
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Probe simulate + ask_ai
+        env:
+          API: https://calamity-matrix-api-21d813c1e629.herokuapp.com
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, sys, time, urllib.request
+
+          API = os.environ["API"]
+          fails = []
+
+          def post(path, body, timeout=120, retries=1):
+              req = urllib.request.Request(
+                  API + path,
+                  data=json.dumps(body).encode(),
+                  headers={"Content-Type": "application/json"},
+              )
+              for attempt in range(retries + 1):
+                  try:
+                      with urllib.request.urlopen(req, timeout=timeout) as r:
+                          return r.status, json.load(r)
+                  except Exception as e:
+                      # One cold-start retry (Modal math engine can be cold);
+                      # a 429 here means bot spam, not us - fail loudly.
+                      if attempt < retries:
+                          time.sleep(45)
+                          continue
+                      return None, str(e)
+
+          # --- 1. /simulate_calamity: full math + RAG + rerank path ----------
+          code, d = post("/api/v1/simulate_calamity", {
+              "query_text": "2004 tsunami that killed over 200000 people",
+              "country": "Indonesia", "disaster_type": "Earthquake",
+              "month": 12, "event_year": 2004, "severity": 9.0,
+          })
+          if code != 200:
+              fails.append(f"simulate: HTTP {code} ({d})")
+          else:
+              rag = d.get("telemetry", {}).get("rag_engine", {})
+              if d.get("status") != "success":
+                  fails.append(f"simulate: status={d.get('status')}")
+              if not d.get("historical_context"):
+                  fails.append("simulate: empty historical_context")
+              if rag.get("retrieval_method") != "hybrid_rrf":
+                  fails.append(f"simulate: retrieval_method={rag.get('retrieval_method')} (config drift?)")
+              reranked = rag.get("reranked")
+              summary = (
+                  f"**simulate** HTTP 200 | ctx={len(d.get('historical_context') or [])} "
+                  f"| rerank={reranked} ({rag.get('rerank_candidates')} cands, "
+                  f"{rag.get('rerank_prompt_tokens')} tok) "
+                  f"| top: {(d.get('historical_context') or [{}])[0].get('event_year')}\n"
+              )
+              if not reranked:
+                  # Documented silent RRF fallback: warn, don't go red (a rerank
+                  # blip must not train anyone to ignore a red X).
+                  summary += "WARNING: reranked=false - reranker fell back to RRF\n"
+                  print("::warning::reranked=false - reranker fell back to RRF")
+              with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+                  f.write(summary)
+
+          # --- 2. /ask_ai: LLM layer (what rotted unnoticed for 6 weeks) -----
+          code, d = post("/api/v1/ask_ai", {
+              "query_text": "impact summary",
+              "stream": False,
+              "historical_context": [{
+                  "date": "2004-12-26", "country": "Indonesia",
+                  "disaster_type": "Tsunami", "event_year": 2004,
+                  "text_preview": "On 26 Dec 2004 the fourth-largest earthquake in a century erupted underwater off Aceh, causing a tsunami. More than 228,000 people died in 14 countries.",
+              }],
+              "simulation_parameters": {"country": "Indonesia", "disaster_type": "Earthquake", "event_year": 2004},
+              "math_predictions": {"estimated_affected_population": 6391.0, "estimated_damage_usd_thousands": 268.27},
+          })
+          if code != 200:
+              # model_not_found 404 upstream surfaces as our 500 here - exactly
+              # the Groq-retirement failure mode this canary was built for.
+              fails.append(f"ask_ai: HTTP {code} ({d})")
+          elif len((d.get("response") or "").strip()) < 100:
+              fails.append(f"ask_ai: response too short: {d.get('response')!r}")
+          else:
+              with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+                  f.write(f"**ask_ai** HTTP 200 | {len(d['response'])} chars synthesized\n")
+
+          if fails:
+              print("\n".join(f"::error::{m}" for m in fails))
+              sys.exit(1)
+          print("canary: both endpoints healthy")
+          PYEOF
