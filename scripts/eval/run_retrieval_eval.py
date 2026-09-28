@@ -7,8 +7,9 @@ so the harness cannot drift from production behaviour.
 Usage:
   DATABASE_URL=<dsn> HF_TOKEN=<token> python3 scripts/eval/run_retrieval_eval.py \
       --mode legacy|hybrid|both --baseline          # --baseline freezes the file
-  ... --guard                                       # fail if vs baseline.json drops >5%
+  ... --guard                                       # fail if vs baseline drops >5%
   ... --recency-weight 0.5 --column embedding|embedding_v2
+  ... --dataset eval/retrieval_eval_v2.json         # baseline_<stem>.json resolves
   ... --provider fireworks                          # Qwen3 query vectors + its own column
 
 A query vector may only be compared against the column written by the SAME
