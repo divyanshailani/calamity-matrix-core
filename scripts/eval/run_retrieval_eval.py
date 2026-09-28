@@ -35,11 +35,19 @@ RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "eval", "resul
 EVAL_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "eval")
 
 
-def cache_file(provider):
-    """Per-provider cache: Qwen3 and BGE vectors are not interchangeable."""
-    if provider == "huggingface":
-        return os.path.join(EVAL_DIR, ".embedding_cache.json")
-    return os.path.join(EVAL_DIR, f".embedding_cache_{provider}.json")
+def cache_file(provider, dataset_path=None):
+    """Per-provider cache: Qwen3 and BGE vectors are not interchangeable.
+
+    Per-DATASET too (2026-09-28): v1 and v2 reuse ids like q_beyond500_1 for
+    DIFFERENT queries, so an id-keyed cache shared across datasets would
+    silently embed one set's text and score another's. Default dataset keeps
+    the original filename (byte-identical vectors for the frozen baselines);
+    any other --dataset gets .embedding_cache_<provider>_<stem>.json.
+    """
+    tag = ""
+    if dataset_path and "retrieval_eval.json" not in os.path.basename(dataset_path):
+        tag = "_" + os.path.splitext(os.path.basename(dataset_path))[0]
+    return os.path.join(EVAL_DIR, f".embedding_cache_{provider}{tag}.json")
 
 
 def get_dsn():
@@ -53,10 +61,10 @@ def load_queries(path):
         return json.load(f)
 
 
-def embed_with_cache(queries, provider="huggingface"):
+def embed_with_cache(queries, provider="huggingface", dataset_path=None):
     """Pre-embed every query's semantic text, batched where the provider allows
-    it, cached per provider."""
-    path = cache_file(provider)
+    it, cached per provider+dataset."""
+    path = cache_file(provider, dataset_path)
     cache = {}
     if os.path.exists(path):
         with open(path) as f:
@@ -193,7 +201,7 @@ def main():
         R.EMBEDDING_COLUMN = args.column
 
     queries = load_queries(args.dataset)
-    embeddings = embed_with_cache(queries, provider=args.provider)
+    embeddings = embed_with_cache(queries, provider=args.provider, dataset_path=args.dataset)
     missing = sum(1 for e in embeddings if e is None)
     if missing:
         sys.exit(f"{missing}/{len(queries)} queries have no embedding; refusing to "
