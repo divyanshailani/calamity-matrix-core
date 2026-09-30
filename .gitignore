@@ -55,6 +55,10 @@ archive/ops/run_crawler.sh
 # Infrastructure reference — contains live credentials, keep local only
 INFRASTRUCTURE.md
 
+# Handover/ops docs — credential-location maps, keep local only
+HANDOFF*
+HANDOVER*
+
 # Database dumps — production data, keep local only
 archive/*.sql
 
