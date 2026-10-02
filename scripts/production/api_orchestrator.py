@@ -153,7 +153,7 @@ def health_check():
     return {"status": "alive", "service": "calamity-orchestrator"}
 
 
-@app.get("/ready")
+@app.api_route("/ready", methods=["GET", "HEAD"])
 def readiness_check():
     """Dependency-aware readiness, distinct from the liveness-only /health.
 
